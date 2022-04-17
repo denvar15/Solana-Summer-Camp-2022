@@ -154,7 +154,7 @@ export default function ExampleUI({
 
       {/*
         📑 Maybe display a list of events?
-          (uncomment the event and emit line in YourContract.sol! )
+          (uncomment the event and emit line in ERC1155Lending.sol! )
       */}
       <div style={{ width: 600, margin: "auto", marginTop: 32, paddingBottom: 32 }}>
         <h2>Events:</h2>

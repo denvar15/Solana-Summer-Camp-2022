@@ -6,8 +6,8 @@ import ReactJson from "react-json-view";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
-import { Account, Address, AddressInput, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
-import {INFURA_ID, NETWORK, NETWORKS } from "./constants";
+import { Account, Address, AddressInput, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch, Borrow } from "./components";
+import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
   useBalance,
@@ -23,6 +23,7 @@ import {
 const { BufferList } = require("bl");
 // https://www.npmjs.com/package/ipfs-http-client
 const ipfsAPI = require("ipfs-http-client");
+
 const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
 
 const { ethers } = require("ethers");
@@ -93,8 +94,12 @@ if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
 //
 // attempt to connect to our own scaffold eth rpc and if that fails fall back to infura...
 // Using StaticJsonRpcProvider as the chainId won't change see https://github.com/ethers-io/ethers.js/issues/901
-const scaffoldEthProvider = navigator.onLine ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544") : null;
-const mainnetInfura = navigator.onLine ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID) : null;
+const scaffoldEthProvider = navigator.onLine
+  ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544")
+  : null;
+const mainnetInfura = navigator.onLine
+  ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
+  : null;
 // ( ⚠️ Getting "failed to meet quorum" errors? Check your INFURA_I
 
 // 🏠 Your local provider is usually pointed at your local blockchain
@@ -196,39 +201,111 @@ function App(props) {
   // 📟 Listen for broadcast events
   const transferEvents = useEventListener(readContracts, "YourCollectible", "TransferSingle", localProvider, 1);
 
-  let collectiblesCount = useContractReader(readContracts, "YourCollectible", "getCurrentTokenID");
+  const collectiblesCount = useContractReader(readContracts, "YourCollectible", "getCurrentTokenID");
   const numberCollectiblesCount = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
   const [yourCollectibles, setYourCollectibles] = useState();
+  const [yourCollectibles721, setYourCollectibles721] = useState();
+  const balance = useContractReader(readContracts, "YourCollectible721", "balanceOf", [address]);
+  const yourBalance = balance && balance.toNumber && balance.toNumber();
 
   useEffect(() => {
     const updateCollectibles = async () => {
       const collectiblesUpdate = [];
-    
+
       for (let collectibleIndex = 0; collectibleIndex < numberCollectiblesCount; collectibleIndex++) {
         try {
-          let tokenSupply = await readContracts.YourCollectible.tokenSupply(collectibleIndex);
-          let owned = await readContracts.YourCollectible.balanceOf(address, collectibleIndex);
+          const tokenSupply = await readContracts.YourCollectible.tokenSupply(collectibleIndex);
+          const owned = await readContracts.YourCollectible.balanceOf(address, collectibleIndex);
 
-          let uri = await readContracts.YourCollectible.uri(0); //All tokens have the same base uri
+          let uri = await readContracts.YourCollectible.uri(0); // All tokens have the same base uri
           uri = uri.replace(/{(.*?)}/, collectibleIndex);
           const ipfsHash = uri.replace("https://ipfs.io/ipfs/", "");
           const jsonManifestBuffer = await getFromIPFS(ipfsHash);
 
           try {
-            const jsonManifest =JSON.parse(jsonManifestBuffer.toString());
-            collectiblesUpdate.push({ id: collectibleIndex, supply:tokenSupply, owned:owned, name: jsonManifest.name, description: jsonManifest.description, image:jsonManifest.image });
+            const jsonManifest = JSON.parse(jsonManifestBuffer.toString());
+            collectiblesUpdate.push({
+              id: collectibleIndex,
+              supply: tokenSupply,
+              owned,
+              name: jsonManifest.name,
+              description: jsonManifest.description,
+              image: jsonManifest.image,
+            });
           } catch (e) {
             console.log(e);
           }
-
         } catch (e) {
           console.log(e);
         }
       }
       setYourCollectibles(collectiblesUpdate);
     };
+    /*
+    const updateCollectibles721 = async () => {
+      const collectiblesUpdate = [];
+
+      for (let collectibleIndex = 1; collectibleIndex < numberCollectiblesCount + 1; collectibleIndex++) {
+        try {
+          // const tokenSupply = await readContracts.YourCollectible721.tokenSupply(collectibleIndex);
+          console.log("readContracts", readContracts);
+          const owned = await readContracts.YourCollectible721.balanceOf(address);
+
+          let uri = await readContracts.YourCollectible721.tokenURI(collectibleIndex); // All tokens have the same base uri
+          uri = uri.replace(/{(.*?)}/, collectibleIndex);
+          const ipfsHash = uri.replace("https://ipfs.io/ipfs/", "");
+          const jsonManifestBuffer = await getFromIPFS(ipfsHash);
+          try {
+            const jsonManifest = JSON.parse(jsonManifestBuffer.toString());
+            collectiblesUpdate.push({
+              id: collectibleIndex,
+              owned,
+              name: jsonManifest.name,
+              description: jsonManifest.description,
+              image: jsonManifest.image,
+            });
+          } catch (e) {
+            console.log(e);
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      setYourCollectibles721(collectiblesUpdate);
+      */
+    const updateCollectibles721 = async () => {
+      const collectibleUpdate = [];
+      for (let tokenIndex = 0; tokenIndex < yourBalance; tokenIndex++) {
+        try {
+          console.log("GEtting token index", tokenIndex);
+          let tokenId = await readContracts.YourCollectible721.tokenOfOwnerByIndex(address, tokenIndex);
+          console.log("tokenId", tokenId);
+          tokenId = tokenId.toNumber();
+          const tokenURI = await readContracts.YourCollectible721.tokenURI(tokenId);
+          console.log("tokenURI", tokenURI);
+
+          const ipfsHash = tokenURI.replace("https://ipfs.io/ipfs/", "");
+          console.log("ipfsHash", ipfsHash);
+
+          const jsonManifestBuffer = await getFromIPFS(ipfsHash);
+
+          try {
+            const jsonManifest = JSON.parse(jsonManifestBuffer.toString());
+            console.log("jsonManifest", jsonManifest, tokenId, tokenURI, address);
+            collectibleUpdate.push({ id: tokenId, uri: tokenURI, owner: address, ...jsonManifest });
+          } catch (e) {
+            console.log(e);
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      console.log("AAA", collectibleUpdate);
+      setYourCollectibles721(collectibleUpdate);
+    };
     updateCollectibles();
-  }, [numberCollectiblesCount, yourLocalBalance]);
+    updateCollectibles721();
+  }, [numberCollectiblesCount, yourLocalBalance, yourBalance]);
 
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -248,7 +325,8 @@ function App(props) {
       yourMainnetBalance &&
       readContracts &&
       writeContracts &&
-      mainnetContracts
+      mainnetContracts &&
+      yourBalance
     ) {
       console.log("_____________________________________ 🏗 scaffold-eth _____________________________________");
       console.log("🌎 mainnetProvider", mainnetProvider);
@@ -271,6 +349,7 @@ function App(props) {
     readContracts,
     writeContracts,
     mainnetContracts,
+    yourBalance,
   ]);
 
   let networkDisplay = "";
@@ -448,6 +527,26 @@ function App(props) {
               Debug Contracts
             </Link>
           </Menu.Item>
+          <Menu.Item key="/debugcontracts721">
+            <Link
+              onClick={() => {
+                setRoute("/debugcontracts721");
+              }}
+              to="/debugcontracts721"
+            >
+              Debug Contracts 721
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/borrow">
+            <Link
+              onClick={() => {
+                setRoute("/borrow");
+              }}
+              to="/borrow"
+            >
+              Borrow
+            </Link>
+          </Menu.Item>
         </Menu>
 
         <Switch>
@@ -477,7 +576,6 @@ function App(props) {
                         </div>
                         <div>{item.description}</div>
                       </Card>
-
                       <div>
                         owned: {item.owned.toNumber()} of {item.supply.toNumber()}
                         <AddressInput
@@ -493,12 +591,44 @@ function App(props) {
                         <Button
                           onClick={() => {
                             console.log("writeContracts", writeContracts);
-                            tx(writeContracts.YourCollectible.safeTransferFrom(address, transferToAddresses[id], id, 1, []));
+                            tx(
+                              writeContracts.YourCollectible.safeTransferFrom(
+                                address,
+                                transferToAddresses[id],
+                                id,
+                                1,
+                                [],
+                              ),
+                            );
                           }}
                         >
                           Transfer
                         </Button>
                       </div>
+                    </List.Item>
+                  );
+                }}
+              />
+              <h1>Here 721</h1>
+              <List
+                bordered
+                dataSource={yourCollectibles721}
+                renderItem={item => {
+                  const id = item.id;
+                  return (
+                    <List.Item key={id + "_" + item.uri + "_" + item.owner}>
+                      <Card
+                        title={
+                          <div>
+                            <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                          </div>
+                        }
+                      >
+                        <div>
+                          <img src={item.image} style={{ maxWidth: 150 }} />
+                        </div>
+                        <div>{item.description}</div>
+                      </Card>
                     </List.Item>
                   );
                 }}
@@ -607,6 +737,46 @@ function App(props) {
               address={address}
               blockExplorer={blockExplorer}
             />
+            <Contract
+              name="ERC1155Lending"
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
+          <Route path="/debugcontracts721">
+            <Contract
+              name="YourCollectible721"
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+            <Contract
+              name="ERC721Lending"
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
+          <Route path="/borrow">
+            {readContracts && address && localProvider ? (
+              <Borrow
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                signer={userSigner}
+                price={price}
+              />
+            ) : (
+              ""
+            )}
           </Route>
         </Switch>
       </BrowserRouter>

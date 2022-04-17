@@ -4,40 +4,107 @@ const chalk = require("chalk");
 const { config, ethers } = require("hardhat");
 const { utils } = require("ethers");
 const R = require("ramda");
-const ipfsAPI = require('ipfs-http-client');
-const ipfs = ipfsAPI({host: 'ipfs.infura.io', port: '5001', protocol: 'https' })
+const ipfsAPI = require("ipfs-http-client");
 
-const delayMS = 1000 //sometimes xDAI needs a 6000ms break lol 😅
+const ipfs = ipfsAPI({
+  host: "ipfs.infura.io",
+  port: "5001",
+  protocol: "https",
+});
+
+const delayMS = 1000; // sometimes xDAI needs a 6000ms break lol 😅
 
 const main = async () => {
-
   // ADDRESS TO MINT TO:
-  const toAddress = "0x8760Db2223686B352D4993DEb77A47982C502992"
+  const toAddress = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+  const toAddress2 = "0x3CbFe0a7f518526E8090aC6e0977ed1f1a1Ea149";
 
-  console.log("\n\n 🎫 Minting to "+toAddress+"...\n");
+  console.log("\n\n 🎫 Minting to " + toAddress + "...\n");
 
   const { deployer } = await getNamedAccounts();
   const yourCollectible = await ethers.getContract("YourCollectible", deployer);
 
-  await yourCollectible.mint(toAddress,0,4, [],{gasLimit:400000})
-  await yourCollectible.mint(toAddress,1,10, [],{gasLimit:400000})
-  await yourCollectible.mint(toAddress,2,2, [],{gasLimit:400000})
-  await yourCollectible.mint(toAddress,3,5, [],{gasLimit:400000})
-  await yourCollectible.mint(toAddress,4,6, [],{gasLimit:400000})
-  await yourCollectible.mint(toAddress,5,1, [],{gasLimit:400000})
+  await yourCollectible.mint(toAddress, 0, 4, [], { gasLimit: 400000 });
+  await yourCollectible.mint(toAddress2, 1, 10, [], { gasLimit: 400000 });
+  // await yourCollectible.mint(toAddress, 2, 2, [], { gasLimit: 400000 });
+  // await yourCollectible.mint(toAddress, 3, 5, [], { gasLimit: 400000 });
+  // await yourCollectible.mint(toAddress, 4, 6, [], { gasLimit: 400000 });
+  // await yourCollectible.mint(toAddress, 5, 1, [], { gasLimit: 400000 });
 
-  await sleep(delayMS)
+  await sleep(delayMS);
+
+  const yourCollectible721 = await ethers.getContract(
+    "YourCollectible721",
+    deployer
+  );
+
+  const buffalo = {
+    description: "It's actually a bison?",
+    external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
+    image: "https://austingriffith.com/images/paintings/buffalo.jpg",
+    name: "Buffalo",
+    attributes: [
+      {
+        trait_type: "BackgroundColor",
+        value: "green",
+      },
+      {
+        trait_type: "Eyes",
+        value: "googly",
+      },
+      {
+        trait_type: "Stamina",
+        value: 42,
+      },
+    ],
+  };
+  console.log("Uploading buffalo...");
+  const uploaded = await ipfs.add(JSON.stringify(buffalo));
+
+  console.log("Minting buffalo with IPFS hash (" + uploaded.path + ")");
+  await yourCollectible721.mintItem(toAddress, uploaded.path, {
+    gasLimit: 400000,
+  });
+
+  await sleep(delayMS);
+
+  const zebra = {
+    description: "What is it so worried about?",
+    external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
+    image: "https://austingriffith.com/images/paintings/zebra.jpg",
+    name: "Zebra",
+    attributes: [
+      {
+        trait_type: "BackgroundColor",
+        value: "blue",
+      },
+      {
+        trait_type: "Eyes",
+        value: "googly",
+      },
+      {
+        trait_type: "Stamina",
+        value: 38,
+      },
+    ],
+  };
+  console.log("Uploading zebra...");
+  const uploadedzebra = await ipfs.add(JSON.stringify(zebra));
+
+  console.log("Minting zebra with IPFS hash (" + uploadedzebra.path + ")");
+  await yourCollectible721.mintItem(toAddress2, uploadedzebra.path, {
+    gasLimit: 400000,
+  });
 
   // console.log("Transferring Ownership of YourCollectible to "+toAddress+"...")
 
   // await yourCollectible.transferOwnership(toAddress)
 
   // await sleep(delayMS)
-
 };
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 main()
