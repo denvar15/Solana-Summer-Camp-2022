@@ -2,11 +2,13 @@ import { Card, Col, Button, Input, Row, List } from "antd";
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
+import { AddressInput } from "./index";
 
 const { BufferList } = require("bl");
 const ipfsAPI = require("ipfs-http-client");
 
 const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+
 const contractName = "Barter";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
@@ -22,13 +24,14 @@ const getFromIPFS = async hashToGet => {
   }
 };
 
-export default function Borrow(props) {
+export default function Lend(props) {
   const display = [];
 
   const [values, setValues] = useState({});
   const [yourCollectibles721, setYourCollectibles721] = useState();
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
+
   const tx = props.tx;
 
   const writeContracts = props.writeContracts;
@@ -83,7 +86,7 @@ export default function Borrow(props) {
                 newValues[title] = e.target.value;
                 setValues(newValues);
               }}
-              placeholder="Адрес желаемого токена"
+              placeholder="Адрес предлагаемого токена"
               value={values[title]}
             />
             <Input
@@ -92,7 +95,7 @@ export default function Borrow(props) {
                 newValues[title + 1] = e.target.value;
                 setValues(newValues);
               }}
-              placeholder="id желаемого токена"
+              placeholder="id предлагаемого токена"
               value={values[title + 1]}
             />
             <Input
@@ -101,7 +104,7 @@ export default function Borrow(props) {
                 newValues[title + 2] = e.target.value;
                 setValues(newValues);
               }}
-              placeholder="Адрес предлагаемого токена"
+              placeholder="Длительность действия предложения в часах"
               value={values[title + 2]}
             />
             <Input
@@ -110,7 +113,7 @@ export default function Borrow(props) {
                 newValues[title + 3] = e.target.value;
                 setValues(newValues);
               }}
-              placeholder="id предлагаемого токена"
+              placeholder="Адрес желаемого токена"
               value={values[title + 3]}
             />
             <Input
@@ -119,7 +122,7 @@ export default function Borrow(props) {
                 newValues[title + 4] = e.target.value;
                 setValues(newValues);
               }}
-              placeholder="Стандарт желаемого токена"
+              placeholder="id желаемого токена"
               value={values[title + 4]}
             />
             <Input
@@ -130,6 +133,15 @@ export default function Borrow(props) {
               }}
               placeholder="Стандарт предлагаемого токена"
               value={values[title + 5]}
+            />
+            <Input
+              onChange={e => {
+                const newValues = { ...values };
+                newValues[title + 6] = e.target.value;
+                setValues(newValues);
+              }}
+              placeholder="Стандарт желаемого токена"
+              value={values[title + 6]}
               addonAfter={
                 <div
                   type="default"
@@ -141,7 +153,62 @@ export default function Borrow(props) {
                       values[title + 3],
                       values[title + 4],
                       values[title + 5],
+                      values[title + 6],
                     );
+                    const newValues = { ...values };
+                    newValues[title] = "";
+                    setValues(newValues);
+                  }}
+                >
+                  {icon}
+                </div>
+              }
+            />
+          </div>
+        </Col>
+      </Row>
+    );
+  };
+
+  const rowFormLendSettings = (title, icon, onClick) => {
+    return (
+      <Row>
+        <Col span={8} style={{ textAlign: "center", paddingRight: 6, fontSize: 24 }}>
+          {title}
+        </Col>
+        <Col span={16}>
+          <div style={{ cursor: "pointer", margin: 2 }}>
+            <Input
+              onChange={e => {
+                const newValues = { ...values };
+                newValues[title] = e.target.value;
+                setValues(newValues);
+              }}
+              placeholder="Адрес предлагаемого токена"
+              value={values[title]}
+            />
+            <Input
+              onChange={e => {
+                const newValues = { ...values };
+                newValues[title + 1] = e.target.value;
+                setValues(newValues);
+              }}
+              placeholder="id предлагаемого токена"
+              value={values[title + 1]}
+            />
+            <Input
+              onChange={e => {
+                const newValues = { ...values };
+                newValues[title + 2] = e.target.value;
+                setValues(newValues);
+              }}
+              placeholder="Стандарт предлагаемого токена"
+              value={values[title + 2]}
+              addonAfter={
+                <div
+                  type="default"
+                  onClick={() => {
+                    onClick(values[title], values[title + 1], values[title + 2]);
                     const newValues = { ...values };
                     newValues[title] = "";
                     setValues(newValues);
@@ -209,179 +276,145 @@ export default function Borrow(props) {
     display.push(
       <div>
         {rowForm(
-          "makeOffer",
+          "startBartering",
           "📤📤",
-          async (addressFirst, tokenIdFirst, addressSecond, tokenIdSecond, wantedTokenStandard, offerTokenStandard) => {
+          async (
+            addressFirst,
+            tokenIdFirst,
+            duration,
+            addressSecond,
+            tokenIdSecond,
+            tokenStandard,
+            acceptedTokenStandard,
+          ) => {
             if (selectedWantedNFT) {
-              addressFirst = selectedWantedNFT.address;
-              tokenIdFirst = selectedWantedNFT.id;
-              wantedTokenStandard = selectedWantedNFT.standard;
+              addressSecond = selectedWantedNFT.address;
+              tokenIdSecond = selectedWantedNFT.id;
+              acceptedTokenStandard = selectedWantedNFT.standard;
+              console.log(selectedWantedNFT);
             }
             if (selectedOfferNFT) {
-              addressSecond = selectedOfferNFT.address;
-              tokenIdSecond = selectedOfferNFT.id;
-              offerTokenStandard = selectedOfferNFT.standard;
+              addressFirst = selectedOfferNFT.address;
+              tokenIdFirst = selectedOfferNFT.id;
+              tokenStandard = selectedOfferNFT.standard;
             }
-            if (offerTokenStandard == 1155) {
+            if (tokenStandard == 1155) {
               await setApproval1155();
-            } else if (offerTokenStandard == 721) {
+            } else if (tokenStandard == 721) {
               await setApproval721();
             }
-            console.log(
-              addressFirst,
-              tokenIdFirst,
-              addressSecond,
-              tokenIdSecond,
-              wantedTokenStandard,
-              offerTokenStandard,
-            );
             const setTx = await tx(
-              writeContracts[contractName].makeOffer(
+              writeContracts[contractName].startBartering(
                 addressFirst,
                 tokenIdFirst,
+                duration,
                 addressSecond,
                 tokenIdSecond,
-                wantedTokenStandard,
-                offerTokenStandard,
+                tokenStandard,
+                acceptedTokenStandard,
               ),
             );
             const setTxResult = await setTx;
-            console.log("makeOffer result", setTxResult);
+            console.log("startBartering result", setTxResult);
           },
         )}
+
+        {rowFormLendSettings("approveBarter", "📥📥", async (address, tokenId, tokenStandard) => {
+          const setTx = await tx(writeContracts[contractName].approveBarter(address, tokenId, tokenStandard));
+          const setTxResult = await setTx;
+          console.log("approveBarter result", setTxResult);
+        })}
       </div>,
     );
   }
 
   return (
-    <Row>
-      <Col span={3}> </Col>
-      <Col span={18}>
-        <Card
-          title={
-            <div>
-              <div style={{ fontSize: 24 }}>Borrow</div>
-            </div>
-          }
-          size="large"
-          loading={false}
-        >
-          {display}
-        </Card>
-      </Col>
-      <Col span={3}> </Col>
-      {/*
-      <List
-        style={{ marginLeft: "50%" }}
-        bordered
-        dataSource={props.yourCollectibles}
-        renderItem={item => {
-          const id = item.id;
-          return (
-            <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-              <Card
-                title={
-                  <div>
-                    <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                  </div>
-                }
-              >
-                <div>
-                  <img src={item.image} style={{ maxWidth: 150 }} onClick={selectNFT.bind(this, item)} />
-                </div>
-                <div>{item.description}</div>
-              </Card>
-            </List.Item>
-          );
-        }}
-      />
-      <List
-        style={{ marginLeft: "50%" }}
-        bordered
-        dataSource={yourCollectibles721}
-        renderItem={item => {
-          const id = item.id;
-          return (
-            <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-              <Card
-                title={
-                  <div>
-                    <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                  </div>
-                }
-              >
-                <div>
-                  <img src={item.image} style={{ maxWidth: 150 }} onClick={selectNFT.bind(this, item)} />
-                </div>
-                <div>{item.description}</div>
-              </Card>
-            </List.Item>
-          );
-        }}
-      /> */}
-      <Col span={6}>
-        <h1>Wanted 1155</h1>
-        <List
-          style={{ marginLeft: "50%" }}
-          bordered
-          dataSource={props.yourCollectibles}
-          renderItem={item => {
-            const id = item.id;
-            return (
-              <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-                <Card
-                  title={
+    <div>
+      <Row>
+        <Col span={3}> </Col>
+        <Col span={18}>
+          <Card
+            title={
+              <div>
+                <div style={{ fontSize: 24 }}>Lend</div>
+              </div>
+            }
+            size="large"
+            loading={false}
+          >
+            {display}
+          </Card>
+        </Col>
+        <Col span={3}> </Col>
+        {/*  <Button style={{ marginLeft: "50%" }} onClick={setApproval1155.bind(this)}>
+          Approve NFT 1155
+        </Button>
+        <Button style={{ marginLeft: "50%" }} onClick={setApproval721.bind(this)}>
+          Approve NFT 721
+        </Button>*/}
+
+        <Col span={6}>
+          <h1>Wanted 1155</h1>
+          <List
+            style={{ marginLeft: "50%" }}
+            bordered
+            dataSource={props.yourCollectibles}
+            renderItem={item => {
+              const id = item.id;
+              return (
+                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      </div>
+                    }
+                  >
                     <div>
-                      <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
                     </div>
-                  }
-                >
-                  <div>
-                    <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                  </div>
-                  <div>{item.description}</div>
-                </Card>
-              </List.Item>
-            );
-          }}
-        />
-      </Col>
-      <Col span={6}>
-        <h1>Wanted 721</h1>
-        <List
-          style={{ marginLeft: "50%" }}
-          bordered
-          dataSource={yourCollectibles721}
-          renderItem={item => {
-            const id = item.id;
-            return (
-              <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-                <Card
-                  title={
+                    <div>{item.description}</div>
+                  </Card>
+                </List.Item>
+              );
+            }}
+          />
+        </Col>
+        <Col span={6}>
+          <h1>Wanted 721</h1>
+          <List
+            style={{ marginLeft: "50%" }}
+            bordered
+            dataSource={yourCollectibles721}
+            renderItem={item => {
+              const id = item.id;
+              return (
+                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      </div>
+                    }
+                  >
                     <div>
-                      <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
                     </div>
-                  }
-                >
-                  <div>
-                    <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                  </div>
-                  <div>{item.description}</div>
-                </Card>
-              </List.Item>
-            );
-          }}
-        />
-      </Col>
-      <Col span={6}>
-        <h1>Offer 1155</h1>
-        <List
-          style={{ marginLeft: "50%" }}
-          bordered
-          dataSource={props.yourCollectibles}
-          renderItem={item => {
-            const id = item.id;
-            if (item.owned.toNumber() > 0) {
+                    <div>{item.description}</div>
+                  </Card>
+                </List.Item>
+              );
+            }}
+          />
+        </Col>
+        <Col span={6}>
+          <h1>Offer 1155</h1>
+          <List
+            style={{ marginLeft: "50%" }}
+            bordered
+            dataSource={props.yourCollectibles}
+            renderItem={item => {
+              const id = item.id;
               return (
                 <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri + "offer"}>
                   <Card
@@ -398,38 +431,37 @@ export default function Borrow(props) {
                   </Card>
                 </List.Item>
               );
-            }
-            return <div> </div>;
-          }}
-        />
-      </Col>
-      <Col span={6}>
-        <h1>Offer 721</h1>
-        <List
-          style={{ marginLeft: "50%" }}
-          bordered
-          dataSource={props.yourCollectibles721}
-          renderItem={item => {
-            const id = item.id;
-            return (
-              <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri + "offer"}>
-                <Card
-                  title={
+            }}
+          />
+        </Col>
+        <Col span={6}>
+          <h1>Offer 721</h1>
+          <List
+            style={{ marginLeft: "50%" }}
+            bordered
+            dataSource={props.yourCollectibles721}
+            renderItem={item => {
+              const id = item.id;
+              return (
+                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri + "offer"}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      </div>
+                    }
+                  >
                     <div>
-                      <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
                     </div>
-                  }
-                >
-                  <div>
-                    <img src={item.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
-                  </div>
-                  <div>{item.description}</div>
-                </Card>
-              </List.Item>
-            );
-          }}
-        />
-      </Col>
-    </Row>
+                    <div>{item.description}</div>
+                  </Card>
+                </List.Item>
+              );
+            }}
+          />
+        </Col>
+      </Row>
+    </div>
   );
 }

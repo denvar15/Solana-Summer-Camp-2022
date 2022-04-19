@@ -67,7 +67,6 @@ contract ERC1155Lending is ERC1155Receiver, Ownable {
 
             emit ERC1155ForLendUpdated(wantedToken);
         } else {
-            address lender = lentERC1155List[token].lender;
             IERC1155(token).safeTransferFrom(address(this), msg.sender, tokenId, 1, data);
         }
     }

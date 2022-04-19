@@ -16,8 +16,8 @@ const delayMS = 1000; // sometimes xDAI needs a 6000ms break lol 😅
 
 const main = async () => {
   // ADDRESS TO MINT TO:
-  const toAddress = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
-  const toAddress2 = "0x3CbFe0a7f518526E8090aC6e0977ed1f1a1Ea149";
+  const toAddress = "0xe45Ba4475C256d713B6A20C7d2552D3793e37854";
+  const toAddress2 = "0x969DbAA2F07a3bC5200BBcb9602F7c2630c898a0";
 
   console.log("\n\n 🎫 Minting to " + toAddress + "...\n");
 
@@ -41,7 +41,7 @@ const main = async () => {
   const buffalo = {
     description: "It's actually a bison?",
     external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
-    image: "https://austingriffith.com/images/paintings/buffalo.jpg",
+    image: "https://sun9-85.userapi.com/s/v1/if1/sIZa6xkZqOYGxZ9hsBGl7F7ybidrMOJRapgweYYjZWJKBUxl4Ddcw4tubcRXza9rWgsexfSy.jpg?size=450x447&quality=96&type=album",
     name: "Buffalo",
     attributes: [
       {
@@ -71,7 +71,7 @@ const main = async () => {
   const zebra = {
     description: "What is it so worried about?",
     external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
-    image: "https://austingriffith.com/images/paintings/zebra.jpg",
+    image: "https://sun9-80.userapi.com/s/v1/if1/YkZQogx1oqngegXi8wP2iznpztUiTmforKH5WHwkX6Qmu7O1G3ji2Mpyq-hMvUHP5B7YGQ35.jpg?size=2560x1898&quality=96&type=album",
     name: "Zebra",
     attributes: [
       {

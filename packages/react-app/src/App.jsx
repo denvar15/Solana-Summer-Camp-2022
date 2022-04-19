@@ -6,7 +6,19 @@ import ReactJson from "react-json-view";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
-import { Account, Address, AddressInput, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch, Borrow } from "./components";
+import {
+  Account,
+  Address,
+  AddressInput,
+  Contract,
+  Faucet,
+  GasGauge,
+  Header,
+  Ramp,
+  ThemeSwitch,
+  Lend,
+  Borrow,
+} from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
@@ -76,19 +88,19 @@ const STARTING_JSON = {
 // you usually go content.toString() after this...
 const getFromIPFS = async hashToGet => {
   for await (const file of ipfs.get(hashToGet)) {
-    console.log(file.path);
     if (!file.content) continue;
     const content = new BufferList();
     for await (const chunk of file.content) {
       content.append(chunk);
     }
-    console.log(content);
     return content;
   }
 };
 
 // 🛰 providers
-if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
+
+// if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
+
 // const mainnetProvider = getDefaultProvider("mainnet", { infura: INFURA_ID, etherscan: ETHERSCAN_KEY, quorum: 1 });
 // const mainnetProvider = new InfuraProvider("mainnet",INFURA_ID);
 //
@@ -106,7 +118,7 @@ const mainnetInfura = navigator.onLine
 const localProviderUrl = targetNetwork.rpcUrl;
 // as you deploy to other networks you can set REACT_APP_PROVIDER=https://dai.poa.network in packages/react-app/.env
 const localProviderUrlFromEnv = process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : localProviderUrl;
-if (DEBUG) console.log("🏠 Connecting to provider:", localProviderUrlFromEnv);
+// if (DEBUG) console.log("🏠 Connecting to provider:", localProviderUrlFromEnv);
 const localProvider = new ethers.providers.StaticJsonRpcProvider(localProviderUrlFromEnv);
 
 // 🔭 block explorer URL
@@ -190,7 +202,7 @@ function App(props) {
 
   // If you want to call a function on a new block
   useOnBlock(mainnetProvider, () => {
-    console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
+    // console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
   });
 
   // Then read your DAI balance like:
@@ -231,6 +243,8 @@ function App(props) {
               name: jsonManifest.name,
               description: jsonManifest.description,
               image: jsonManifest.image,
+              standard: 1155,
+              address: readContracts.YourCollectible.address,
             });
           } catch (e) {
             console.log(e);
@@ -241,28 +255,27 @@ function App(props) {
       }
       setYourCollectibles(collectiblesUpdate);
     };
-    /*
     const updateCollectibles721 = async () => {
-      const collectiblesUpdate = [];
-
-      for (let collectibleIndex = 1; collectibleIndex < numberCollectiblesCount + 1; collectibleIndex++) {
+      const collectibleUpdate = [];
+      for (let tokenIndex = 0; tokenIndex < yourBalance; tokenIndex++) {
         try {
-          // const tokenSupply = await readContracts.YourCollectible721.tokenSupply(collectibleIndex);
-          console.log("readContracts", readContracts);
-          const owned = await readContracts.YourCollectible721.balanceOf(address);
+          let tokenId = await readContracts.YourCollectible721.tokenOfOwnerByIndex(address, tokenIndex);
+          tokenId = tokenId.toNumber();
+          const tokenURI = await readContracts.YourCollectible721.tokenURI(tokenId);
 
-          let uri = await readContracts.YourCollectible721.tokenURI(collectibleIndex); // All tokens have the same base uri
-          uri = uri.replace(/{(.*?)}/, collectibleIndex);
-          const ipfsHash = uri.replace("https://ipfs.io/ipfs/", "");
+          const ipfsHash = tokenURI.replace("https://ipfs.io/ipfs/", "");
+
           const jsonManifestBuffer = await getFromIPFS(ipfsHash);
+
           try {
             const jsonManifest = JSON.parse(jsonManifestBuffer.toString());
-            collectiblesUpdate.push({
-              id: collectibleIndex,
-              owned,
-              name: jsonManifest.name,
-              description: jsonManifest.description,
-              image: jsonManifest.image,
+            collectibleUpdate.push({
+              id: tokenId,
+              uri: tokenURI,
+              owner: address,
+              ...jsonManifest,
+              standard: 721,
+              address: readContracts.YourCollectible721.address,
             });
           } catch (e) {
             console.log(e);
@@ -271,36 +284,6 @@ function App(props) {
           console.log(e);
         }
       }
-      setYourCollectibles721(collectiblesUpdate);
-      */
-    const updateCollectibles721 = async () => {
-      const collectibleUpdate = [];
-      for (let tokenIndex = 0; tokenIndex < yourBalance; tokenIndex++) {
-        try {
-          console.log("GEtting token index", tokenIndex);
-          let tokenId = await readContracts.YourCollectible721.tokenOfOwnerByIndex(address, tokenIndex);
-          console.log("tokenId", tokenId);
-          tokenId = tokenId.toNumber();
-          const tokenURI = await readContracts.YourCollectible721.tokenURI(tokenId);
-          console.log("tokenURI", tokenURI);
-
-          const ipfsHash = tokenURI.replace("https://ipfs.io/ipfs/", "");
-          console.log("ipfsHash", ipfsHash);
-
-          const jsonManifestBuffer = await getFromIPFS(ipfsHash);
-
-          try {
-            const jsonManifest = JSON.parse(jsonManifestBuffer.toString());
-            console.log("jsonManifest", jsonManifest, tokenId, tokenURI, address);
-            collectibleUpdate.push({ id: tokenId, uri: tokenURI, owner: address, ...jsonManifest });
-          } catch (e) {
-            console.log(e);
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      }
-      console.log("AAA", collectibleUpdate);
       setYourCollectibles721(collectibleUpdate);
     };
     updateCollectibles();
@@ -328,7 +311,7 @@ function App(props) {
       mainnetContracts &&
       yourBalance
     ) {
-      console.log("_____________________________________ 🏗 scaffold-eth _____________________________________");
+      /* console.log("_____________________________________ 🏗 scaffold-eth _____________________________________");
       console.log("🌎 mainnetProvider", mainnetProvider);
       console.log("🏠 localChainId", localChainId);
       console.log("👩‍💼 selected address:", address);
@@ -339,6 +322,7 @@ function App(props) {
       console.log("🌍 DAI contract on mainnet:", mainnetContracts);
       console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
       console.log("🔐 writeContracts", writeContracts);
+      */
     }
   }, [
     mainnetProvider,
@@ -403,18 +387,18 @@ function App(props) {
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
 
     provider.on("chainChanged", chainId => {
-      console.log(`chain changed to ${chainId}! updating providers`);
+      // console.log(`chain changed to ${chainId}! updating providers`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
     });
 
     provider.on("accountsChanged", () => {
-      console.log(`account changed!`);
+      // console.log(`account changed!`);
       setInjectedProvider(new ethers.providers.Web3Provider(provider));
     });
 
     // Subscribe to session disconnection
     provider.on("disconnect", (code, reason) => {
-      console.log(code, reason);
+      // console.log(code, reason);
       logoutOfWeb3Modal();
     });
   }, [setInjectedProvider]);
@@ -459,6 +443,22 @@ function App(props) {
       </div>
     );
   }
+  faucetHint = (
+    <div style={{ padding: 16 }}>
+      <Button
+        type="primary"
+        onClick={() => {
+          faucetTx({
+            to: address,
+            value: ethers.utils.parseEther("0.01"),
+          });
+          setFaucetClicked(true);
+        }}
+      >
+        💰 Grab funds from the faucet ⛽️
+      </Button>
+    </div>
+  );
 
   const [yourJSON, setYourJSON] = useState(STARTING_JSON);
   const [sending, setSending] = useState();
@@ -487,36 +487,6 @@ function App(props) {
               YourCollectibles
             </Link>
           </Menu.Item>
-          <Menu.Item key="/transfers">
-            <Link
-              onClick={() => {
-                setRoute("/transfers");
-              }}
-              to="/transfers"
-            >
-              Transfers
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/ipfsup">
-            <Link
-              onClick={() => {
-                setRoute("/ipfsup");
-              }}
-              to="/ipfsup"
-            >
-              IPFS Upload
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/ipfsdown">
-            <Link
-              onClick={() => {
-                setRoute("/ipfsdown");
-              }}
-              to="/ipfsdown"
-            >
-              IPFS Download
-            </Link>
-          </Menu.Item>
           <Menu.Item key="/debugcontracts">
             <Link
               onClick={() => {
@@ -537,6 +507,16 @@ function App(props) {
               Debug Contracts 721
             </Link>
           </Menu.Item>
+          <Menu.Item key="/lend">
+            <Link
+              onClick={() => {
+                setRoute("/lend");
+              }}
+              to="/lend"
+            >
+              Lend
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/borrow">
             <Link
               onClick={() => {
@@ -545,6 +525,16 @@ function App(props) {
               to="/borrow"
             >
               Borrow
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/debugcontractsBarter">
+            <Link
+              onClick={() => {
+                setRoute("/debugcontractsBarter");
+              }}
+              to="/debugcontractsBarter"
+            >
+              Debug Barter
             </Link>
           </Menu.Item>
         </Menu>
@@ -761,6 +751,34 @@ function App(props) {
               blockExplorer={blockExplorer}
             />
           </Route>
+          <Route path="/debugcontractsBarter">
+            <Contract
+              name="Barter"
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
+          <Route path="/lend">
+            {readContracts && address && localProvider ? (
+              <Lend
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                signer={userSigner}
+                price={price}
+                yourCollectibles={yourCollectibles}
+                yourCollectibles721={yourCollectibles721}
+              />
+            ) : (
+              ""
+            )}
+          </Route>
           <Route path="/borrow">
             {readContracts && address && localProvider ? (
               <Borrow
@@ -773,6 +791,8 @@ function App(props) {
                 blockExplorer={blockExplorer}
                 signer={userSigner}
                 price={price}
+                yourCollectibles={yourCollectibles}
+                yourCollectibles721={yourCollectibles721}
               />
             ) : (
               ""
@@ -799,7 +819,7 @@ function App(props) {
         {faucetHint}
       </div>
 
-      {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
+      {/* 🗺 Extra UI like gas price, eth price, faucet, and support:
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
         <Row align="middle" gutter={[4, 4]}>
           <Col span={8}>
@@ -828,7 +848,7 @@ function App(props) {
         <Row align="middle" gutter={[4, 4]}>
           <Col span={24}>
             {
-              /*  if the local provider has a signer, let's show the faucet:  */
+                if the local provider has a signer, let's show the faucet:
               faucetAvailable ? (
                 <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
               ) : (
@@ -838,6 +858,7 @@ function App(props) {
           </Col>
         </Row>
       </div>
+    */}
     </div>
   );
 }

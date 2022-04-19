@@ -65,7 +65,6 @@ contract ERC721Lending is Ownable {
 
             emit ERC721ForLendUpdated(wantedToken);
         } else {
-            address lender = lentERC721List[token].lender;
             IERC721(token).safeTransferFrom(address(this), msg.sender, tokenId);
         }
     }

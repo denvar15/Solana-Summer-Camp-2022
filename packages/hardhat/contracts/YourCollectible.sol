@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract YourCollectible is ERC1155, Ownable {
-  uint256 private _currentTokenID = 0;
-	mapping(uint256 => uint256) public tokenSupply;
+    uint256 private _currentTokenID = 0;
+    mapping(uint256 => uint256) public tokenSupply;
 
   constructor(string memory _uri) ERC1155(_uri) 
   {}
