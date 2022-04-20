@@ -63,6 +63,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const Barter = await ethers.getContract("Barter", deployer);
 
   await Barter.transferOwnership("0xe45Ba4475C256d713B6A20C7d2552D3793e37854");
+
+  await deploy("BarterWithArrays", {
+    from: deployer,
+    log: true,
+  });
+
+  const BarterWithArrays = await ethers.getContract(
+    "BarterWithArrays",
+    deployer
+  );
+
+  await BarterWithArrays.transferOwnership(
+    "0xe45Ba4475C256d713B6A20C7d2552D3793e37854"
+  );
   /*
     // Getting a previously deployed contract
     const YourContract = await ethers.getContract("YourContract", deployer);
@@ -76,7 +90,8 @@ module.exports.tags = [
   "YourCollectible721",
   "ERC1155Lending",
   "ERC721Lending",
-  "Barter"
+  "Barter",
+  "BarterWithArrays",
 ];
 
 /*

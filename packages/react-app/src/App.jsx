@@ -18,7 +18,10 @@ import {
   ThemeSwitch,
   Lend,
   Borrow,
-  ApproveBarter
+  ApproveBarter,
+  LendArrays,
+  BorrowArrays,
+  ApproveBarterArrays,
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -518,34 +521,44 @@ function App(props) {
               Approve Barter
             </Link>
           </Menu.Item>
-          <Menu.Item key="/debugcontractsBarter">
+          <Menu.Item key="/lendArrays">
             <Link
               onClick={() => {
-                setRoute("/debugcontractsBarter");
+                setRoute("/lendArrays");
               }}
-              to="/debugcontractsBarter"
+              to="/lendArrays"
             >
-              Debug Barter
+              Lend Arrays
             </Link>
           </Menu.Item>
-          <Menu.Item key="/debugcontracts">
+          <Menu.Item key="/borrowArrays">
             <Link
               onClick={() => {
-                setRoute("/debugcontracts");
+                setRoute("/borrowArrays");
               }}
-              to="/debugcontracts"
+              to="/borrowArrays"
             >
-              Debug Contracts
+              Borrow Arrays
             </Link>
           </Menu.Item>
-          <Menu.Item key="/debugcontracts721">
+          <Menu.Item key="/approvebarterArrays">
             <Link
               onClick={() => {
-                setRoute("/debugcontracts721");
+                setRoute("/approvebarterArrays");
               }}
-              to="/debugcontracts721"
+              to="/approvebarterArrays"
             >
-              Debug Contracts 721
+              Approve Barter Arrays
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/debugcontractsBarterArrays">
+            <Link
+              onClick={() => {
+                setRoute("/debugcontractsBarterArrays");
+              }}
+              to="/debugcontractsBarterArrays"
+            >
+              debugcontracts Barter Arrays
             </Link>
           </Menu.Item>
         </Menu>
@@ -771,6 +784,15 @@ function App(props) {
               blockExplorer={blockExplorer}
             />
           </Route>
+          <Route path="/debugcontractsBarterArrays">
+            <Contract
+              name="BarterWithArrays"
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
           <Route path="/lend">
             {readContracts && address && localProvider ? (
               <Lend
@@ -812,6 +834,63 @@ function App(props) {
           <Route path="/approvebarter">
             {readContracts && address && address !== "0x51190164642E62bA8E0D76b1bFbcfF275Acc971d" && localProvider ? (
               <ApproveBarter
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                signer={userSigner}
+                price={price}
+                yourCollectibles={yourCollectibles}
+                yourCollectibles721={yourCollectibles721}
+              />
+            ) : (
+              ""
+            )}
+          </Route>
+          <Route path="/lendArrays">
+            {readContracts && address && localProvider ? (
+              <LendArrays
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                signer={userSigner}
+                price={price}
+                yourCollectibles={yourCollectibles}
+                yourCollectibles721={yourCollectibles721}
+              />
+            ) : (
+              ""
+            )}
+          </Route>
+          <Route path="/borrowArrays">
+            {readContracts && address && localProvider ? (
+              <BorrowArrays
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                signer={userSigner}
+                price={price}
+                yourCollectibles={yourCollectibles}
+                yourCollectibles721={yourCollectibles721}
+              />
+            ) : (
+              ""
+            )}
+          </Route>
+          <Route path="/approvebarterArrays">
+            {readContracts && address && address !== "0x51190164642E62bA8E0D76b1bFbcfF275Acc971d" && localProvider ? (
+              <ApproveBarterArrays
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}

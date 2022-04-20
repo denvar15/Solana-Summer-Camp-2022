@@ -20,3 +20,6 @@ export { default as L2Bridge } from "./L2Bridge";
 export { default as Lend } from "./Lend";
 export { default as Borrow } from "./Borrow";
 export { default as ApproveBarter } from "./ApproveBarter";
+export { default as LendArrays } from "./LendArrays";
+export { default as BorrowArrays } from "./BorrowArrays";
+export { default as ApproveBarterArrays } from "./ApproveBarterArrays";
