@@ -81,39 +81,10 @@ export default function ApproveBarter(props) {
       );
       for (let i = 0; i < count; i++) {
         try {
-          const ul_base = await props.readContracts.BarterWithArrays.UsersLend(
+          const ul = await props.readContracts.BarterWithArrays.UsersLend(
             "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
             i,
           );
-          const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesLend(
-            "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
-            i,
-          );
-          const idTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedIdsLend(
-            "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
-            i,
-          );
-          const standardTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedStandardsLend(
-            "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
-            i,
-          );
-          const idTok = [];
-          const standardTok = [];
-          const ul = {};
-          for (let j = 0; j < idTok_bigs.length; j++) {
-            idTok[j] = idTok_bigs[j];
-            idTok[j] = idTok[j].toNumber();
-          }
-          for (let j = 0; j < standardTok_bigs.length; j++) {
-            standardTok[j] = standardTok_bigs[j];
-            standardTok[j] = standardTok[j].toNumber();
-          }
-          ul.token = ul_base.token;
-          ul.status = ul_base.status;
-          ul.tokenId = ul_base.tokenId;
-          ul.acceptedToken = addressTok;
-          ul.acceptedTokenId = idTok;
-          ul.acceptedTokenStandard = standardTok;
           console.log(ul);
           if (ul.status.toNumber() === 2) {
             res.push(ul);
@@ -380,8 +351,8 @@ export default function ApproveBarter(props) {
                       </div>
                     }
                   >
-                    <div>Wanted address {item.acceptedToken}</div>
-                    <div>Wanted id {item.acceptedTokenId}</div>
+                    <div>Wanted address {item.fulfilledToken}</div>
+                    <div>Wanted id {item.fulfilledTokenId.toNumber()}</div>
                     <div>Offered address {item.token}</div>
                     <div>Offered id {item.tokenId.toNumber()}</div>
                     <Button onClick={approveBarter.bind(this)} style={{ backgroundColor: "green", color: "white" }}>
