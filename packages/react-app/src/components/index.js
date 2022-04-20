@@ -19,3 +19,4 @@ export { default as Wallet } from "./Wallet";
 export { default as L2Bridge } from "./L2Bridge";
 export { default as Lend } from "./Lend";
 export { default as Borrow } from "./Borrow";
+export { default as ApproveBarter } from "./ApproveBarter";

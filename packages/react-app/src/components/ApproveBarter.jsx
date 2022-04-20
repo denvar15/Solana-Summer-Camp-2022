@@ -24,13 +24,18 @@ const getFromIPFS = async hashToGet => {
   }
 };
 
-export default function Lend(props) {
+export default function ApproveBarter(props) {
   const display = [];
 
   const [values, setValues] = useState({});
   const [yourCollectibles721, setYourCollectibles721] = useState();
+  const [usersLend, setUsersLend] = useState();
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
+
+  // const ul = useContractReader(props.readContracts, contractName, "UsersLend", [props.address]);
+  // console.log("AAAAAAAAAAA ", ul);
+  // setUsersLend(ul);
 
   const tx = props.tx;
 
@@ -69,7 +74,24 @@ export default function Lend(props) {
       }
       setYourCollectibles721(collectibleUpdate);
     };
+    const updateUsersLend = async () => {
+      const res = [];
+      const count = await props.readContracts.Barter.UsersLendCount(props.address);
+      console.log("BBBBBBBBBB ", count, props.address);
+      for (let i = 0; i < count; i++) {
+        try {
+          const ul = await props.readContracts.Barter.UsersLend(props.address, i);
+          if (ul.status.toNumber() === 2) {
+            res.push(ul);
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      setUsersLend(res);
+    };
     updateCollectibles721();
+    updateUsersLend();
   }, []);
 
   const rowForm = (title, icon, onClick) => {
@@ -272,84 +294,34 @@ export default function Lend(props) {
     setSelectedOfferNFT(item);
   }
 
-  async function StartBarter() {
+  async function approveBarter() {
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
     }
-    if (!selectedWantedNFT) {
-      alert("SELECT WANTED NFT!");
-    }
-    if (!values.duration) {
-      alert("TYPE DURATION OF BARTER!");
-    }
-    if (selectedOfferNFT.standard == 1155) {
-      await setApproval1155();
-    } else if (selectedOfferNFT.standard == 721) {
-      await setApproval721();
-    }
-    console.log("AAAAAAAAAAAA ", values.duration);
     const setTx = await tx(
-      writeContracts[contractName].startBartering(
+      writeContracts[contractName].approveBarter(
         selectedOfferNFT.address,
         selectedOfferNFT.id,
-        values.duration,
-        selectedWantedNFT.address,
-        selectedWantedNFT.id,
         selectedOfferNFT.standard,
-        selectedWantedNFT.standard,
       ),
     );
     const setTxResult = await setTx;
-    console.log("startBartering result", setTxResult);
+    console.log("approveBarter result", setTxResult);
   }
 
   if (props.readContracts && props.readContracts[contractName]) {
     display.push(
       <div>
-        {rowForm(
-          "startBartering",
-          "📤📤",
-          async (
-            addressFirst,
-            tokenIdFirst,
-            duration,
-            addressSecond,
-            tokenIdSecond,
-            tokenStandard,
-            acceptedTokenStandard,
-          ) => {
-            if (selectedWantedNFT) {
-              addressSecond = selectedWantedNFT.address;
-              tokenIdSecond = selectedWantedNFT.id;
-              acceptedTokenStandard = selectedWantedNFT.standard;
-              console.log(selectedWantedNFT);
-            }
-            if (selectedOfferNFT) {
-              addressFirst = selectedOfferNFT.address;
-              tokenIdFirst = selectedOfferNFT.id;
-              tokenStandard = selectedOfferNFT.standard;
-            }
-            if (tokenStandard == 1155) {
-              await setApproval1155();
-            } else if (tokenStandard == 721) {
-              await setApproval721();
-            }
-            console.log("AAAAAAAAAAAA ", values.duration);
-            const setTx = await tx(
-              writeContracts[contractName].startBartering(
-                addressFirst,
-                tokenIdFirst,
-                values.duration,
-                addressSecond,
-                tokenIdSecond,
-                tokenStandard,
-                acceptedTokenStandard,
-              ),
-            );
-            const setTxResult = await setTx;
-            console.log("startBartering result", setTxResult);
-          },
-        )}
+        {rowFormLendSettings("approveBarter", "📥📥", async (address, tokenId, tokenStandard) => {
+          if (selectedOfferNFT) {
+            address = selectedOfferNFT.address;
+            tokenId = selectedOfferNFT.id;
+            tokenStandard = selectedOfferNFT.standard;
+          }
+          const setTx = await tx(writeContracts[contractName].approveBarter(address, tokenId, tokenStandard));
+          const setTxResult = await setTx;
+          console.log("approveBarter result", setTxResult);
+        })}
       </div>,
     );
   }
@@ -357,83 +329,43 @@ export default function Lend(props) {
   return (
     <div>
       <Row>
-        <Col span={3}> </Col>
-        <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
-          <h1>Duration of Barter</h1>
-          <Input
-            onChange={e => {
-              const newValues = { ...values };
-              newValues.duration = e.target.value;
-              setValues(newValues);
+        <Col span={24}>
+          <h1>Awaiting your approve</h1>
+          <List
+            bordered
+            dataSource={usersLend}
+            renderItem={item => {
+              const id = item.id;
+              const styler = true;
+              return (
+                <List.Item key={item.token + "_" + item.acceptedToken} id={item.token + "_" + item.acceptedToken}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                      </div>
+                    }
+                  >
+                    <div>Wanted address {item.acceptedToken}</div>
+                    <div>Wanted id {item.acceptedTokenId.toNumber()}</div>
+                    <div>Offered address {item.token}</div>
+                    <div>Offered id {item.tokenId.toNumber()}</div>
+                    <Button onClick={approveBarter.bind(this)} style={{ backgroundColor: "green", color: "white" }}>
+                      Approve Barter
+                    </Button>
+                  </Card>
+                </List.Item>
+              );
             }}
-            placeholder="Длительность актиности сделки"
-            value={values.duration}
           />
-          <Button onClick={StartBarter.bind(this)}>Start Barter</Button>
         </Col>
-        <Col span={3}> </Col>
         {/*  <Button style={{ marginLeft: "50%" }} onClick={setApproval1155.bind(this)}>
           Approve NFT 1155
         </Button>
         <Button style={{ marginLeft: "50%" }} onClick={setApproval721.bind(this)}>
           Approve NFT 721
         </Button> */}
-
-        <Col span={6}>
-          <h1>Wanted 1155</h1>
-          <List
-            style={{ marginLeft: "50%" }}
-            bordered
-            dataSource={props.yourCollectibles}
-            renderItem={item => {
-              const id = item.id;
-              return (
-                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-                  <Card
-                    title={
-                      <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                      </div>
-                    }
-                  >
-                    <div>
-                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                    </div>
-                    <div>{item.description}</div>
-                  </Card>
-                </List.Item>
-              );
-            }}
-          />
-        </Col>
-        <Col span={6}>
-          <h1>Wanted 721</h1>
-          <List
-            style={{ marginLeft: "50%" }}
-            bordered
-            dataSource={yourCollectibles721}
-            renderItem={item => {
-              const id = item.id;
-              return (
-                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-                  <Card
-                    title={
-                      <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                      </div>
-                    }
-                  >
-                    <div>
-                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                    </div>
-                    <div>{item.description}</div>
-                  </Card>
-                </List.Item>
-              );
-            }}
-          />
-        </Col>
-        <Col span={6}>
+        <Col span={10}>
           <h1>Offer 1155</h1>
           <List
             style={{ marginLeft: "50%" }}
@@ -463,12 +395,12 @@ export default function Lend(props) {
             }}
           />
         </Col>
-        <Col span={6}>
+        <Col span={10}>
           <h1>Offer 721</h1>
           <List
             style={{ marginLeft: "50%" }}
             bordered
-            dataSource={props.yourCollectibles721}
+            dataSource={yourCollectibles721}
             renderItem={item => {
               const id = item.id;
               return (
@@ -503,6 +435,11 @@ export default function Lend(props) {
             {display}
           </Card>
         </Col>
+        <Col span={3}> </Col>
+        <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
+          <Button onClick={approveBarter.bind(this)}>Approve Barter</Button>
+        </Col>
+        <Col span={3}> </Col>
       </Row>
     </div>
   );

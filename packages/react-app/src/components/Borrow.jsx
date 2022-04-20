@@ -29,6 +29,8 @@ export default function Borrow(props) {
   const [yourCollectibles721, setYourCollectibles721] = useState();
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
+  const [usersLend, setUsersLend] = useState();
+
   const tx = props.tx;
 
   const writeContracts = props.writeContracts;
@@ -66,7 +68,26 @@ export default function Borrow(props) {
       }
       setYourCollectibles721(collectibleUpdate);
     };
+    const updateUsersLend = async () => {
+      const res = [];
+      if (props.address !== "0xe45Ba4475C256d713B6A20C7d2552D3793e37854") {
+        const count = await props.readContracts.Barter.UsersLendCount("0xe45Ba4475C256d713B6A20C7d2552D3793e37854");
+        for (let i = 0; i < count; i++) {
+          try {
+            const ul = await props.readContracts.Barter.UsersLend("0xe45Ba4475C256d713B6A20C7d2552D3793e37854", i);
+            console.log("UL", ul);
+            if (ul.status.toNumber() === 1) {
+              res.push(ul);
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        }
+        setUsersLend(res);
+      }
+    };
     updateCollectibles721();
+    updateUsersLend();
   }, []);
 
   const rowForm = (title, icon, onClick) => {
@@ -205,6 +226,32 @@ export default function Borrow(props) {
     setSelectedOfferNFT(item);
   }
 
+  async function makeOffer() {
+    if (!selectedOfferNFT) {
+      alert("SELECT OFFER NFT!");
+    }
+    if (!selectedWantedNFT) {
+      alert("SELECT WANTED NFT!");
+    }
+    if (selectedOfferNFT.standard == 1155) {
+      await setApproval1155();
+    } else if (selectedOfferNFT.standard == 721) {
+      await setApproval721();
+    }
+    const setTx = await tx(
+      writeContracts[contractName].makeOffer(
+        selectedWantedNFT.address,
+        selectedWantedNFT.id,
+        selectedOfferNFT.address,
+        selectedOfferNFT.id,
+        selectedWantedNFT.standard,
+        selectedOfferNFT.standard,
+      ),
+    );
+    const setTxResult = await setTx;
+    console.log("makeOffer result", setTxResult);
+  }
+
   if (props.readContracts && props.readContracts[contractName]) {
     display.push(
       <div>
@@ -255,21 +302,63 @@ export default function Borrow(props) {
 
   return (
     <Row>
-      <Col span={3}> </Col>
-      <Col span={18}>
-        <Card
-          title={
-            <div>
-              <div style={{ fontSize: 24 }}>Borrow</div>
-            </div>
-          }
-          size="large"
-          loading={false}
-        >
-          {display}
-        </Card>
+      <Col span={24}>
+        <h1>Active Lends</h1>
+        <List
+          bordered
+          dataSource={usersLend}
+          renderItem={item => {
+            const id = item.id;
+            let styler = false;
+            if (item.acceptedTokenStandard.toNumber() === 1155) {
+              for (const collect in props.yourCollectibles) {
+                // console.log(props.yourCollectibles[collect], item.acceptedTokenId, item.acceptedToken);
+                if (props.yourCollectibles[collect]) {
+                  if (
+                    props.yourCollectibles[collect].id === item.acceptedTokenId ||
+                    props.yourCollectibles[collect].address === item.acceptedToken
+                  ) {
+                    styler = true;
+                  }
+                }
+              }
+            } else if (item.acceptedTokenStandard.toNumber() === 721) {
+              for (const collect in props.yourCollectibles721) {
+                if (props.yourCollectibles[collect]) {
+                  if (
+                    props.yourCollectibles[collect].id === item.acceptedTokenId ||
+                    props.yourCollectibles[collect].address === item.acceptedToken
+                  ) {
+                    styler = true;
+                  }
+                }
+              }
+            }
+            return (
+              <List.Item key={item.token + "_" + item.acceptedToken} id={item.token + "_" + item.acceptedToken}>
+                <Card
+                  title={
+                    <div>
+                      <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                    </div>
+                  }
+                >
+                  <div>Wanted address {item.acceptedToken}</div>
+                  <div>Wanted id {item.acceptedTokenId.toNumber()}</div>
+                  <div>Offered address {item.token}</div>
+                  <div>Offered id {item.tokenId.toNumber()}</div>
+                  <Button
+                    onClick={styler ? makeOffer.bind(this) : null}
+                    style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
+                  >
+                    Make Offer
+                  </Button>
+                </Card>
+              </List.Item>
+            );
+          }}
+        />
       </Col>
-      <Col span={3}> </Col>
       {/*
       <List
         style={{ marginLeft: "50%" }}
@@ -430,6 +519,24 @@ export default function Borrow(props) {
           }}
         />
       </Col>
+      <Col span={18}>
+        <Card
+          title={
+            <div>
+              <div style={{ fontSize: 24 }}>Borrow</div>
+            </div>
+          }
+          size="large"
+          loading={false}
+        >
+          {display}
+        </Card>
+      </Col>
+      <Col span={3}> </Col>
+      <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
+        <Button onClick={makeOffer.bind(this)}>Make Offer</Button>
+      </Col>
+      <Col span={3}> </Col>
     </Row>
   );
 }

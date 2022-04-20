@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 contract Barter is ERC1155Receiver, Ownable {
     struct ERC1155ForLend {
@@ -38,6 +39,21 @@ contract Barter is ERC1155Receiver, Ownable {
 
     //mapping(address => ERC721ForLend) public lentERC721List;
 
+    struct Lend {
+        uint256 status;
+        address token;
+        uint256 tokenId;
+        uint256 tokenStandard;
+        address borrower;
+        address acceptedToken;
+        uint256 acceptedTokenId;
+        uint256 acceptedTokenStandard;
+    }
+
+    mapping(address => Lend[]) public UsersLend;
+
+    mapping(address => uint256) public UsersLendCount;
+
     event ERC721ForLendUpdated(address token);
     event ERC721ForLendRemoved(address token);
     event Received();
@@ -45,6 +61,8 @@ contract Barter is ERC1155Receiver, Ownable {
     function startBartering(address token, uint256 tokenId, uint256 durationHours, address acceptedToken,
         uint256 acceptedTokenId, uint256 tokenStandard, uint256 acceptedTokenStandard) public {
         require(durationHours > 0, 'Lending: Lending duration must be above 0');
+        UsersLendCount[msg.sender] += 1;
+        UsersLend[msg.sender].push(Lend(1, token, tokenId, tokenStandard, address(0), acceptedToken, acceptedTokenId, acceptedTokenStandard));
         if (tokenStandard == 1155) {
             require(lentERC1155List[token][tokenId].borrower == address(0), 'Lending: Cannot change settings, token already lent');
             bytes memory data = abi.encodeWithSignature("");
@@ -61,9 +79,25 @@ contract Barter is ERC1155Receiver, Ownable {
             lentERC721List[token][tokenId].borrowedAtTimestamp = block.timestamp;
             emit ERC721ForLendUpdated(token);
         }
+
     }
 
     function makeOffer(address wantedToken, uint256 wantedTokenId, address offerToken, uint256 offerTokenId, uint256 wantedTokenStandard, uint256 offerTokenStandard) public {
+        address lender = address(0);
+        if (wantedTokenStandard == 1155) {
+            lender = lentERC1155List[wantedToken][wantedTokenId].lender;
+        } else if (wantedTokenStandard == 721) {
+            lender = lentERC721List[wantedToken][wantedTokenId].lender;
+        }
+        uint256 totalCount = UsersLend[lender].length;
+        for (uint i = 0; i<totalCount; i++) {
+            Lend memory userLend = UsersLend[lender][i];
+            if (userLend.token == wantedToken && userLend.tokenId == wantedTokenId &&
+            userLend.acceptedToken == offerToken && userLend.acceptedTokenId == offerTokenId) {
+                UsersLend[lender][i].status = 2;
+                UsersLend[lender][i].borrower = msg.sender;
+            }
+        }
         if (wantedTokenStandard == 1155) {
             address token = lentERC1155List[wantedToken][wantedTokenId].acceptedToken;
             uint256 acceptedTokenId = lentERC1155List[wantedToken][wantedTokenId].acceptedTokenId;
@@ -116,13 +150,16 @@ contract Barter is ERC1155Receiver, Ownable {
             uint256 acceptedTokenStandard = lentERC1155List[token][tokenId].acceptedTokenStandard;
             address borrower = lentERC1155List[token][tokenId].borrower;
             require(lender == msg.sender, 'Not creator of barter!');
-            IERC1155(token).safeTransferFrom(address(this), borrower, tokenId, 1, data);
             data = abi.encodeWithSignature("");
+            require(IERC1155(token).balanceOf(address(this), tokenId) > 0, 'Not enough tokens!');
             if (acceptedTokenStandard == 1155) {
+                require(IERC1155(acceptedToken).balanceOf(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC1155(acceptedToken).safeTransferFrom(address(this), lender, acceptedTokenId, 1, data);
             } else if (acceptedTokenStandard == 721) {
+                //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC721(acceptedToken).safeTransferFrom(address(this), lender, acceptedTokenId);
             }
+            IERC1155(token).safeTransferFrom(address(this), borrower, tokenId, 1, data);
             lentERC1155List[token][tokenId].durationHours = 0;
             lentERC1155List[token][tokenId].borrower = address(0);
             emit ERC1155ForLendRemoved(token);
@@ -133,16 +170,28 @@ contract Barter is ERC1155Receiver, Ownable {
             uint256 acceptedTokenStandard = lentERC721List[token][tokenId].acceptedTokenStandard;
             address borrower = lentERC721List[token][tokenId].borrower;
             require(lender == msg.sender, 'Not creator of barter!');
-            IERC721(token).safeTransferFrom(address(this), borrower, tokenId);
             data = abi.encodeWithSignature("");
+            //require(IERC721Enumerable(token).tokenOfOwnerByIndex(address(this), tokenId) > 0, 'Not enough tokens!');
             if (acceptedTokenStandard == 1155) {
+                require(IERC1155(acceptedToken).balanceOf(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC1155(acceptedToken).safeTransferFrom(address(this), lender, acceptedTokenId, 1, data);
             } else if (acceptedTokenStandard == 721) {
+                //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC721(acceptedToken).safeTransferFrom(address(this), lender, acceptedTokenId);
             }
+            IERC721(token).safeTransferFrom(address(this), borrower, tokenId);
             lentERC721List[token][tokenId].durationHours = 0;
             lentERC721List[token][tokenId].borrower = address(0);
         emit ERC721ForLendRemoved(token);
+        }
+        uint256 totalCount = UsersLend[msg.sender].length;
+        for (uint i = 0; i<totalCount; i++) {
+            Lend memory userLend = UsersLend[msg.sender][i];
+            if (userLend.token == token && userLend.tokenId == tokenId &&
+            userLend.tokenStandard == tokenStandard) {
+                delete UsersLend[msg.sender][i];
+                UsersLendCount[msg.sender] -= 1;
+            }
         }
     }
 

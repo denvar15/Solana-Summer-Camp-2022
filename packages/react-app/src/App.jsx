@@ -18,6 +18,7 @@ import {
   ThemeSwitch,
   Lend,
   Borrow,
+  ApproveBarter
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -487,26 +488,6 @@ function App(props) {
               YourCollectibles
             </Link>
           </Menu.Item>
-          <Menu.Item key="/debugcontracts">
-            <Link
-              onClick={() => {
-                setRoute("/debugcontracts");
-              }}
-              to="/debugcontracts"
-            >
-              Debug Contracts
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/debugcontracts721">
-            <Link
-              onClick={() => {
-                setRoute("/debugcontracts721");
-              }}
-              to="/debugcontracts721"
-            >
-              Debug Contracts 721
-            </Link>
-          </Menu.Item>
           <Menu.Item key="/lend">
             <Link
               onClick={() => {
@@ -527,6 +508,16 @@ function App(props) {
               Borrow
             </Link>
           </Menu.Item>
+          <Menu.Item key="/approvebarter">
+            <Link
+              onClick={() => {
+                setRoute("/approvebarter");
+              }}
+              to="/approvebarter"
+            >
+              Approve Barter
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/debugcontractsBarter">
             <Link
               onClick={() => {
@@ -535,6 +526,26 @@ function App(props) {
               to="/debugcontractsBarter"
             >
               Debug Barter
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/debugcontracts">
+            <Link
+              onClick={() => {
+                setRoute("/debugcontracts");
+              }}
+              to="/debugcontracts"
+            >
+              Debug Contracts
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/debugcontracts721">
+            <Link
+              onClick={() => {
+                setRoute("/debugcontracts721");
+              }}
+              to="/debugcontracts721"
+            >
+              Debug Contracts 721
             </Link>
           </Menu.Item>
         </Menu>
@@ -782,6 +793,25 @@ function App(props) {
           <Route path="/borrow">
             {readContracts && address && localProvider ? (
               <Borrow
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                signer={userSigner}
+                price={price}
+                yourCollectibles={yourCollectibles}
+                yourCollectibles721={yourCollectibles721}
+              />
+            ) : (
+              ""
+            )}
+          </Route>
+          <Route path="/approvebarter">
+            {readContracts && address && address !== "0x51190164642E62bA8E0D76b1bFbcfF275Acc971d" && localProvider ? (
+              <ApproveBarter
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}
