@@ -11,7 +11,7 @@ const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
 
-const targetNetwork = localStorage.getItem("targetNetwork")
+const targetNetwork = localStorage.getItem("targetNetwork");
 
 const getFromIPFS = async hashToGet => {
   for await (const file of ipfs.get(hashToGet)) {
@@ -112,7 +112,7 @@ export default function Borrow(props) {
             ul.acceptedToken = addressTok;
             ul.acceptedTokenId = idTok;
             ul.acceptedTokenStandard = standardTok;
-            console.log(ul);
+            console.log(ul, ul.status);
             if (ul.status.toNumber() === 1) {
               res.push(ul);
             }
@@ -120,12 +120,15 @@ export default function Borrow(props) {
             console.log(e);
           }
         }
+        console.log("AAAAAAAAA", res)
         setUsersLend(res);
       }
     };
     const backendMock = async () => {
-      const a = JSON.parse(localStorage.getItem("startedBarters"));
-      console.log("HSDHSDHSHFD", a);
+      let a = JSON.parse(localStorage.getItem("startedBarters"));
+      if (!a) {
+        a = []
+      }
       setBackendMock(a);
     };
     updateCollectibles721();
@@ -292,7 +295,7 @@ export default function Borrow(props) {
         wantedTokenStandard: selectedWantedNFT.standard,
         offerTokenStandard: selectedOfferNFT.standard,
       };
-      console.log("DATA", data, item.durationHours)
+      console.log("DATA", data, item.durationHours);
       const setTx = await tx(
         writeContracts[contractName].startBartering(
           selectedOfferNFT.address,
@@ -382,7 +385,6 @@ export default function Borrow(props) {
 
   return (
     <Row>
-      {/*
       <Col span={24}>
         <h1>Active Lends</h1>
         <List
@@ -406,10 +408,10 @@ export default function Borrow(props) {
                 }
               } else if (item.acceptedTokenStandard[j] === 721) {
                 for (const collect in props.yourCollectibles721) {
-                  if (props.yourCollectibles[collect]) {
+                  if (props.yourCollectibles721[collect]) {
                     if (
-                      props.yourCollectibles[collect].id === item.acceptedTokenId[j] ||
-                      props.yourCollectibles[collect].address === item.acceptedToken[j]
+                      props.yourCollectibles721[collect].id === item.acceptedTokenId[j] ||
+                      props.yourCollectibles721[collect].address === item.acceptedToken[j]
                     ) {
                       styler = true;
                     }
@@ -431,7 +433,7 @@ export default function Borrow(props) {
                   <div>Offered address {item.token}</div>
                   <div>Offered id {item.tokenId.toNumber()}</div>
                   <Button
-                    onClick={styler ? makeOffer.bind(this, props.targetNetwork.chainId, item) : null}
+                    onClick={styler ? makeOffer.bind(this, targetNetwork, item) : null}
                     style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
                   >
                     Make Offer
@@ -442,7 +444,7 @@ export default function Borrow(props) {
           }}
         />
       </Col>
-       */}
+
       <Col span={24}>
         <h1>Active Backend Mock</h1>
         <List
@@ -453,35 +455,10 @@ export default function Borrow(props) {
             const id = item.id;
             let styler = false;
             if (targetNetwork === item.chainId) {
-              for (let j = 0; j < item.acceptedTokenStandard.length; j++) {
-                if (item.acceptedTokenStandard[j] === 1155) {
-                  for (const collect in props.yourCollectibles) {
-                    // console.log(props.yourCollectibles[collect], item.acceptedTokenId, item.acceptedToken);
-                    if (props.yourCollectibles[collect]) {
-                      if (
-                        props.yourCollectibles[collect].id === item.acceptedTokenId[j] ||
-                        props.yourCollectibles[collect].address === item.acceptedToken[j]
-                      ) {
-                        styler = true;
-                      }
-                    }
-                  }
-                } else if (item.acceptedTokenStandard[j] === 721) {
-                  for (const collect in props.yourCollectibles721) {
-                    if (props.yourCollectibles721[collect]) {
-                      if (
-                        props.yourCollectibles721[collect].id === item.acceptedTokenId[j] ||
-                        props.yourCollectibles721[collect].address === item.acceptedToken[j]
-                      ) {
-                        styler = true;
-                      }
-                    }
-                  }
-                }
-              }
-            } else {
-              styler = true;
+              return <div> </div>;
             }
+            styler = true;
+
             return (
               <List.Item key={item.token + "_" + item.acceptedToken[0]} id={item.token + "_" + item.acceptedToken[0]}>
                 <Card

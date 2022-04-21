@@ -19,6 +19,7 @@ const Networks = {
   4: "rinkeby",
   3: "ropsten",
   1: "mainnet",
+  31337: "localhost"
 };
 
 const targetNetwork = localStorage.getItem("targetNetwork")
@@ -88,15 +89,15 @@ export default function ApproveBarter(props) {
     const updateUsersLend = async () => {
       const res = [];
       const count = await props.readContracts.BarterWithArrays.UsersLendCount(
-        "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+        "0x62FaFb31cfB1e57612bE488035B3783048cFe813",
       );
       for (let i = 0; i < count; i++) {
         try {
           const ul = await props.readContracts.BarterWithArrays.UsersLend(
-            "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+            "0x62FaFb31cfB1e57612bE488035B3783048cFe813",
             i,
           );
-          console.log(ul);
+          console.log(ul, ul.status);
           if (ul.status.toNumber() === 2) {
             res.push(ul);
           }
@@ -107,8 +108,14 @@ export default function ApproveBarter(props) {
       setUsersLend(res);
     };
     const backendMock = async () => {
-      const a = JSON.parse(localStorage.getItem("madeOffers"));
-      const b = JSON.parse(localStorage.getItem("startedBarters"));
+      let a = JSON.parse(localStorage.getItem("madeOffers"));
+      let b = JSON.parse(localStorage.getItem("startedBarters"));
+      if (!a) {
+        a = []
+      }
+      if (!b) {
+        b = []
+      }
       const res = [];
       for (let i = 0; i < a.length; i++) {
         for (let j = 0; j < b.length; j++) {
@@ -358,9 +365,26 @@ export default function ApproveBarter(props) {
   async function approveBarter() {
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
+      return;
     }
     const setTx = await tx(
       writeContracts[contractName].approveBarter(
+        selectedOfferNFT.address,
+        selectedOfferNFT.id,
+        selectedOfferNFT.standard,
+      ),
+    );
+    const setTxResult = await setTx;
+    console.log("approveBarter result", setTxResult);
+  }
+
+  async function revokeBarter() {
+    if (!selectedOfferNFT) {
+      alert("SELECT OFFER NFT!");
+      return;
+    }
+    const setTx = await tx(
+      writeContracts[contractName].revokeBarter(
         selectedOfferNFT.address,
         selectedOfferNFT.id,
         selectedOfferNFT.standard,
@@ -430,6 +454,66 @@ export default function ApproveBarter(props) {
     }
   }
 
+  async function revokeInterChainBarter(item) {
+    let author;
+    if (props.address !== "0x62FaFb31cfB1e57612bE488035B3783048cFe813") {
+      alert("NOT OWNER OF CONTRACTS!");
+      return;
+    }
+    if (!selectedOfferNFT) {
+      alert("SELECT OFFER NFT!");
+      return;
+    }
+    if (targetNetwork === item.chainId) {
+      let p = JSON.parse(localStorage.getItem("revokes"));
+      if (!p) {
+        alert("FIRSTLY REVOKE ON OTHER CHAIN!");
+        return;
+      }
+      if (!p[props.address]) {
+        alert("FIRSTLY REVOKE ON OTHER CHAIN!");
+        return;
+      }
+      author = item.author;
+      const setTx = await tx(
+        writeContracts[contractName].revokeIterChainBarter(
+          item.offerToken,
+          item.offerTokenId,
+          item.offerTokenStandard,
+          author,
+        ),
+      );
+      const setTxResult = await setTx;
+      console.log("approveBarter result", setTxResult);
+      p.delete(props.address);
+      localStorage.setItem("approvals", JSON.stringify(p));
+      let a = JSON.parse(localStorage.getItem("madeOffers"));
+      let b = JSON.parse(localStorage.getItem("startedBarters"));
+      a.splice(item.ownIndex)
+      b.splice(item.starterIndex);
+      localStorage.setItem("madeOffers", JSON.stringify(a));
+      localStorage.setItem("startedBarters", JSON.stringify(b));
+    } else {
+      author = props.address;
+      const setTx = await tx(
+        writeContracts[contractName].revokeIterChainBarter(
+          selectedOfferNFT.address,
+          selectedOfferNFT.id,
+          selectedOfferNFT.standard,
+          author,
+        ),
+      );
+      const setTxResult = await setTx;
+      const p = JSON.parse(localStorage.getItem("revokes"));
+      if (p == null) {
+        p = {};
+      }
+      p[props.address] = true;
+      localStorage.setItem("revokes", JSON.stringify(p));
+      console.log("approveBarter result", setTxResult);
+    }
+  }
+
   if (props.readContracts && props.readContracts[contractName]) {
     display.push(
       <div>
@@ -450,7 +534,6 @@ export default function ApproveBarter(props) {
   return (
     <div>
       <Row>
-        {/*
         <Col span={24}>
           <h1>Awaiting your approve</h1>
           <List
@@ -475,12 +558,15 @@ export default function ApproveBarter(props) {
                     <Button onClick={approveBarter.bind(this)} style={{ backgroundColor: "green", color: "white" }}>
                       Approve Barter
                     </Button>
+                    <Button onClick={revokeBarter.bind(this)} style={{ backgroundColor: "red", color: "white" }}>
+                      Revoke Barter
+                    </Button>
                   </Card>
                 </List.Item>
               );
             }}
           />
-        </Col> */}
+        </Col>
         <Col span={24}>
           <h1>Awaiting Backend Mock</h1>
           <List
@@ -505,6 +591,9 @@ export default function ApproveBarter(props) {
                       style={{ backgroundColor: "green", color: "white" }}
                     >
                       Approve Barter
+                    </Button>
+                    <Button onClick={revokeInterChainBarter.bind(this, item)} style={{ backgroundColor: "red", color: "white" }}>
+                      Revoke Barter
                     </Button>
                   </Card>
                 </List.Item>

@@ -232,6 +232,69 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
         }
     }
 
+    function revokeBarter(address token, uint256 tokenId, uint256 tokenStandard) public {
+        bytes memory data = abi.encodeWithSignature("");
+        if (tokenStandard == 1155) {
+            address lender = lentERC1155List[token][tokenId].lender;
+            address fulfilledToken = lentERC1155List[token][tokenId].fulfilledToken;
+            uint256 fulfilledTokenId = lentERC1155List[token][tokenId].fulfilledTokenId;
+            uint256 fulfilledTokenStandard = lentERC1155List[token][tokenId].fulfilledTokenStandard;
+            address borrower = lentERC1155List[token][tokenId].borrower;
+            require(lender == msg.sender, 'Not creator of barter!');
+            data = abi.encodeWithSignature("");
+            require(IERC1155(token).balanceOf(address(this), tokenId) > 0, 'Not enough tokens!');
+            if (fulfilledTokenStandard == 1155) {
+                require(IERC1155(fulfilledToken).balanceOf(address(this), fulfilledTokenId) > 0, 'Not enough tokens!');
+                IERC1155(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId, 1, data);
+            } else if (fulfilledTokenStandard == 721) {
+                //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
+                IERC721(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId);
+            }
+            IERC1155(token).safeTransferFrom(address(this), lender, tokenId, 1, data);
+            lentERC1155List[token][tokenId].durationHours = 0;
+            lentERC1155List[token][tokenId].borrower = address(0);
+            uint256 totalCount = UsersLend[msg.sender].length;
+            for (uint i = 0; i<totalCount; i++) {
+                Lend memory userLend = UsersLend[msg.sender][i];
+                if (userLend.token == token && userLend.tokenId == tokenId &&
+                    userLend.tokenStandard == tokenStandard) {
+                    delete UsersLend[msg.sender][i];
+                    UsersLendCount[msg.sender] -= 1;
+                }
+            }
+            emit ERC1155ForLendRemoved(token);
+        } else {
+            address lender = lentERC721List[token][tokenId].lender;
+            address fulfilledToken = lentERC721List[token][tokenId].fulfilledToken;
+            uint256 fulfilledTokenId = lentERC721List[token][tokenId].fulfilledTokenId;
+            uint256 fulfilledTokenStandard = lentERC721List[token][tokenId].fulfilledTokenStandard;
+            address borrower = lentERC721List[token][tokenId].borrower;
+            require(lender == msg.sender, 'Not creator of barter!');
+            data = abi.encodeWithSignature("");
+            //require(IERC721Enumerable(token).tokenOfOwnerByIndex(address(this), tokenId) > 0, 'Not enough tokens!');
+            if (fulfilledTokenStandard == 1155) {
+                require(IERC1155(fulfilledToken).balanceOf(address(this), fulfilledTokenId) > 0, 'Not enough tokens!');
+                IERC1155(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId, 1, data);
+            } else if (fulfilledTokenStandard == 721) {
+                //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
+                IERC721(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId);
+            }
+            IERC721(token).safeTransferFrom(address(this), lender, tokenId);
+            lentERC721List[token][tokenId].durationHours = 0;
+            lentERC721List[token][tokenId].borrower = address(0);
+            uint256 totalCount = UsersLend[msg.sender].length;
+            for (uint i = 0; i<totalCount; i++) {
+                Lend memory userLend = UsersLend[msg.sender][i];
+                if (userLend.token == token && userLend.tokenId == tokenId &&
+                    userLend.tokenStandard == tokenStandard) {
+                    delete UsersLend[msg.sender][i];
+                    UsersLendCount[msg.sender] -= 1;
+                }
+            }
+            emit ERC721ForLendRemoved(token);
+        }
+    }
+
     function updateUsersLend(address offerToken, uint256 offerTokenId, uint256 offerTokenStandard, address wantedToken,
         uint256 wantedTokenId, uint256 wantedTokenStandard, address borrower) private {
         address lender = address(0);
@@ -266,6 +329,42 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
     }
 
     function approveIterChainBarter(address token, uint256 tokenId, uint256 tokenStandard, address borrower) public onlyOwner {
+        if (tokenStandard == 1155) {
+            address lender = lentERC1155List[token][tokenId].lender;
+            require(IERC1155(token).balanceOf(address(this), tokenId) > 0, 'Not enough tokens!');
+            bytes memory data = abi.encodeWithSignature("");
+            IERC1155(token).safeTransferFrom(address(this), borrower, tokenId, 1, data);
+            lentERC1155List[token][tokenId].durationHours = 0;
+            lentERC1155List[token][tokenId].borrower = address(0);
+            uint256 totalCount = UsersLend[lender].length;
+            for (uint i = 0; i<totalCount; i++) {
+                Lend memory userLend = UsersLend[lender][i];
+                if (userLend.token == token && userLend.tokenId == tokenId &&
+                    userLend.tokenStandard == tokenStandard) {
+                    delete UsersLend[lender][i];
+                    UsersLendCount[lender] -= 1;
+                }
+            }
+            emit ERC1155ForLendRemoved(token);
+        } else {
+            address lender = lentERC721List[token][tokenId].lender;
+            IERC721(token).safeTransferFrom(address(this), borrower, tokenId);
+            lentERC721List[token][tokenId].durationHours = 0;
+            lentERC721List[token][tokenId].borrower = address(0);
+            uint256 totalCount = UsersLend[lender].length;
+            for (uint i = 0; i<totalCount; i++) {
+                Lend memory userLend = UsersLend[lender][i];
+                if (userLend.token == token && userLend.tokenId == tokenId &&
+                    userLend.tokenStandard == tokenStandard) {
+                    delete UsersLend[lender][i];
+                    UsersLendCount[lender] -= 1;
+                }
+            }
+            emit ERC721ForLendRemoved(token);
+        }
+    }
+
+    function revokeIterChainBarter(address token, uint256 tokenId, uint256 tokenStandard, address borrower) public onlyOwner {
         if (tokenStandard == 1155) {
             address lender = lentERC1155List[token][tokenId].lender;
             require(IERC1155(token).balanceOf(address(this), tokenId) > 0, 'Not enough tokens!');
