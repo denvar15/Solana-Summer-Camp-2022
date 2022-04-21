@@ -64,7 +64,12 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+let targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+
+const ownerAccountForTests = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+localStorage.setItem("targetNetwork", targetNetwork.chainId);
+
+window.localStorage.setItem("theme", "dark");
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -341,7 +346,7 @@ function App(props) {
   ]);
 
   let networkDisplay = "";
-  if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
+  if (selectedChainId !== targetNetwork.chainId) {
     const networkSelected = NETWORK(selectedChainId);
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
@@ -370,6 +375,24 @@ function App(props) {
               <div>
                 You have <b>{networkSelected && networkSelected.name}</b> selected and you need to be on{" "}
                 <b>{networkLocal && networkLocal.name}</b>.
+                <Button
+                  onClick={async () => {
+                    let yourNumber;
+                    if (networkLocal.chainId >= 10) {
+                      yourNumber = ethers.utils.hexlify(networkLocal.chainId);
+                    } else {
+                      yourNumber = "0x" + networkLocal.chainId;
+                    }
+                    console.log(yourNumber);
+                    await window.ethereum.request({
+                      method: "wallet_switchEthereumChain",
+                      params: [{ chainId: yourNumber }],
+                    });
+                    localStorage.setItem("targetNetwork", networkLocal.chainId);
+                  }}
+                >
+                  Switch
+                </Button>
               </div>
             }
             type="error"
@@ -461,6 +484,34 @@ function App(props) {
       >
         💰 Grab funds from the faucet ⛽️
       </Button>
+      <Button
+        onClick={async () => {
+          const yourNumber = ethers.utils.hexlify(NETWORKS.goerli.chainId);
+          console.log(yourNumber);
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x5" }],
+          });
+          localStorage.setItem("targetNetwork", NETWORKS.goerli.chainId);
+          targetNetwork = NETWORKS.goerli;
+        }}
+      >
+        Goerli
+      </Button>
+      <Button
+        onClick={async () => {
+          const yourNumber = ethers.utils.hexlify(NETWORKS.kovan.chainId);
+          console.log(yourNumber);
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: yourNumber }],
+          });
+          targetNetwork = NETWORKS.kovan;
+          localStorage.setItem("targetNetwork", NETWORKS.kovan.chainId);
+        }}
+      >
+        Kovan
+      </Button>
     </div>
   );
 
@@ -491,36 +542,6 @@ function App(props) {
               YourCollectibles
             </Link>
           </Menu.Item>
-          <Menu.Item key="/lend">
-            <Link
-              onClick={() => {
-                setRoute("/lend");
-              }}
-              to="/lend"
-            >
-              Lend
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/borrow">
-            <Link
-              onClick={() => {
-                setRoute("/borrow");
-              }}
-              to="/borrow"
-            >
-              Borrow
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/approvebarter">
-            <Link
-              onClick={() => {
-                setRoute("/approvebarter");
-              }}
-              to="/approvebarter"
-            >
-              Approve Barter
-            </Link>
-          </Menu.Item>
           <Menu.Item key="/lendArrays">
             <Link
               onClick={() => {
@@ -549,16 +570,6 @@ function App(props) {
               to="/approvebarterArrays"
             >
               Approve Barter Arrays
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/debugcontractsBarterArrays">
-            <Link
-              onClick={() => {
-                setRoute("/debugcontractsBarterArrays");
-              }}
-              to="/debugcontractsBarterArrays"
-            >
-              debugcontracts Barter Arrays
             </Link>
           </Menu.Item>
         </Menu>
@@ -883,6 +894,7 @@ function App(props) {
                 price={price}
                 yourCollectibles={yourCollectibles}
                 yourCollectibles721={yourCollectibles721}
+                ownerAccountForTests={ownerAccountForTests}
               />
             ) : (
               ""
@@ -902,6 +914,7 @@ function App(props) {
                 price={price}
                 yourCollectibles={yourCollectibles}
                 yourCollectibles721={yourCollectibles721}
+                ownerAccountForTests={ownerAccountForTests}
               />
             ) : (
               ""
@@ -909,8 +922,6 @@ function App(props) {
           </Route>
         </Switch>
       </BrowserRouter>
-
-      <ThemeSwitch />
 
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
       <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>

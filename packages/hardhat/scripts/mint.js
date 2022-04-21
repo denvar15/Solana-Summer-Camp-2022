@@ -16,12 +16,12 @@ const delayMS = 1000; // sometimes xDAI needs a 6000ms break lol 😅
 
 const main = async () => {
   // ADDRESS TO MINT TO:
-  const toAddress = "0x03cb144b401139a96873836f8e9B12f013FdEcA9";
-  const toAddress2 = "0xC95e4bb1145a696EA4F1467eE7f664051319d0D9";
+  const toAddress = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+  const toAddress2 = "0x3CbFe0a7f518526E8090aC6e0977ed1f1a1Ea149";
 
   console.log("\n\n 🎫 Minting to " + toAddress + "...\n");
 
-  const { deployer } = await getNamedAccounts();
+  const { deployer } = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
   const yourCollectible = await ethers.getContract("YourCollectible", deployer);
 
   await yourCollectible.mint(toAddress, 0, 4, [], { gasLimit: 400000 });
@@ -31,7 +31,7 @@ const main = async () => {
   // await yourCollectible.mint(toAddress, 4, 6, [], { gasLimit: 400000 });
   // await yourCollectible.mint(toAddress, 5, 1, [], { gasLimit: 400000 });
 
-  await sleep(delayMS);
+  //await sleep(delayMS);
 
   const yourCollectible721 = await ethers.getContract(
     "YourCollectible721",
@@ -66,7 +66,6 @@ const main = async () => {
     gasLimit: 400000,
   });
 
-  await sleep(delayMS);
 
   const zebra = {
     description: "What is it so worried about?",
@@ -95,6 +94,8 @@ const main = async () => {
   await yourCollectible721.mintItem(toAddress2, uploadedzebra.path, {
     gasLimit: 400000,
   });
+
+  await sleep(delayMS);
 
   // console.log("Transferring Ownership of YourCollectible to "+toAddress+"...")
 

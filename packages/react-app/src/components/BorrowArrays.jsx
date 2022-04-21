@@ -11,6 +11,8 @@ const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
 
+const targetNetwork = localStorage.getItem("targetNetwork");
+
 const getFromIPFS = async hashToGet => {
   for await (const file of ipfs.get(hashToGet)) {
     if (!file.content) continue;
@@ -30,6 +32,7 @@ export default function Borrow(props) {
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const [usersLend, setUsersLend] = useState();
+  const [usersBackendMock, setBackendMock] = useState();
 
   const tx = props.tx;
 
@@ -70,30 +73,30 @@ export default function Borrow(props) {
     };
     const updateUsersLend = async () => {
       const res = [];
-      if (props.address !== "0xe45Ba4475C256d713B6A20C7d2552D3793e37854") {
+      if (props.address !== props.ownerAccountForTests) {
         const count = await props.readContracts.BarterWithArrays.UsersLendCount(
-          "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+          props.ownerAccountForTests,
         );
         for (let i = 0; i < count; i++) {
           try {
             const ul_base = await props.readContracts.BarterWithArrays.UsersLend(
-              "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+              props.ownerAccountForTests,
               i,
             );
             const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesLend(
-              "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+              props.ownerAccountForTests,
               i,
             );
             const idTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedIdsLend(
-              "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+              props.ownerAccountForTests,
               i,
             );
             const standardTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedStandardsLend(
-              "0xe45Ba4475C256d713B6A20C7d2552D3793e37854",
+              props.ownerAccountForTests,
               i,
             );
-            let idTok = [];
-            let standardTok = [];
+            const idTok = [];
+            const standardTok = [];
             const ul = {};
             for (let j = 0; j < idTok_bigs.length; j++) {
               idTok[j] = idTok_bigs[j];
@@ -109,7 +112,7 @@ export default function Borrow(props) {
             ul.acceptedToken = addressTok;
             ul.acceptedTokenId = idTok;
             ul.acceptedTokenStandard = standardTok;
-            console.log(ul);
+            console.log(ul, ul.status);
             if (ul.status.toNumber() === 1) {
               res.push(ul);
             }
@@ -117,11 +120,20 @@ export default function Borrow(props) {
             console.log(e);
           }
         }
+        console.log("AAAAAAAAA", res)
         setUsersLend(res);
       }
     };
+    const backendMock = async () => {
+      let a = JSON.parse(localStorage.getItem("startedBarters"));
+      if (!a) {
+        a = []
+      }
+      setBackendMock(a);
+    };
     updateCollectibles721();
     updateUsersLend();
+    backendMock();
   }, []);
 
   const rowForm = (title, icon, onClick) => {
@@ -260,17 +272,54 @@ export default function Borrow(props) {
     setSelectedOfferNFT(item);
   }
 
-  async function makeOffer() {
+  async function makeOffer(chainId, item) {
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
+      return;
     }
     if (!selectedWantedNFT) {
       alert("SELECT WANTED NFT!");
+      return;
     }
     if (selectedOfferNFT.standard == 1155) {
       await setApproval1155();
     } else if (selectedOfferNFT.standard == 721) {
       await setApproval721();
+    }
+    if (targetNetwork !== chainId) {
+      const data = {
+        wantedToken: selectedWantedNFT.address,
+        wantedTokenId: selectedWantedNFT.id,
+        offerToken: selectedOfferNFT.address,
+        offerTokenId: selectedOfferNFT.id,
+        wantedTokenStandard: selectedWantedNFT.standard,
+        offerTokenStandard: selectedOfferNFT.standard,
+      };
+      console.log("DATA", data, item.durationHours);
+      const setTx = await tx(
+        writeContracts[contractName].startBartering(
+          selectedOfferNFT.address,
+          selectedOfferNFT.id,
+          item.durationHours,
+          [item.token],
+          [item.tokenId],
+          selectedOfferNFT.standard,
+          [item.tokenStandard],
+        ),
+      );
+      const setTxResult = await setTx;
+      console.log("startBartering result", setTxResult);
+
+      let a = JSON.parse(localStorage.getItem("madeOffers"));
+      if (!a) {
+        a = [];
+      }
+      data.chainId = targetNetwork;
+      data.author = props.address;
+      console.log("A", a);
+      a.push({ chainId: targetNetwork, data });
+      localStorage.setItem("madeOffers", JSON.stringify(a));
+      return;
     }
     const setTx = await tx(
       writeContracts[contractName].makeOffer(
@@ -359,10 +408,10 @@ export default function Borrow(props) {
                 }
               } else if (item.acceptedTokenStandard[j] === 721) {
                 for (const collect in props.yourCollectibles721) {
-                  if (props.yourCollectibles[collect]) {
+                  if (props.yourCollectibles721[collect]) {
                     if (
-                      props.yourCollectibles[collect].id === item.acceptedTokenId[j] ||
-                      props.yourCollectibles[collect].address === item.acceptedToken[j]
+                      props.yourCollectibles721[collect].id === item.acceptedTokenId[j] ||
+                      props.yourCollectibles721[collect].address === item.acceptedToken[j]
                     ) {
                       styler = true;
                     }
@@ -384,7 +433,7 @@ export default function Borrow(props) {
                   <div>Offered address {item.token}</div>
                   <div>Offered id {item.tokenId.toNumber()}</div>
                   <Button
-                    onClick={styler ? makeOffer.bind(this) : null}
+                    onClick={styler ? makeOffer.bind(this, targetNetwork, item) : null}
                     style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
                   >
                     Make Offer
@@ -395,55 +444,47 @@ export default function Borrow(props) {
           }}
         />
       </Col>
-      {/*
-      <List
-        style={{ marginLeft: "50%" }}
-        bordered
-        dataSource={props.yourCollectibles}
-        renderItem={item => {
-          const id = item.id;
-          return (
-            <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-              <Card
-                title={
-                  <div>
-                    <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                  </div>
-                }
-              >
-                <div>
-                  <img src={item.image} style={{ maxWidth: 150 }} onClick={selectNFT.bind(this, item)} />
-                </div>
-                <div>{item.description}</div>
-              </Card>
-            </List.Item>
-          );
-        }}
-      />
-      <List
-        style={{ marginLeft: "50%" }}
-        bordered
-        dataSource={yourCollectibles721}
-        renderItem={item => {
-          const id = item.id;
-          return (
-            <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-              <Card
-                title={
-                  <div>
-                    <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                  </div>
-                }
-              >
-                <div>
-                  <img src={item.image} style={{ maxWidth: 150 }} onClick={selectNFT.bind(this, item)} />
-                </div>
-                <div>{item.description}</div>
-              </Card>
-            </List.Item>
-          );
-        }}
-      /> */}
+
+      <Col span={24}>
+        <h1>Active Backend Mock</h1>
+        <List
+          bordered
+          dataSource={usersBackendMock}
+          renderItem={item => {
+            item = item.data;
+            if (targetNetwork == item.chainId) {
+              return <div> </div>;
+            }
+            if (item.author == props.address) {
+              return <div> </div>;
+            }
+            let styler = true;
+
+            return (
+              <List.Item key={item.token + "_" + item.acceptedToken[0]} id={item.token + "_" + item.acceptedToken[0]}>
+                <Card
+                  title={
+                    <div>
+                      <span style={{ fontSize: 16, marginRight: 8 }}>#{item.chainId}</span>
+                    </div>
+                  }
+                >
+                  <div>Wanted addresses {item.acceptedToken}</div>
+                  <div>Wanted ids {item.acceptedTokenId}</div>
+                  <div>Offered address {item.token}</div>
+                  <div>Offered id {item.tokenId}</div>
+                  <Button
+                    onClick={styler ? makeOffer.bind(this, item.chainId, item) : null}
+                    style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
+                  >
+                    Make Offer
+                  </Button>
+                </Card>
+              </List.Item>
+            );
+          }}
+        />
+      </Col>
       <Col span={6}>
         <h1>Wanted 1155</h1>
         <List
