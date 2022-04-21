@@ -1,9 +1,15 @@
-import { Card, Col, Button, Input, Row, List } from "antd";
+import { Layout, Menu, Breadcrumb, Row, Col, Card, Button, Badge, Input, List } from 'antd';
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import { AddressInput } from "./index";
+import { Sidebar } from './../components'
+import axie from "../img/axie.jpg";
+import "../bootstrap-utilites.css"
+import { NodeExpandOutlined } from '@ant-design/icons';
 
+const { Header, Content, Sider } = Layout;
+const { Meta } = Card;
 const { BufferList } = require("bl");
 const ipfsAPI = require("ipfs-http-client");
 
@@ -23,7 +29,10 @@ const getFromIPFS = async hashToGet => {
     return content;
   }
 };
-
+const gridStyle = {
+  width: '25%',
+  textAlign: 'center',
+};
 export default function Lend(props) {
   const display = [];
 
@@ -363,154 +372,163 @@ export default function Lend(props) {
 
   return (
     <div>
-      <Row>
-        <Col span={3}> </Col>
-        <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
-          <h1>Duration of Barter</h1>
-          <Input
-            onChange={e => {
-              const newValues = { ...values };
-              newValues.duration = e.target.value;
-              setValues(newValues);
-            }}
-            placeholder="Длительность актиности сделки"
-            value={values.duration}
-          />
-          <Button onClick={StartBarter.bind(this)}>Start Barter</Button>
-        </Col>
-        <Col span={3}> </Col>
         {/*  <Button style={{ marginLeft: "50%" }} onClick={setApproval1155.bind(this)}>
           Approve NFT 1155
         </Button>
         <Button style={{ marginLeft: "50%" }} onClick={setApproval721.bind(this)}>
           Approve NFT 721
         </Button> */}
+      <Layout id="gamePage">
+        <Layout>
+          <Sidebar/>
+          <Layout style={{ padding: '0 24px 24px' }}>
+            <Content
+              className="site-layout-background"
+              style={{
+                padding: 24,
+                margin: 0,
+                minHeight: 280,
+              }}
+            >
+                <Row>
+                    <Col span={8} className="ps-4">
+                        <Card 
+                            className='mynft text-start'
+                            style={{
+                                background: `url(${axie})`,
+                                backgroundPosition: 'contain',
+                                height: 220,
+                            }}
+                          
+                        >
+                            <div className="mynft__text">
+                                <h2 className="text-start">16 в кошельке</h2>
+                                <small className="text-start">20 торгуется</small>
+                                <div className='mt-3 text-center'>
+                                  <Input
+                                      onChange={e => {
+                                        const newValues = { ...values };
+                                        newValues.duration = e.target.value;
+                                        setValues(newValues);
+                                      }}
+                                      placeholder="Время обмена (NFT будет заморожена)"
+                                      value={values.duration}
+                                    /> <br/>
+                                    <Button type="primary" onClick={StartBarter.bind(this)}>Начать обмен</Button>
+                                </div>
+                               
+                            </div>
 
-        <Col span={6}>
-          <h1>Wanted 1155</h1>
-          <List
-            style={{ marginLeft: "50%" }}
-            bordered
-            dataSource={props.yourCollectibles}
-            renderItem={item => {
-              const id = item.id;
-              return (
-                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-                  <Card
-                    title={
-                      <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                      </div>
-                    }
-                  >
-                    <div>
-                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                    </div>
-                    <div>{item.description}</div>
-                  </Card>
-                </List.Item>
-              );
-            }}
-          />
-        </Col>
-        <Col span={6}>
-          <h1>Wanted 721</h1>
-          <List
-            style={{ marginLeft: "50%" }}
-            bordered
-            dataSource={yourCollectibles721}
-            renderItem={item => {
-              const id = item.id;
-              return (
-                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
-                  <Card
-                    title={
-                      <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                      </div>
-                    }
-                  >
-                    <div>
-                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                    </div>
-                    <div>{item.description}</div>
-                  </Card>
-                </List.Item>
-              );
-            }}
-          />
-        </Col>
-        <Col span={6}>
-          <h1>Offer 1155</h1>
-          <List
-            style={{ marginLeft: "50%" }}
-            bordered
-            dataSource={props.yourCollectibles}
-            renderItem={item => {
-              const id = item.id;
-              if (item.owned.toNumber() > 0) {
-                return (
-                  <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri + "offer"}>
-                    <Card
-                      title={
-                        <div>
-                          <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                        </div>
-                      }
-                    >
-                      <div>
-                        <img src={item.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
-                      </div>
-                      <div>{item.description}</div>
-                    </Card>
-                  </List.Item>
-                );
-              }
-              return <div> </div>;
-            }}
-          />
-        </Col>
-        <Col span={6}>
-          <h1>Offer 721</h1>
-          <List
-            style={{ marginLeft: "50%" }}
-            bordered
-            dataSource={props.yourCollectibles721}
-            renderItem={item => {
-              const id = item.id;
-              return (
-                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri + "offer"}>
-                  <Card
-                    title={
-                      <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
-                      </div>
-                    }
-                  >
-                    <div>
-                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
-                    </div>
-                    <div>{item.description}</div>
-                  </Card>
-                </List.Item>
-              );
-            }}
-          />
-        </Col>
-        <Col span={18}>
-          <Card
-            title={
-              <div>
-                <div style={{ fontSize: 24 }}>Lend</div>
-              </div>
-            }
-            size="large"
-            loading={false}
-          >
-            {display}
-          </Card>
-        </Col>
-      </Row>
+                            <div className='mynft__bg-overlay'/>
+                           
+                        </Card>
+                    </Col>
+                    <Col span={16} className="ps-5">
+                            <Card>
+                              <Row>
+                                <h3>Ваши 1155</h3> 
+                              </Row>
+                              <Row>
+                                {props.yourCollectibles.map((item) =>
+                                  
+                                  <Card.Grid 
+                                    style={gridStyle}
+                                    title={item.name}
+                                    key={item.id + "_" + item.uri}
+                                    id={item.id + "_" + item.uri + "offer"}
+                                    onClick={selectOfferNFT.bind(this, item)} 
+                                    >
+                                    <img 
+                                      src={item.image} 
+                                      width="72" height="72" 
+                                    />
+                                    <Meta
+                                      title={item.name}
+                                      description={item.description}
+                                    />
+                                  </Card.Grid>
+                                )}
+                              </Row>
+                              <Row><h3>Ваши NFT 721</h3></Row>
+                              <Row>
+                                
+                              {yourCollectibles721 && yourCollectibles721.map((item) =>   
+                                  <Card.Grid 
+                                    style={gridStyle}
+                                    title={item.name}
+                                    key={item.id + "_" + item.uri}
+                                    id={item.id + "_" + item.uri + "offer"}
+                                    onClick={selectOfferNFT.bind(this, item)} 
+                                    >
+                                    <img 
+                                      src={item.image} 
+                                      width="72" height="72" 
+                                    />
+                                    <Meta
+                                      title={item.name}
+                                      description={item.description}
+                                    />
+                                  </Card.Grid>
+                                )}
+                              </Row>
+                              <Row>
+                                <h2>Выберите NFT которую вы хотите получить взамен</h2>
+                              </Row>
+                              <Row><h3>NFT 1155</h3></Row>
+                              <Row>
+                               
+                                {props.yourCollectibles && props.yourCollectibles.map((item) =>
+                                  
+                                  <Card.Grid 
+                                    style={gridStyle}
+                                    title={item.name}
+                                    key={item.id + "_" + item.uri}
+                                    id={item.id + "_" + item.uri}
+                                    onClick={selectWantedNFT.bind(this, item)} 
+                                    >
+                                    <img 
+                                      src={item.image} 
+                                      width="72" height="72" 
+                                    />
+                                    <Meta
+                                      title={item.name}
+                                      description={item.description}
+                                    />
+                                  </Card.Grid>
+                                )}
+                              </Row>
+                              <Row><h3>NFT 721</h3></Row>
+                              <Row>
+                               
+                                {yourCollectibles721 && yourCollectibles721.map((item) =>
+                                  <Card.Grid 
+                                    style={gridStyle}
+                                    title={item.name}
+                                    key={item.id + "_" + item.uri}
+                                    id={item.id + "_" + item.uri}
+                                    onClick={selectWantedNFT.bind(this, item)} 
+                                    >
+                                    <img 
+                                      src={item.image} 
+                                      width="72" height="72" 
+                                    />
+                                    <Meta
+                                      title={item.name}
+                                      description={item.description}
+                                    />
+                                  </Card.Grid>
+                                )}
+                              </Row>
+
+                            </Card>
+                   
+                   
+                   </Col>
+                </Row>
+            </Content>
+          </Layout>
+        </Layout>
+      </Layout>
     </div>
   );
 }

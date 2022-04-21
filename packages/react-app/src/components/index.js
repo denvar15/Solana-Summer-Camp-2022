@@ -23,3 +23,4 @@ export { default as ApproveBarter } from "./ApproveBarter";
 export { default as LendArrays } from "./LendArrays";
 export { default as BorrowArrays } from "./BorrowArrays";
 export { default as ApproveBarterArrays } from "./ApproveBarterArrays";
+export { default as Sidebar } from "./Sidebar"
