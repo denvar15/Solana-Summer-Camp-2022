@@ -64,7 +64,8 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+let targetNetwork = NETWORKS.goerli; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+localStorage.setItem("targetNetwork", targetNetwork.chainId);
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -341,7 +342,7 @@ function App(props) {
   ]);
 
   let networkDisplay = "";
-  if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
+  if (selectedChainId !== targetNetwork.chainId) {
     const networkSelected = NETWORK(selectedChainId);
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
@@ -370,6 +371,24 @@ function App(props) {
               <div>
                 You have <b>{networkSelected && networkSelected.name}</b> selected and you need to be on{" "}
                 <b>{networkLocal && networkLocal.name}</b>.
+                <button
+                  onClick={async () => {
+                    let yourNumber;
+                    if (networkLocal.chainId >= 10) {
+                      yourNumber = ethers.utils.hexlify(networkLocal.chainId);
+                    } else {
+                      yourNumber = "0x" + networkLocal.chainId;
+                    }
+                    console.log(yourNumber);
+                    await window.ethereum.request({
+                      method: "wallet_switchEthereumChain",
+                      params: [{ chainId: yourNumber }],
+                    });
+                    localStorage.setItem("targetNetwork", networkLocal.chainId);
+                  }}
+                >
+                  Switch
+                </button>
               </div>
             }
             type="error"
@@ -461,6 +480,34 @@ function App(props) {
       >
         💰 Grab funds from the faucet ⛽️
       </Button>
+      <button
+        onClick={async () => {
+          let yourNumber = ethers.utils.hexlify(NETWORKS.goerli.chainId);
+          console.log(yourNumber);
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x5" }],
+          });
+          localStorage.setItem("targetNetwork", NETWORKS.goerli.chainId);
+          targetNetwork = NETWORKS.goerli;
+        }}
+      >
+        Goerli
+      </button>
+      <button
+        onClick={async () => {
+          const yourNumber = ethers.utils.hexlify(NETWORKS.kovan.chainId);
+          console.log(yourNumber);
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: yourNumber }],
+          });
+          targetNetwork = NETWORKS.kovan;
+          localStorage.setItem("targetNetwork", NETWORKS.kovan.chainId);
+        }}
+      >
+        Kovan
+      </button>
     </div>
   );
 
@@ -489,36 +536,6 @@ function App(props) {
               to="/"
             >
               YourCollectibles
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/lend">
-            <Link
-              onClick={() => {
-                setRoute("/lend");
-              }}
-              to="/lend"
-            >
-              Lend
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/borrow">
-            <Link
-              onClick={() => {
-                setRoute("/borrow");
-              }}
-              to="/borrow"
-            >
-              Borrow
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/approvebarter">
-            <Link
-              onClick={() => {
-                setRoute("/approvebarter");
-              }}
-              to="/approvebarter"
-            >
-              Approve Barter
             </Link>
           </Menu.Item>
           <Menu.Item key="/lendArrays">

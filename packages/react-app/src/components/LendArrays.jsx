@@ -13,6 +13,8 @@ const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
 
+const targetNetwork = localStorage.getItem("targetNetwork")
+
 const getFromIPFS = async hashToGet => {
   for await (const file of ipfs.get(hashToGet)) {
     if (!file.content) continue;
@@ -295,6 +297,15 @@ export default function Lend(props) {
     } else if (selectedOfferNFT.standard == 721) {
       await setApproval721();
     }
+    let data = {
+      token: selectedOfferNFT.address,
+      tokenId: selectedOfferNFT.id,
+      durationHours: values.duration,
+      acceptedToken: selectedWantedNFT.address,
+      acceptedTokenId: selectedWantedNFT.id,
+      tokenStandard: selectedOfferNFT.standard,
+      acceptedTokenStandard: selectedWantedNFT.standard,
+    };
     const setTx = await tx(
       writeContracts[contractName].startBartering(
         selectedOfferNFT.address,
@@ -308,6 +319,18 @@ export default function Lend(props) {
     );
     const setTxResult = await setTx;
     console.log("startBartering result", setTxResult);
+    if (setTxResult != null) {
+      let a = JSON.parse(localStorage.getItem("startedBarters"));
+      if (!a) {
+        a = [];
+      }
+      console.log("AAAAAAAAAAAAAAAAAAAAAAAAAA ", targetNetwork)
+      data.chainId = setTxResult.chainId ? setTxResult.chainId : targetNetwork;
+      data.author = props.address;
+      console.log("A", a);
+      a.push({ chainId: setTxResult.chainId ? setTxResult.chainId : targetNetwork, data });
+      localStorage.setItem("startedBarters", JSON.stringify(a));
+    }
   }
 
   if (props.readContracts && props.readContracts[contractName]) {

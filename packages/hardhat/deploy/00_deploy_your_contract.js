@@ -33,6 +33,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
+  /*
   await deploy("ERC1155Lending", {
     from: deployer,
     log: true,
@@ -41,7 +42,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const ERC1155Lending = await ethers.getContract("ERC1155Lending", deployer);
 
   await ERC1155Lending.transferOwnership(
-    "0xe45Ba4475C256d713B6A20C7d2552D3793e37854"
+    "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
   );
 
   await deploy("ERC721Lending", {
@@ -52,7 +53,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const ERC721Lending = await ethers.getContract("ERC721Lending", deployer);
 
   await ERC721Lending.transferOwnership(
-    "0xe45Ba4475C256d713B6A20C7d2552D3793e37854"
+    "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
   );
 
   await deploy("Barter", {
@@ -62,7 +63,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const Barter = await ethers.getContract("Barter", deployer);
 
-  await Barter.transferOwnership("0xe45Ba4475C256d713B6A20C7d2552D3793e37854");
+  await Barter.transferOwnership("0x62FaFb31cfB1e57612bE488035B3783048cFe813");
+  */
 
   await deploy("BarterWithArrays", {
     from: deployer,
@@ -75,7 +77,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   );
 
   await BarterWithArrays.transferOwnership(
-    "0xe45Ba4475C256d713B6A20C7d2552D3793e37854"
+    "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
   );
   /*
     // Getting a previously deployed contract
@@ -88,9 +90,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 module.exports.tags = [
   "YourCollectible",
   "YourCollectible721",
-  "ERC1155Lending",
-  "ERC721Lending",
-  "Barter",
   "BarterWithArrays",
 ];
 

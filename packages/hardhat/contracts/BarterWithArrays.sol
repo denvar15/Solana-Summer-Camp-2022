@@ -265,12 +265,47 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
         return UsersLend[user][counter].acceptedTokenStandard;
     }
 
+    function approveIterChainBarter(address token, uint256 tokenId, uint256 tokenStandard, address borrower) public onlyOwner {
+        if (tokenStandard == 1155) {
+            address lender = lentERC1155List[token][tokenId].lender;
+            require(IERC1155(token).balanceOf(address(this), tokenId) > 0, 'Not enough tokens!');
+            bytes memory data = abi.encodeWithSignature("");
+            IERC1155(token).safeTransferFrom(address(this), borrower, tokenId, 1, data);
+            lentERC1155List[token][tokenId].durationHours = 0;
+            lentERC1155List[token][tokenId].borrower = address(0);
+            uint256 totalCount = UsersLend[lender].length;
+            for (uint i = 0; i<totalCount; i++) {
+                Lend memory userLend = UsersLend[lender][i];
+                if (userLend.token == token && userLend.tokenId == tokenId &&
+                    userLend.tokenStandard == tokenStandard) {
+                    delete UsersLend[lender][i];
+                    UsersLendCount[lender] -= 1;
+                }
+            }
+            emit ERC1155ForLendRemoved(token);
+        } else {
+            address lender = lentERC721List[token][tokenId].lender;
+            IERC721(token).safeTransferFrom(address(this), borrower, tokenId);
+            lentERC721List[token][tokenId].durationHours = 0;
+            lentERC721List[token][tokenId].borrower = address(0);
+            uint256 totalCount = UsersLend[lender].length;
+            for (uint i = 0; i<totalCount; i++) {
+                Lend memory userLend = UsersLend[lender][i];
+                if (userLend.token == token && userLend.tokenId == tokenId &&
+                    userLend.tokenStandard == tokenStandard) {
+                    delete UsersLend[lender][i];
+                    UsersLendCount[lender] -= 1;
+                }
+            }
+            emit ERC721ForLendRemoved(token);
+        }
+    }
+
     function isDurationExpired(uint256 borrowedAtTimestamp, uint256 durationHours) public view returns(bool) {
         uint256 secondsPassed = block.timestamp - borrowedAtTimestamp;
         uint256 hoursPassed = secondsPassed * 60 * 60;
         return hoursPassed > durationHours;
     }
-
 
     function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual override returns (bytes4) {
         return this.onERC1155Received.selector;

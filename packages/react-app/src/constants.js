@@ -1,5 +1,7 @@
 // MY INFURA_ID, SWAP IN YOURS FROM https://infura.io/dashboard/ethereum
-export const INFURA_ID = "460f40a260564ac4a4f4b3fffb032dad";
+export const INFURA_ID = "1c9133d3356f4b97954d8ee90b485b65";
+
+export const ALCHEMY_KEY = "vZmM-LRwKW8TovvjYogcnE5l5duis4e7";
 
 // MY ETHERSCAN_ID, SWAP IN YOURS FROM https://etherscan.io/myapikey
 export const ETHERSCAN_KEY = "PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8";
@@ -15,6 +17,13 @@ export const NETWORKS = {
     blockExplorer: "",
     rpcUrl: "http://" + window.location.hostname + ":8545",
   },
+  localhost2: {
+    name: "localhost2",
+    color: "#666666",
+    chainId: 5777,
+    blockExplorer: "",
+    rpcUrl: "http://" + window.location.hostname + ":7545",
+  },
   mainnet: {
     name: "mainnet",
     color: "#ff8b9e",
@@ -26,7 +35,7 @@ export const NETWORKS = {
     name: "kovan",
     color: "#7003DD",
     chainId: 42,
-    rpcUrl: `https://kovan.infura.io/v3/${INFURA_ID}`,
+    rpcUrl: `https://eth-kovan.alchemyapi.io/v2/2YtK7jN-8sm8qeFgDLtRFCUaoJMO1xjU`,
     blockExplorer: "https://kovan.etherscan.io/",
     faucet: "https://gitter.im/kovan-testnet/faucet", // https://faucet.kovan.network/
   },
@@ -52,7 +61,7 @@ export const NETWORKS = {
     chainId: 5,
     faucet: "https://goerli-faucet.slock.it/",
     blockExplorer: "https://goerli.etherscan.io/",
-    rpcUrl: `https://goerli.infura.io/v3/${INFURA_ID}`,
+    rpcUrl: `https://eth-goerli.alchemyapi.io/v2/vZmM-LRwKW8TovvjYogcnE5l5duis4e7`,
   },
   xdai: {
     name: "xdai",
