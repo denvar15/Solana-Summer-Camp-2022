@@ -251,9 +251,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC1155List[token][tokenId].borrower = address(0);
             uint256 totalCount = UsersBarters[msg.sender].length;
             for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[msg.sender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
+                Barter memory userBarter = UsersBarters[msg.sender][i];
+                if (userBarter.token == token && userBarter.tokenId == tokenId &&
+                    userBarter.tokenStandard == tokenStandard) {
                     delete UsersBarters[msg.sender][i];
                     UsersBarterCount[msg.sender] -= 1;
                 }
@@ -280,9 +280,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC721List[token][tokenId].borrower = address(0);
             uint256 totalCount = UsersBarters[msg.sender].length;
             for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[msg.sender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
+                Barter memory userBarter = UsersBarters[msg.sender][i];
+                if (userBarter.token == token && userBarter.tokenId == tokenId &&
+                    userBarter.tokenStandard == tokenStandard) {
                     delete UsersBarters[msg.sender][i];
                     UsersBarterCount[msg.sender] -= 1;
                 }
@@ -301,8 +301,8 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
         }
         uint256 totalCount = UsersBarters[lender].length;
         for (uint i = 0; i<totalCount; i++) {
-            Barter memory userLend = UsersBarters[lender][i];
-            if (userLend.token == wantedToken && userLend.tokenId == wantedTokenId) {
+            Barter memory userBarter = UsersBarters[lender][i];
+            if (userBarter.token == wantedToken && userBarter.tokenId == wantedTokenId) {
                 UsersBarters[lender][i].status = 2;
                 UsersBarters[lender][i].fulfilledToken = offerToken;
                 UsersBarters[lender][i].fulfilledTokenId = offerTokenId;
@@ -334,9 +334,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC1155List[token][tokenId].borrower = address(0);
             uint256 totalCount = UsersBarters[lender].length;
             for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[lender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
+                Barter memory userBarter = UsersBarters[lender][i];
+                if (userBarter.token == token && userBarter.tokenId == tokenId &&
+                    userBarter.tokenStandard == tokenStandard) {
                     delete UsersBarters[lender][i];
                     UsersBarterCount[lender] -= 1;
                 }
@@ -349,9 +349,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC721List[token][tokenId].borrower = address(0);
             uint256 totalCount = UsersBarters[lender].length;
             for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[lender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
+                Barter memory userBarter = UsersBarters[lender][i];
+                if (userBarter.token == token && userBarter.tokenId == tokenId &&
+                    userBarter.tokenStandard == tokenStandard) {
                     delete UsersBarters[lender][i];
                     UsersBarterCount[lender] -= 1;
                 }
@@ -370,9 +370,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC1155List[token][tokenId].borrower = address(0);
             uint256 totalCount = UsersBarters[lender].length;
             for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[lender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
+                Barter memory userBarter = UsersBarters[lender][i];
+                if (userBarter.token == token && userBarter.tokenId == tokenId &&
+                    userBarter.tokenStandard == tokenStandard) {
                     delete UsersBarters[lender][i];
                     UsersBarterCount[lender] -= 1;
                 }
@@ -385,9 +385,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC721List[token][tokenId].borrower = address(0);
             uint256 totalCount = UsersBarters[lender].length;
             for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[lender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
+                Barter memory userBarter = UsersBarters[lender][i];
+                if (userBarter.token == token && userBarter.tokenId == tokenId &&
+                    userBarter.tokenStandard == tokenStandard) {
                     delete UsersBarters[lender][i];
                     UsersBarterCount[lender] -= 1;
                 }

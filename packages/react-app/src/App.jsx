@@ -61,7 +61,7 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-let targetNetwork = NETWORKS.goerli; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+let targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 const ownerAccountForTests = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
 localStorage.setItem("targetNetwork", targetNetwork.chainId);

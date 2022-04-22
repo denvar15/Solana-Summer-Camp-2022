@@ -386,7 +386,7 @@ export default function ActiveOffers(props) {
   return (
     <Row>
       <Col span={24}>
-        <h1>Active Lends</h1>
+        <h1>Active Offers</h1>
         <List
           bordered
           dataSource={usersLend}
@@ -446,7 +446,7 @@ export default function ActiveOffers(props) {
       </Col>
 
       <Col span={24}>
-        <h1>Active Backend Mock</h1>
+        <h1>Active InterChain Offers</h1>
         <List
           bordered
           dataSource={usersBackendMock}

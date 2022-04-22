@@ -507,7 +507,7 @@ export default function ApproveBarter(props) {
     <div>
       <Row>
         <Col span={24}>
-          <h1>Awaiting your approve</h1>
+          <h1>Awaiting Approve</h1>
           <List
             bordered
             dataSource={usersLend}
@@ -540,7 +540,7 @@ export default function ApproveBarter(props) {
           />
         </Col>
         <Col span={24}>
-          <h1>Awaiting Backend Mock</h1>
+          <h1>Awaiting Approve InterChain</h1>
           <List
             bordered
             dataSource={usersBackendMock}
