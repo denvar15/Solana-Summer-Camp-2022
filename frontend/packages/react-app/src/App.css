@@ -1,0 +1,26 @@
+.App {
+  text-align: center;
+}
+.mynft h2{
+  font-size: 28px;
+}
+.mynft__bg-overlay{
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.mynft__text{
+  z-index: 99;
+  position: relative;
+}
+.mynft__text .ant-input{
+  color: white;
+  display: block;
+}
+.mynft__text .ant-input::placeholder{
+  color: white;
+}
