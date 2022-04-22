@@ -1,0 +1,6 @@
+POST http://127.0.0.1:8000/api/test_web3/ HTTP/1.1
+content-type: application/json
+
+{
+    "provider": "http://127.0.0.1:8545"
+}
