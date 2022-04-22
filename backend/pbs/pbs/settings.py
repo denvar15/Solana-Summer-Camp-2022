@@ -109,5 +109,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 # DRF
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'UNICODE_JSON': True,
 }
