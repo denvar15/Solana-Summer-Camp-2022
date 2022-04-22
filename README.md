@@ -1,7 +1,10 @@
-* cd /frontend
-* yarn start
-* yarn chain
-* yarn deploy
-* yarn mint
-<br/>
+# installation
+
+
+`cd /frontend`<br>
+`yarn start`<br>
+`yarn chain`<br>
+`yarn deploy`<br>
+`yarn mint`
+<br>
 В сети localhost:8545
