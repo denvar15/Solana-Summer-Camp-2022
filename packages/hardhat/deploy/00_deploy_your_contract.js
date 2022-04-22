@@ -33,39 +33,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
-  /*
-  await deploy("ERC1155Lending", {
-    from: deployer,
-    log: true,
-  });
-
-  const ERC1155Lending = await ethers.getContract("ERC1155Lending", deployer);
-
-  await ERC1155Lending.transferOwnership(
-    "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
-  );
-
-  await deploy("ERC721Lending", {
-    from: deployer,
-    log: true,
-  });
-
-  const ERC721Lending = await ethers.getContract("ERC721Lending", deployer);
-
-  await ERC721Lending.transferOwnership(
-    "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
-  );
-
-  await deploy("Barter", {
-    from: deployer,
-    log: true,
-  });
-
-  const Barter = await ethers.getContract("Barter", deployer);
-
-  await Barter.transferOwnership("0x62FaFb31cfB1e57612bE488035B3783048cFe813");
-  */
-
   await deploy("BarterWithArrays", {
     from: deployer,
     log: true,
@@ -79,13 +46,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   await BarterWithArrays.transferOwnership(
     "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
   );
-  /*
-    // Getting a previously deployed contract
-    const YourContract = await ethers.getContract("YourContract", deployer);
-    await YourContract.setPurpose("Hello");
-    
-    //const yourContract = await ethers.getContractAt('YourContract', "0xaAC799eC2d00C013f1F11c37E654e59B0429DF6A") //<-- if you want to instantiate a version of a contract at a specific address!
-  */
+
 };
 module.exports.tags = [
   "YourCollectible",

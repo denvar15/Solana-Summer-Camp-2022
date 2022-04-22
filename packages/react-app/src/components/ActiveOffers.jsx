@@ -24,7 +24,7 @@ const getFromIPFS = async hashToGet => {
   }
 };
 
-export default function Borrow(props) {
+export default function ActiveOffers(props) {
   const display = [];
 
   const [values, setValues] = useState({});
@@ -74,24 +74,24 @@ export default function Borrow(props) {
     const updateUsersLend = async () => {
       const res = [];
       if (props.address !== props.ownerAccountForTests) {
-        const count = await props.readContracts.BarterWithArrays.UsersLendCount(
+        const count = await props.readContracts.BarterWithArrays.UsersBarterCount(
           props.ownerAccountForTests,
         );
         for (let i = 0; i < count; i++) {
           try {
-            const ul_base = await props.readContracts.BarterWithArrays.UsersLend(
+            const ul_base = await props.readContracts.BarterWithArrays.UsersBarters(
               props.ownerAccountForTests,
               i,
             );
-            const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesLend(
+            const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesBarter(
               props.ownerAccountForTests,
               i,
             );
-            const idTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedIdsLend(
+            const idTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedIdsBarter(
               props.ownerAccountForTests,
               i,
             );
-            const standardTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedStandardsLend(
+            const standardTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedStandardsBarter(
               props.ownerAccountForTests,
               i,
             );
@@ -254,7 +254,7 @@ export default function Borrow(props) {
     }
 
     const elem = document.getElementById(item.id + "_" + item.uri);
-    elem.style.border = "solid blue 10px";
+    elem.style.border = "solid white 3px";
     setSelectedWantedNFT(item);
   }
 
@@ -268,7 +268,7 @@ export default function Borrow(props) {
     }
 
     const elem = document.getElementById(item.id + "_" + item.uri + "offer");
-    elem.style.border = "solid blue 10px";
+    elem.style.border = "solid white 3px";
     setSelectedOfferNFT(item);
   }
 
@@ -596,24 +596,6 @@ export default function Borrow(props) {
           }}
         />
       </Col>
-      <Col span={18}>
-        <Card
-          title={
-            <div>
-              <div style={{ fontSize: 24 }}>Borrow</div>
-            </div>
-          }
-          size="large"
-          loading={false}
-        >
-          {display}
-        </Card>
-      </Col>
-      <Col span={3}> </Col>
-      <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
-        <Button onClick={makeOffer.bind(this)}>Make Offer</Button>
-      </Col>
-      <Col span={3}> </Col>
     </Row>
   );
 }

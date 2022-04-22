@@ -26,7 +26,7 @@ export const NETWORKS = {
     name: "kovan",
     color: "#7003DD",
     chainId: 42,
-    rpcUrl: `https://kovan.infura.io/v3/${INFURA_ID}`,
+    rpcUrl: `https://eth-kovan.alchemyapi.io/v2/2YtK7jN-8sm8qeFgDLtRFCUaoJMO1xjU`,
     blockExplorer: "https://kovan.etherscan.io/",
     faucet: "https://gitter.im/kovan-testnet/faucet", // https://faucet.kovan.network/
   },
@@ -52,7 +52,7 @@ export const NETWORKS = {
     chainId: 5,
     faucet: "https://goerli-faucet.slock.it/",
     blockExplorer: "https://goerli.etherscan.io/",
-    rpcUrl: `https://goerli.infura.io/v3/${INFURA_ID}`,
+    rpcUrl: `https://eth-goerli.alchemyapi.io/v2/vZmM-LRwKW8TovvjYogcnE5l5duis4e7`,
   },
   xdai: {
     name: "xdai",

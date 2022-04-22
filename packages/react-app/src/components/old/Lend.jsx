@@ -2,27 +2,16 @@ import { Card, Col, Button, Input, Row, List } from "antd";
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
-import contracts from "../contracts/hardhat_contracts.json";
+import { AddressInput } from "../index";
 
 const { BufferList } = require("bl");
 const ipfsAPI = require("ipfs-http-client");
 
 const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
 
-const contractName = "BarterWithArrays";
+const contractName = "Barter";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
-
-const Networks = {
-  5: "goerli",
-  42: "kovan",
-  4: "rinkeby",
-  3: "ropsten",
-  1: "mainnet",
-  31337: "localhost"
-};
-
-const targetNetwork = localStorage.getItem("targetNetwork")
 
 const getFromIPFS = async hashToGet => {
   for await (const file of ipfs.get(hashToGet)) {
@@ -35,19 +24,13 @@ const getFromIPFS = async hashToGet => {
   }
 };
 
-export default function ApproveBarter(props) {
+export default function Lend(props) {
   const display = [];
 
   const [values, setValues] = useState({});
   const [yourCollectibles721, setYourCollectibles721] = useState();
-  const [usersLend, setUsersLend] = useState();
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
-  const [usersBackendMock, setBackendMock] = useState();
-
-  // const ul = useContractReader(props.readContracts, contractName, "UsersLend", [props.address]);
-  // console.log("AAAAAAAAAAA ", ul);
-  // setUsersLend(ul);
 
   const tx = props.tx;
 
@@ -86,80 +69,7 @@ export default function ApproveBarter(props) {
       }
       setYourCollectibles721(collectibleUpdate);
     };
-    const updateUsersLend = async () => {
-      const res = [];
-      const count = await props.readContracts.BarterWithArrays.UsersLendCount(
-        props.ownerAccountForTests,
-      );
-      for (let i = 0; i < count; i++) {
-        try {
-          const ul = await props.readContracts.BarterWithArrays.UsersLend(
-            props.ownerAccountForTests,
-            i,
-          );
-          console.log(ul, ul.status);
-          if (ul.status.toNumber() === 2) {
-            res.push(ul);
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      }
-      setUsersLend(res);
-    };
-    const backendMock = async () => {
-      let a = JSON.parse(localStorage.getItem("madeOffers"));
-      let b = JSON.parse(localStorage.getItem("startedBarters"));
-      if (!a) {
-        a = []
-      }
-      if (!b) {
-        b = []
-      }
-      const res = [];
-      for (let i = 0; i < a.length; i++) {
-        for (let j = 0; j < b.length; j++) {
-          // console.log(a[i].data["wantedToken"] in b[j].data["acceptedToken"], a[i].data["wantedToken"], b[j].data["acceptedToken"])
-          if (a[i].data.wantedTokenId in b[j].data.acceptedTokenId) {
-            if (a[i].data.chainId !== b[j].data.chainId) {
-              const inter = Number(a[i].data.chainId);
-              const inter2 = Number(b[j].data.chainId);
-              const name = Networks[a[i].data.chainId];
-              const name2 = Networks[b[j].data.chainId];
-              // console.log(a[i].data.chainId, contracts[5], contracts[inter])
-              const addr1155 = contracts[inter][name].contracts.YourCollectible.address;
-              const addr721 = contracts[inter][name].contracts.YourCollectible721.address;
-              const addr1155_second = contracts[inter2][name2].contracts.YourCollectible.address;
-              const addr721_second = contracts[inter2][name2].contracts.YourCollectible721.address;
-              // console.log(contracts[inter][name].contracts.YourCollectible.address, contracts[inter][name].contracts.YourCollectible721.address);
-              console.log(addr1155, addr1155_second, a[i].data.offerToken, b[j].data.acceptedToken);
-              console.log(inter, inter2)
-              if (a[i].data.offerToken === addr1155) {
-                console.log(addr1155_second, b[j].data.acceptedToken, addr1155_second in b[j].data.acceptedToken);
-                if (b[j].data.acceptedToken.includes(addr1155_second)) {
-                  console.log("VIVAT!", a[i]);
-                  res.push(a[i]);
-                }
-              }
-              if (a[i].data.offerToken === addr721) {
-                console.log(addr721_second, b[j].data.acceptedToken);
-                if (b[j].data.acceptedToken.includes(addr721_second)) {
-                  console.log("VIVAT!", a[i]);
-                  a[i].starterIndex = j;
-                  a[i].ownIndex = i;
-                  res.push(a[i]);
-                }
-              }
-            }
-          }
-        }
-      }
-      console.log("REs", res);
-      setBackendMock(res);
-    };
     updateCollectibles721();
-    updateUsersLend();
-    backendMock();
   }, []);
 
   const rowForm = (title, icon, onClick) => {
@@ -362,171 +272,84 @@ export default function ApproveBarter(props) {
     setSelectedOfferNFT(item);
   }
 
-  async function approveBarter() {
+  async function StartBarter() {
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
-      return;
     }
+    if (!selectedWantedNFT) {
+      alert("SELECT WANTED NFT!");
+    }
+    if (!values.duration) {
+      alert("TYPE DURATION OF BARTER!");
+    }
+    if (selectedOfferNFT.standard == 1155) {
+      await setApproval1155();
+    } else if (selectedOfferNFT.standard == 721) {
+      await setApproval721();
+    }
+    console.log("AAAAAAAAAAAA ", values.duration);
     const setTx = await tx(
-      writeContracts[contractName].approveBarter(
+      writeContracts[contractName].startBartering(
         selectedOfferNFT.address,
         selectedOfferNFT.id,
+        values.duration,
+        selectedWantedNFT.address,
+        selectedWantedNFT.id,
         selectedOfferNFT.standard,
+        selectedWantedNFT.standard,
       ),
     );
     const setTxResult = await setTx;
-    console.log("approveBarter result", setTxResult);
-  }
-
-  async function revokeBarter() {
-    if (!selectedOfferNFT) {
-      alert("SELECT OFFER NFT!");
-      return;
-    }
-    const setTx = await tx(
-      writeContracts[contractName].revokeBarter(
-        selectedOfferNFT.address,
-        selectedOfferNFT.id,
-        selectedOfferNFT.standard,
-      ),
-    );
-    const setTxResult = await setTx;
-    console.log("approveBarter result", setTxResult);
-  }
-
-  async function approveInterChainBarter(item) {
-    let author;
-    if (props.address !== props.ownerAccountForTests) {
-      alert("NOT OWNER OF CONTRACTS!");
-      return;
-    }
-    if (!selectedOfferNFT) {
-      alert("SELECT OFFER NFT!");
-      return;
-    }
-    if (targetNetwork === item.chainId) {
-      let p = JSON.parse(localStorage.getItem("approvals"));
-      if (!p) {
-        alert("FIRSTLY APPROVE ON OTHER CHAIN!");
-        return;
-      }
-      if (!p[props.address]) {
-        alert("FIRSTLY APPROVE ON OTHER CHAIN!");
-        return;
-      }
-      author = props.address;
-      const setTx = await tx(
-        writeContracts[contractName].approveIterChainBarter(
-          item.offerToken,
-          item.offerTokenId,
-          item.offerTokenStandard,
-          author,
-        ),
-      );
-      const setTxResult = await setTx;
-      console.log("approveBarter result", setTxResult);
-      p.delete(props.address);
-      localStorage.setItem("approvals", JSON.stringify(p));
-      let a = JSON.parse(localStorage.getItem("madeOffers"));
-      let b = JSON.parse(localStorage.getItem("startedBarters"));
-      a.splice(item.ownIndex)
-      b.splice(item.starterIndex);
-      localStorage.setItem("madeOffers", JSON.stringify(a));
-      localStorage.setItem("startedBarters", JSON.stringify(b));
-    } else {
-      author = item.author;
-      const setTx = await tx(
-        writeContracts[contractName].approveIterChainBarter(
-          selectedOfferNFT.address,
-          selectedOfferNFT.id,
-          selectedOfferNFT.standard,
-          author,
-        ),
-      );
-      const setTxResult = await setTx;
-      const p = JSON.parse(localStorage.getItem("approvals"));
-      if (p == null) {
-        p = {};
-      }
-      p[props.address] = true;
-      localStorage.setItem("approvals", JSON.stringify(p));
-      console.log("approveBarter result", setTxResult);
-    }
-  }
-
-  async function revokeInterChainBarter(item) {
-    let author;
-    if (props.address !== props.ownerAccountForTests) {
-      alert("NOT OWNER OF CONTRACTS!");
-      return;
-    }
-    if (!selectedOfferNFT) {
-      alert("SELECT OFFER NFT!");
-      return;
-    }
-    if (targetNetwork === item.chainId) {
-      let p = JSON.parse(localStorage.getItem("revokes"));
-      if (!p) {
-        alert("FIRSTLY REVOKE ON OTHER CHAIN!");
-        return;
-      }
-      if (!p[props.address]) {
-        alert("FIRSTLY REVOKE ON OTHER CHAIN!");
-        return;
-      }
-      author = item.author;
-      const setTx = await tx(
-        writeContracts[contractName].revokeIterChainBarter(
-          item.offerToken,
-          item.offerTokenId,
-          item.offerTokenStandard,
-          author,
-        ),
-      );
-      const setTxResult = await setTx;
-      console.log("approveBarter result", setTxResult);
-      p.delete(props.address);
-      localStorage.setItem("approvals", JSON.stringify(p));
-      let a = JSON.parse(localStorage.getItem("madeOffers"));
-      let b = JSON.parse(localStorage.getItem("startedBarters"));
-      a.splice(item.ownIndex)
-      b.splice(item.starterIndex);
-      localStorage.setItem("madeOffers", JSON.stringify(a));
-      localStorage.setItem("startedBarters", JSON.stringify(b));
-    } else {
-      author = props.address;
-      const setTx = await tx(
-        writeContracts[contractName].revokeIterChainBarter(
-          selectedOfferNFT.address,
-          selectedOfferNFT.id,
-          selectedOfferNFT.standard,
-          author,
-        ),
-      );
-      const setTxResult = await setTx;
-      const p = JSON.parse(localStorage.getItem("revokes"));
-      if (p == null) {
-        p = {};
-      }
-      p[props.address] = true;
-      localStorage.setItem("revokes", JSON.stringify(p));
-      console.log("approveBarter result", setTxResult);
-    }
+    console.log("startBartering result", setTxResult);
   }
 
   if (props.readContracts && props.readContracts[contractName]) {
     display.push(
       <div>
-        {rowFormLendSettings("approveBarter", "📥📥", async (address, tokenId, tokenStandard) => {
-          if (selectedOfferNFT) {
-            address = selectedOfferNFT.address;
-            tokenId = selectedOfferNFT.id;
-            tokenStandard = selectedOfferNFT.standard;
-          }
-          const setTx = await tx(writeContracts[contractName].approveBarter(address, tokenId, tokenStandard));
-          const setTxResult = await setTx;
-          console.log("approveBarter result", setTxResult);
-        })}
+        {rowForm(
+          "startBartering",
+          "📤📤",
+          async (
+            addressFirst,
+            tokenIdFirst,
+            duration,
+            addressSecond,
+            tokenIdSecond,
+            tokenStandard,
+            acceptedTokenStandard,
+          ) => {
+            if (selectedWantedNFT) {
+              addressSecond = selectedWantedNFT.address;
+              tokenIdSecond = selectedWantedNFT.id;
+              acceptedTokenStandard = selectedWantedNFT.standard;
+              console.log(selectedWantedNFT);
+            }
+            if (selectedOfferNFT) {
+              addressFirst = selectedOfferNFT.address;
+              tokenIdFirst = selectedOfferNFT.id;
+              tokenStandard = selectedOfferNFT.standard;
+            }
+            if (tokenStandard == 1155) {
+              await setApproval1155();
+            } else if (tokenStandard == 721) {
+              await setApproval721();
+            }
+            console.log("AAAAAAAAAAAA ", values.duration);
+            const setTx = await tx(
+              writeContracts[contractName].startBartering(
+                addressFirst,
+                tokenIdFirst,
+                values.duration,
+                addressSecond,
+                tokenIdSecond,
+                tokenStandard,
+                acceptedTokenStandard,
+              ),
+            );
+            const setTxResult = await setTx;
+            console.log("startBartering result", setTxResult);
+          },
+        )}
       </div>,
     );
   }
@@ -534,16 +357,38 @@ export default function ApproveBarter(props) {
   return (
     <div>
       <Row>
-        <Col span={24}>
-          <h1>Awaiting your approve</h1>
+        <Col span={3}> </Col>
+        <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
+          <h1>Duration of Barter</h1>
+          <Input
+            onChange={e => {
+              const newValues = { ...values };
+              newValues.duration = e.target.value;
+              setValues(newValues);
+            }}
+            placeholder="Длительность актиности сделки"
+            value={values.duration}
+          />
+          <Button onClick={StartBarter.bind(this)}>Start Barter</Button>
+        </Col>
+        <Col span={3}> </Col>
+        {/*  <Button style={{ marginLeft: "50%" }} onClick={setApproval1155.bind(this)}>
+          Approve NFT 1155
+        </Button>
+        <Button style={{ marginLeft: "50%" }} onClick={setApproval721.bind(this)}>
+          Approve NFT 721
+        </Button> */}
+
+        <Col span={6}>
+          <h1>Wanted 1155</h1>
           <List
+            style={{ marginLeft: "50%" }}
             bordered
-            dataSource={usersLend}
+            dataSource={props.yourCollectibles}
             renderItem={item => {
               const id = item.id;
-              const styler = true;
               return (
-                <List.Item key={item.token + "_" + item.acceptedToken} id={item.token + "_" + item.acceptedToken}>
+                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
                   <Card
                     title={
                       <div>
@@ -551,57 +396,44 @@ export default function ApproveBarter(props) {
                       </div>
                     }
                   >
-                    <div>Wanted address {item.fulfilledToken}</div>
-                    <div>Wanted id {item.fulfilledTokenId.toNumber()}</div>
-                    <div>Offered address {item.token}</div>
-                    <div>Offered id {item.tokenId.toNumber()}</div>
-                    <Button onClick={approveBarter.bind(this)} style={{ backgroundColor: "green", color: "white" }}>
-                      Approve Barter
-                    </Button>
-                    <Button onClick={revokeBarter.bind(this)} style={{ backgroundColor: "red", color: "white" }}>
-                      Revoke Barter
-                    </Button>
+                    <div>
+                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
+                    </div>
+                    <div>{item.description}</div>
                   </Card>
                 </List.Item>
               );
             }}
           />
         </Col>
-        <Col span={24}>
-          <h1>Awaiting Backend Mock</h1>
+        <Col span={6}>
+          <h1>Wanted 721</h1>
           <List
+            style={{ marginLeft: "50%" }}
             bordered
-            dataSource={usersBackendMock}
+            dataSource={yourCollectibles721}
             renderItem={item => {
-              item = item.data;
               const id = item.id;
               return (
-                <List.Item key={item.wantedToken + item.offerToken} id={item.wantedToken + item.offerToken}>
+                <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri}>
                   <Card
                     title={
                       <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>#{item.chainId}</span>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
                       </div>
                     }
                   >
-                    <div>Offered address {item.wantedToken}</div>
-                    <div>Offered id {item.wantedTokenId}</div>
-                    <Button
-                      onClick={approveInterChainBarter.bind(this, item)}
-                      style={{ backgroundColor: "green", color: "white" }}
-                    >
-                      Approve Barter
-                    </Button>
-                    <Button onClick={revokeInterChainBarter.bind(this, item)} style={{ backgroundColor: "red", color: "white" }}>
-                      Revoke Barter
-                    </Button>
+                    <div>
+                      <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
+                    </div>
+                    <div>{item.description}</div>
                   </Card>
                 </List.Item>
               );
             }}
           />
         </Col>
-        <Col span={10}>
+        <Col span={6}>
           <h1>Offer 1155</h1>
           <List
             style={{ marginLeft: "50%" }}
@@ -631,12 +463,12 @@ export default function ApproveBarter(props) {
             }}
           />
         </Col>
-        <Col span={10}>
+        <Col span={6}>
           <h1>Offer 721</h1>
           <List
             style={{ marginLeft: "50%" }}
             bordered
-            dataSource={yourCollectibles721}
+            dataSource={props.yourCollectibles721}
             renderItem={item => {
               const id = item.id;
               return (
@@ -671,11 +503,6 @@ export default function ApproveBarter(props) {
             {display}
           </Card>
         </Col>
-        <Col span={3}> </Col>
-        <Col span={14} style={{ margin: "auto", marginTop: "50px", marginBottom: "50px" }}>
-          <Button onClick={approveBarter.bind(this)}>Approve Barter</Button>
-        </Col>
-        <Col span={3}> </Col>
       </Row>
     </div>
   );

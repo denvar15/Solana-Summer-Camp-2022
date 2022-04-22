@@ -17,10 +17,9 @@ export { default as Timeline } from "./Timeline";
 export { default as TokenBalance } from "./TokenBalance";
 export { default as Wallet } from "./Wallet";
 export { default as L2Bridge } from "./L2Bridge";
-export { default as Lend } from "./Lend";
-export { default as Borrow } from "./Borrow";
+export { default as Lend } from "./old/Lend";
+export { default as Borrow } from "./old/Borrow";
 export { default as ApproveBarter } from "./ApproveBarter";
-export { default as LendArrays } from "./LendArrays";
-export { default as BorrowArrays } from "./BorrowArrays";
-export { default as ApproveBarterArrays } from "./ApproveBarterArrays";
+export { default as StartBarter } from "./StartBarter";
+export { default as ActiveOffers } from "./ActiveOffers";
 export { default as Sidebar } from "./Sidebar"
