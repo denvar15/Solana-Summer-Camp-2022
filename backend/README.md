@@ -3,9 +3,7 @@
 # install
 ```
 git clone https://github.com/k0b1x/pbs
-cd pbs
-git checkout back
-cd backend
+cd pbs/backend
 docker-compose up -d --build
 ``` 
 # run
