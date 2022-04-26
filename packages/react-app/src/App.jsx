@@ -19,6 +19,7 @@ import {
   StartBarter,
   ActiveOffers,
   ApproveBarter,
+  P2p
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -63,7 +64,7 @@ const { ethers } = require("ethers");
 /// 📡 What chain are your contracts deployed to?
 let targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
-const ownerAccountForTests = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+const ownerAccountForTests = "0x03cb144b401139a96873836f8e9B12f013FdEcA9";
 localStorage.setItem("targetNetwork", targetNetwork.chainId);
 
 window.localStorage.setItem("theme", "dark");
@@ -840,6 +841,9 @@ function App(props) {
             ) : (
               ""
             )}
+          </Route>
+          <Route path="/p2p">
+            <P2p/>
           </Route>
         </Switch>
       </BrowserRouter>

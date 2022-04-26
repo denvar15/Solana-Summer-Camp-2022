@@ -16,12 +16,12 @@ const delayMS = 1000; // sometimes xDAI needs a 6000ms break lol 😅
 
 const main = async () => {
   // ADDRESS TO MINT TO:
-  const toAddress = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
-  const toAddress2 = "0x3CbFe0a7f518526E8090aC6e0977ed1f1a1Ea149";
+  const toAddress = "0x03cb144b401139a96873836f8e9B12f013FdEcA9";
+  const toAddress2 = "0xC95e4bb1145a696EA4F1467eE7f664051319d0D9";
 
   console.log("\n\n 🎫 Minting to " + toAddress + "...\n");
 
-  const { deployer } = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+  const { deployer } = "0x03cb144b401139a96873836f8e9B12f013FdEcA9";
   const yourCollectible = await ethers.getContract("YourCollectible", deployer);
 
   await yourCollectible.mint(toAddress, 0, 4, [], { gasLimit: 400000 });

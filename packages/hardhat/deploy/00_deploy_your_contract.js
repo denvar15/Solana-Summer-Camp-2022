@@ -44,7 +44,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   );
 
   await BarterWithArrays.transferOwnership(
-    "0x62FaFb31cfB1e57612bE488035B3783048cFe813"
+    "0x03cb144b401139a96873836f8e9B12f013FdEcA9"
   );
 
 };
