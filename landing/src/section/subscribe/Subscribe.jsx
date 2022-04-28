@@ -12,7 +12,7 @@ export const Subscribe = () => {
     <div className="pageSubscribe">
       <div className="subscribe">
         <div className="subscribeTitle">Оставить заявку на тестирование</div>
-        <input type='text' placeholder="user@site.com" className="subscribeInput"/>
+        <input type='text' placeholder="email" className="subscribeInput"/>
         <button className="subscribeButton" onClick={handleSend}>Отправить</button>
         <div className="subscribeMessage">{message}</div>
       </div>
