@@ -1,0 +1,12 @@
+.socialBlock {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 250px;
+  font-size: 64px;
+  margin-top: 24px;
+}
+
+.socialItem {
+  cursor: pointer;
+}

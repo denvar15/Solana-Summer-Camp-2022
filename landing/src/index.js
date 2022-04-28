@@ -8,6 +8,7 @@ import { Faq } from './section/faq/Faq'
 import { Features } from './section/features/Features'
 import { Roadmap } from './section/roadmap/Roadmap'
 import { Team } from './section/team/Team'
+import { Subscribe } from './section/subscribe/Subscribe';
  
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -17,6 +18,7 @@ root.render(
     <Demo />
     <Features />
     <Roadmap />
+    <Subscribe />
     <Faq />
     <Team />
   </React.StrictMode>

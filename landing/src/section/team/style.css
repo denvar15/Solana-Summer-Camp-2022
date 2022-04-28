@@ -13,9 +13,16 @@
   align-items: center;
 }
 
+.teamListWrapper {
+  display: flex;
+  flex-direction: row;
+}
+
 .teamCard {
   display: flex;
   flex-direction: column;
+  padding: 24px;
+  width: 200px;
 }
 
 .teamTitle {
@@ -60,5 +67,11 @@
   
   .teamTelegram a{
     font-size: 14px;
+  }
+  .teamListWrapper {
+    flex-direction: column;
+  }
+  .teamCard {
+    padding: 8px;
   }
 }

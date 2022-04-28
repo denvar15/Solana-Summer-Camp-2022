@@ -7,6 +7,10 @@ export const Roadmap = () => {
                 <div className="roadmapTitle">Roadmap</div>
                 <div className="roadmapList">
                     <RoadmapCard
+                        title="Сейчас - Интеграция с AaveGotchi"
+                        text="Одна из  популярнейших игр в GameFi. Также поддерживается Mumbai - testnet Polygon. Уже сейчас можно посмотреть список доступных NFT для пользователя"
+                    />
+                    <RoadmapCard
                         title="Q2 22 - Интеграция с маркетплейсами"
                         text="Площадка предоставляет удобные функции обмена, покупки и аналитики."
                     />

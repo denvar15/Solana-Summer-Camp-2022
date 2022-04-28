@@ -28,6 +28,11 @@ export const Features = () => {
             text={["дистрибьюция игр", "продажа NFT", "аренда NFT"]}
             image="https://cdn-icons-png.flaticon.com/512/6615/6615937.png"
           />
+          <FeatureCard
+            title="Стриминг"
+            text={["донаты", "прохождения", "тренинг"]}
+            image="https://cdn-icons-png.flaticon.com/512/2177/2177994.png"
+          />
         </div>
       </div>
     </div>

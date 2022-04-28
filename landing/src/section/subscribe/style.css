@@ -1,0 +1,46 @@
+.pageSubscribe {
+  width: 100%;
+  background-color: rgb(32, 32, 32);
+}
+
+.subscribe {
+  color: rgb(214, 214, 214);
+  width: 100%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.subscribeTitle {
+  font-size: 36px;
+  text-align: center;
+  margin-top: 36px;
+}
+
+
+.subscribeMessage {
+  font-size: 14px;
+  text-align: center;
+  margin-top: 36px;
+}
+
+.subscribeInput {
+  font-size: 24px;
+  text-align: center;
+  margin-top: 36px;
+}
+
+.subscribeButton {
+  font-size: 14px;
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* mobile */
+@media screen and (max-width: 768px) {
+  .subscribeTitle {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+}
