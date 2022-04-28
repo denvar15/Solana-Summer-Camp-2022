@@ -12,6 +12,10 @@
   align-items: center;
 }
 
+.faqCard {
+  width: 60%;
+}
+
 .faqTitle {
   font-size: 36px;
   text-align: center;
@@ -39,5 +43,8 @@
   }
   .faqQuestion, .faqAnswer {
     font-size: 14px;
+  }
+  .faqCard {
+    width: 80%;
   }
 }
