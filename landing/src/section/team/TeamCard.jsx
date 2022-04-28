@@ -5,7 +5,7 @@ export const TeamCard = ({ name, telegram }) => {
     return (
         <div className="teamCard">
         <div className='teamName'>{name}</div>
-        <div className='teamTelegram'><a href="https://t.me/{telegram}">@{telegram}</a></div>
+        <div className='teamTelegram'><a href={"https://t.me/"+telegram} target="_blank">@{telegram}</a></div>
         </div>
     )
 }

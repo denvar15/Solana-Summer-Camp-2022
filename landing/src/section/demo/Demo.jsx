@@ -13,6 +13,7 @@ export const Demo = () => {
           height="315"
           src="https://www.youtube.com/embed/suhJhY0OB2M"
           frameBorder="0"
+          modestbranding="1"
           allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         ></iframe>

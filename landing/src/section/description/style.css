@@ -3,11 +3,16 @@
     width: 100%;
     background-image: url('https://zos.alipayobjects.com/rmsportal/gGlUMYGEIvjDOOw.jpg');
     background-position: center;
+    background-color: rgb(32, 32, 32);
 }
 .description {
     color: rgb(214, 214, 214);
-    padding-top: 20vh;
-    width: 80%;
+    background-color: rgba(31,31,31,.5);
+    padding-top: 10vh;
+    padding-left: 24px;
+    padding-right: 24px;
+    width: 50%;
+    height: 100vh;
     margin: auto;
     display: flex;
     flex-direction: column;
@@ -20,7 +25,7 @@
 }
 
 .descriptionText {
-    font-size: 18px;
+    font-size: 22px;
     line-height: 1.5;
     text-align: center;
 }
@@ -28,6 +33,9 @@
 
 /* mobile */
 @media screen and (max-width: 768px) {
+    .description {
+        width: 80%;
+    }
     .descriptionTitle {
         font-size: 46px;
         margin-bottom: 16px;
