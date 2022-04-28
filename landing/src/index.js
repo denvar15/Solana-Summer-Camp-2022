@@ -1,13 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './Home';
+import './index.css';
 import reportWebVitals from './reportWebVitals';
+import { Description } from './section/description/Description';
+import { Demo } from './section/demo/Demo'
+import { Faq } from './section/faq/Faq'
+import { Features } from './section/features/Features'
+import { Roadmap } from './section/roadmap/Roadmap'
+import { Team } from './section/team/Team'
+ 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-  
-    <App />
+    <Description />
+    <Demo />
+    <Features />
+    <Roadmap />
+    <Faq />
+    <Team />
   </React.StrictMode>
 );
 
