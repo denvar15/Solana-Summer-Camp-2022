@@ -25,4 +25,4 @@ CRYPTOSTEAM - это новая веха в развитии GameFI.<br>CRYPTOST
 # MVP
 В текущей версии CRYPTOSTEAM реализован внутрисетевой обмен,  а также межсетевой обмен в сетях kovan и goerli. В дальнейшем развитии проекта предполагается интеграция с другими сетями для расширения аудитории продукта.
 # Demo
-[Screencast](https://youtu.be/suhJhY0OB2M)
+[Screencast](https://youtu.be/dfNBT7KS-kw)
