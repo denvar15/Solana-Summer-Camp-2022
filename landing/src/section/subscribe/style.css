@@ -18,12 +18,11 @@
   margin-top: 36px;
 }
 
-
 .subscribeFormInput {
   position: relative;
   padding: 15px 0 0;
   margin-top: 24px;
-  width: 50%;
+  width: 30%;
 }
 
 .subscribeInput {
@@ -79,11 +78,11 @@
 }
 
 .subscribeButton {
-  font-size: 14px;
-  text-align: center;
-  margin-top: 24px;
-  height: 30px;
-  width: 100px;
+  position: absolute;
+  right: -28px;
+  top: 50%;
+  font-size: 28px;
+  cursor: pointer;
 }
 
 /* mobile */

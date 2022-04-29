@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import StatusAlert, { StatusAlertService } from 'react-status-alert';
+import { BiSend } from 'react-icons/bi'
 import "./style.css";
 import 'react-status-alert/dist/status-alert.css'
 
@@ -20,8 +21,8 @@ export const Subscribe = () => {
         <div className="subscribeFormInput" >
           <input type='text' className="subscribeInput" placeholder="Email"  id='email' name='email' required />
           <label htmlFor='email' className="subscribeLabel">Email</label>
+          <div className="subscribeButton"><BiSend onClick={handleSend}/></div>
         </div>
-        <button className="subscribeButton" onClick={handleSend}>Отправить</button>
       </div>
     </div>
   );
