@@ -9,7 +9,7 @@ import { Features } from './section/features/Features'
 import { Roadmap } from './section/roadmap/Roadmap'
 import { Team } from './section/team/Team'
 import { Subscribe } from './section/subscribe/Subscribe';
- 
+import { YMInitializer } from 'react-yandex-metrika';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -21,6 +21,7 @@ root.render(
     <Subscribe />
     <Faq />
     <Team />
+    <YMInitializer accounts={[88658034]} />
   </React.StrictMode>
 );
 

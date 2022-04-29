@@ -7182,6 +7182,11 @@ react-status-alert@^1.1.2:
   resolved "https://registry.yarnpkg.com/react-status-alert/-/react-status-alert-1.1.2.tgz#5d39187cc62036c6aab9315155579dbfdffe6899"
   integrity sha512-zed7EJLKpcXteJU1WRb4gbus+IrlSlOR8PftZcXRcX8QO8awV9PwZ7Ys3NjX2Fgy/Hb9QTs5vXy9vx1guwYWtg==
 
+react-yandex-metrika@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/react-yandex-metrika/-/react-yandex-metrika-2.6.0.tgz#9c935c8c7ea5505e34391b9b3e86deb6d50053c9"
+  integrity sha512-8K4wExsNZtY3DTxh1G8a+zWH9Pg8fw23MJcoJ4I/562qrHRnh7L5nteq3lnNL58dnNQbuuHIRoGgMjIo+r1GjA==
+
 react@^18.1.0:
   version "18.1.0"
   resolved "https://registry.yarnpkg.com/react/-/react-18.1.0.tgz#6f8620382decb17fdc5cc223a115e2adbf104890"
