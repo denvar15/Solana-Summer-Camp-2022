@@ -46,3 +46,11 @@
         text-align: center;
     }
 }
+
+@media (-webkit-min-device-pixel-ratio: 1.25) { 
+    .descriptionText {
+        font-size: 18px;
+        line-height: 1.3;
+        text-align: center;
+    }
+ }
