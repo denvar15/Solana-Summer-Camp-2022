@@ -23,3 +23,5 @@ export { default as ApproveBarter } from "./ApproveBarter";
 export { default as StartBarter } from "./StartBarter";
 export { default as ActiveOffers } from "./ActiveOffers";
 export { default as Sidebar } from "./Sidebar"
+export { default as P2p } from "./P2p"
+export { default as AaveGotchi } from "./AaveGotchi.jsx"

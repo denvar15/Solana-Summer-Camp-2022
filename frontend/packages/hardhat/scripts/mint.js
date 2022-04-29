@@ -39,10 +39,10 @@ const main = async () => {
   );
 
   const buffalo = {
-    description: "First",
+    description: "It's actually a bison?",
     external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
     image: "https://sun9-85.userapi.com/s/v1/if1/sIZa6xkZqOYGxZ9hsBGl7F7ybidrMOJRapgweYYjZWJKBUxl4Ddcw4tubcRXza9rWgsexfSy.jpg?size=450x447&quality=96&type=album",
-    name: "First",
+    name: "Buffalo",
     attributes: [
       {
         trait_type: "BackgroundColor",
@@ -68,10 +68,10 @@ const main = async () => {
 
 
   const zebra = {
-    description: "Second",
+    description: "What is it so worried about?",
     external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
     image: "https://sun9-80.userapi.com/s/v1/if1/YkZQogx1oqngegXi8wP2iznpztUiTmforKH5WHwkX6Qmu7O1G3ji2Mpyq-hMvUHP5B7YGQ35.jpg?size=2560x1898&quality=96&type=album",
-    name: "Second",
+    name: "Zebra",
     attributes: [
       {
         trait_type: "BackgroundColor",

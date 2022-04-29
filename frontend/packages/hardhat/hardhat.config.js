@@ -99,6 +99,12 @@ module.exports = {
         mnemonic: mnemonic(),
       },
     },
+    mumbai: {
+      url: "https://polygon-mumbai.g.alchemy.com/v2/jWiiR2MW3b7RsFL1t0LosTx7mlGAYdKs/",
+      accounts: {
+        mnemonic: mnemonic(),
+      },
+    },
     rinkebyArbitrum: {
       url: "https://rinkeby.arbitrum.io/rpc",
       gasPrice: 0,

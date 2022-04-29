@@ -19,6 +19,8 @@ import {
   StartBarter,
   ActiveOffers,
   ApproveBarter,
+  P2p,
+  AaveGotchi
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -569,6 +571,16 @@ function App(props) {
               YourCollectibles
             </Link>
           </Menu.Item>
+          <Menu.Item key="/AaveGotchi">
+            <Link
+              onClick={() => {
+                setRoute("/AaveGotchi");
+              }}
+              to="/AaveGotchi"
+            >
+              AaveGotchi
+            </Link>
+          </Menu.Item>
         </Menu>
 
         <Switch>
@@ -840,6 +852,12 @@ function App(props) {
             ) : (
               ""
             )}
+          </Route>
+          <Route path="/p2p">
+            <P2p/>
+          </Route>
+          <Route path="/AaveGotchi">
+            <AaveGotchi/>
           </Route>
         </Switch>
       </BrowserRouter>

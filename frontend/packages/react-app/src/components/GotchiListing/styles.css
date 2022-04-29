@@ -1,0 +1,32 @@
+.gotchi-listing {
+  display: flex;
+  cursor: pointer;
+}
+.gotchi-listing.selected {
+  border: 5px solid white;
+}
+
+.collateral-container {
+  width: 54px;
+  display: grid;
+  place-items: center;
+}
+
+.collateral {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.id {
+  padding-right: 12px;
+  width: 60px;
+  text-align: right;
+}
+
+.name {
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

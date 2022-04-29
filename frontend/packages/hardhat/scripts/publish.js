@@ -6,7 +6,6 @@ const deploymentsDir = "./deployments";
 const publishDir = "../react-app/src/contracts";
 
 function publishContract(contractName, networkName) {
-  /*
   try {
     let contract = fs
       .readFileSync(`${deploymentsDir}/${networkName}/${contractName}.json`)
@@ -62,11 +61,9 @@ function publishContract(contractName, networkName) {
     console.log(e);
     return false;
   }
-   */
 }
 
 async function main() {
-  /*
   const directories = fs.readdirSync(deploymentsDir);
   directories.forEach(function (directory) {
     const files = fs.readdirSync(`${deploymentsDir}/${directory}`);
@@ -78,7 +75,6 @@ async function main() {
     });
   });
   console.log("✅  Published contracts to the subgraph package.");
-  */
 }
 main()
   .then(() => process.exit(0))

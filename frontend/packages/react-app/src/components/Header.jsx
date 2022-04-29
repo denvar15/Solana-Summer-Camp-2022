@@ -7,7 +7,7 @@ export default function Header() {
   return (
     <a href="https://github.com/austintgriffith/scaffold-eth" target="_blank" rel="noopener noreferrer">
       <PageHeader
-        title="CryptoSteam"
+        title="Crypto steam"
         subTitle="NFT Barter"
         style={{ cursor: "pointer" }}
       />
