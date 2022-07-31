@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { createConnection } from 'typeorm';
+require('dotenv').config();
 
 import app from './config/express';
 const PORT = 8080;
