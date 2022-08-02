@@ -2,11 +2,15 @@ import { Layout, Menu, Breadcrumb, Row, Col, Card, Button, Badge, Input, List } 
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
-import { AddressInput, Sidebar } from "./index";
-
 import axie from "../img/axie.jpg";
 import "../bootstrap-utilites.css";
 import { NodeExpandOutlined } from "@ant-design/icons";
+import { base58_to_binary } from "base58-js/public/";
+import { web3 } from "@project-serum/anchor";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { AddressInput, Sidebar } from "./index";
+
+const { clusterApiUrl, Connection, PublicKey } = require("@solana/web3.js");
 
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
@@ -19,7 +23,7 @@ const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
 
-const targetNetwork = localStorage.getItem("targetNetwork")
+const targetNetwork = localStorage.getItem("targetNetwork");
 
 const getFromIPFS = async hashToGet => {
   for await (const file of ipfs.get(hashToGet)) {
@@ -31,6 +35,19 @@ const getFromIPFS = async hashToGet => {
     return content;
   }
 };
+
+function hexStringToByteArray(hexString) {
+  if (hexString.length % 2 !== 0) {
+    throw "Must have an even number of hex digits to convert to bytes";
+  }/* w w w.  jav  a2 s .  c o  m*/
+  var numBytes = hexString.length / 2;
+  var byteArray = new Uint8Array(numBytes);
+  for (var i=0; i<numBytes; i++) {
+    byteArray[i] = parseInt(hexString.substr(i*2, 2), 16);
+  }
+  return byteArray;
+}
+
 const gridStyle = {
   width: "25%",
   textAlign: "center",
@@ -237,7 +254,120 @@ export default function StartBarter(props) {
     setSelectedOfferNFT(item);
   }
 
+  async function transfer(tokenMintAddress, wallet, to, connection, amount) {
+    const mintPublicKey = new web3.PublicKey(tokenMintAddress);
+    const mintToken = new Token(
+      connection,
+      mintPublicKey,
+      TOKEN_PROGRAM_ID,
+      wallet.payer, // the wallet owner will pay to transfer and to create recipients associated token account if it does not yet exist.
+    );
+
+    const fromTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(wallet.publicKey);
+
+    const destPublicKey = new web3.PublicKey(to);
+
+    // Get the derived address of the destination wallet which will hold the custom token
+    const associatedDestinationTokenAddr = await Token.getAssociatedTokenAddress(
+      mintToken.associatedProgramId,
+      mintToken.programId,
+      mintPublicKey,
+      destPublicKey,
+    );
+
+    const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
+
+    const instructions = [];
+
+    if (receiverAccount === null) {
+      instructions.push(
+        Token.createAssociatedTokenAccountInstruction(
+          mintToken.associatedProgramId,
+          mintToken.programId,
+          mintPublicKey,
+          associatedDestinationTokenAddr,
+          destPublicKey,
+          wallet.publicKey,
+        ),
+      );
+    }
+
+    instructions.push(
+      Token.createTransferInstruction(
+        TOKEN_PROGRAM_ID,
+        fromTokenAccount.address,
+        associatedDestinationTokenAddr,
+        wallet.publicKey,
+        [],
+        amount,
+      ),
+    );
+
+    const transaction = new web3.Transaction().add(...instructions);
+    transaction.feePayer = wallet.publicKey;
+    transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+    const transactionSignature = await connection.sendRawTransaction(transaction.serialize(), { skipPreflight: true });
+
+    await connection.confirmTransaction(transactionSignature);
+  }
+
+  async function SolidityChecks() {
+    const tokenMint = base58_to_binary("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3");
+    console.log("A", tokenMint);
+    const a = props.readContracts.WrapperFactory.createWrapp(tokenMint);
+    console.log("B", a);
+    const utf8Encode = new TextEncoder();
+    const connection = new Connection(clusterApiUrl("devnet"));
+    let c = base58_to_binary("2o9dqnTHjuyxKYAqJCMnypgvaFCD8otR1QZXTtz261D3qBm8e9Fkhkr2ztmyPXmX8Jdc9yZNLhvQ1NuQvbwFdhAK");
+    const wallet = web3.Keypair.fromSecretKey(
+      c,
+    );
+    console.log(wallet);
+
+    const seeds = [
+      utf8Encode.encode("ERC20Balance"),
+      base58_to_binary("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3"),
+      hexStringToByteArray("0x5E0bb82D36Bdc757a507A3D0aBb0fFEA0C1F7936"),
+      hexStringToByteArray(props.address),
+    ];
+    const b = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
+
+    // вот до сюда вчера работало, зуб даю!
+
+    transfer("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3", wallet, b, connection, 1);
+
+    /*
+    const payer = web3.Keypair.generate();
+    const connection = new web3.Connection(web3.clusterApiUrl("devnet"), "confirmed");
+
+    const airdropSignature = await connection.requestAirdrop(payer.publicKey, web3.LAMPORTS_PER_SOL);
+
+    await connection.confirmTransaction(airdropSignature);
+
+    const toAccount = web3.Keypair.generate();
+
+    // Create Simple Transaction
+    const transaction = new web3.Transaction();
+
+    const amount = 1
+
+    // Add an instruction to execute
+    transaction.add(
+      amount,
+      [payer.publicKey, toAccount.publicKey],
+      TOKEN_PROGRAM_ID,
+    );
+
+    // Send and confirm transaction
+    // Note: feePayer is by default the first signer, or payer, if the parameter is not set
+    await web3.sendAndConfirmTransaction(connection, transaction, [payer]);
+     */
+  }
+
   async function StartBarter() {
+    SolidityChecks();
+
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
       return;
@@ -269,7 +399,7 @@ export default function StartBarter(props) {
     const setTxResult = await setTx;
     console.log("startBartering result", setTxResult);
     if (setTxResult != null) {
-      let data = {
+      const data = {
         token: selectedOfferNFT.address,
         tokenId: selectedOfferNFT.id,
         durationHours: values.duration,

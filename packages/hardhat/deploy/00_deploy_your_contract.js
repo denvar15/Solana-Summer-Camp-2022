@@ -38,13 +38,18 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
+  await deploy("WrapperFactory", {
+    from: deployer,
+    log: true,
+  });
+
   const BarterWithArrays = await ethers.getContract(
     "BarterWithArrays",
     deployer
   );
 
   await BarterWithArrays.transferOwnership(
-    "0x03cb144b401139a96873836f8e9B12f013FdEcA9"
+    "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"
   );
 
 };

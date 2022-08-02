@@ -16,16 +16,16 @@ const delayMS = 1000; // sometimes xDAI needs a 6000ms break lol 😅
 
 const main = async () => {
   // ADDRESS TO MINT TO:
-  const toAddress = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
-  const toAddress2 = "0x3CbFe0a7f518526E8090aC6e0977ed1f1a1Ea149";
+  const toAddress = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
+  const toAddress2 = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
 
   console.log("\n\n 🎫 Minting to " + toAddress + "...\n");
 
-  const { deployer } = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+  const { deployer } = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
   const yourCollectible = await ethers.getContract("YourCollectible", deployer);
 
-  await yourCollectible.mint(toAddress, 0, 4, [], { gasLimit: 400000 });
-  await yourCollectible.mint(toAddress2, 1, 10, [], { gasLimit: 400000 });
+  await yourCollectible.mint(toAddress, 0, 4, []);
+  await yourCollectible.mint(toAddress2, 1, 10, []);
   // await yourCollectible.mint(toAddress, 2, 2, [], { gasLimit: 400000 });
   // await yourCollectible.mint(toAddress, 3, 5, [], { gasLimit: 400000 });
   // await yourCollectible.mint(toAddress, 4, 6, [], { gasLimit: 400000 });
@@ -62,9 +62,7 @@ const main = async () => {
   const uploaded = await ipfs.add(JSON.stringify(buffalo));
 
   console.log("Minting buffalo with IPFS hash (" + uploaded.path + ")");
-  await yourCollectible721.mintItem(toAddress, uploaded.path, {
-    gasLimit: 400000,
-  });
+  await yourCollectible721.mintItem(toAddress, uploaded.path);
 
 
   const zebra = {
@@ -91,9 +89,7 @@ const main = async () => {
   const uploadedzebra = await ipfs.add(JSON.stringify(zebra));
 
   console.log("Minting zebra with IPFS hash (" + uploadedzebra.path + ")");
-  await yourCollectible721.mintItem(toAddress2, uploadedzebra.path, {
-    gasLimit: 400000,
-  });
+  await yourCollectible721.mintItem(toAddress2, uploadedzebra.path);
 
   await sleep(delayMS);
 

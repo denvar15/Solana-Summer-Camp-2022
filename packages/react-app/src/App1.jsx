@@ -155,7 +155,7 @@ const logoutOfWeb3Modal = async () => {
   }, 1);
 };
 
-const App = props => {
+function App(props) {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
 
   const [injectedProvider, setInjectedProvider] = useState();
@@ -166,7 +166,7 @@ const App = props => {
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
-  const userSigner = useUserSigner(injectedProvider, injectedProvider);
+  const userSigner = useUserSigner(injectedProvider, localProvider);
 
   useEffect(() => {
     async function getAddress() {
@@ -179,7 +179,7 @@ const App = props => {
   }, [userSigner]);
 
   // You can warn the user if you would like them to be on a specific network
-  // const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
+  const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
   const selectedChainId =
     userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
 
@@ -189,47 +189,57 @@ const App = props => {
   const tx = Transactor(userSigner, gasPrice);
 
   // Faucet Tx can be used to send funds from the faucet
-  // const faucetTx = Transactor(localProvider, gasPrice);
+  const faucetTx = Transactor(localProvider, gasPrice);
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  // const yourLocalBalance = useBalance(injectedProvider, address);
-  const yourLocalBalance = 0;
+  const yourLocalBalance = useBalance(localProvider, address);
 
   // Just plug in different 🛰 providers to get your balance on different chains:
-  // const yourMainnetBalance = useBalance(mainnetProvider, address);
+  const yourMainnetBalance = useBalance(mainnetProvider, address);
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(injectedProvider);
 
-  // const readContracts = null;
-  // const readContracts = {};
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
-  const writeContracts = useContractLoader(userSigner, { chainId: selectedChainId });
-  /*
-   const collectiblesCount = useContractReader(readContracts, "YourCollectible", "getCurrentTokenID");
-   const numberCollectiblesCount = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
-   */
-  const [yourCollectibles, setYourCollectibles] = useState([]);
-  const [yourCollectibles721, setYourCollectibles721] = useState([]);
-  /*
-   const balance = useContractReader(readContracts, "YourCollectible721", "balanceOf", [address]);
-   const yourBalance = balance && balance.toNumber && balance.toNumber();
-    */
+  const writeContracts = useContractLoader(userSigner, { chainId: localChainId });
 
-  const numberCollectiblesCount = 0;
-  const yourBalance = 0;
+  // EXTERNAL CONTRACT EXAMPLE:
+  //
+  // If you want to bring in the mainnet DAI contract it would look like:
+  //const mainnetContracts = useContractLoader(mainnetProvider);
+
+  // If you want to call a function on a new block
+  //useOnBlock(mainnetProvider, () => {
+    // console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
+  //});
+
+  // Then read your DAI balance like:
+  //const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
+  //  "0x34aA3F359A9D614239015126635CE7732c18fDF3",
+  //]);
+
+  // 📟 Listen for broadcast events
+  //const transferEvents = useEventListener(readContracts, "YourCollectible", "TransferSingle", localProvider, 1);
+
+  // const collectiblesCount = useContractReader(readContracts, "YourCollectible", "getCurrentTokenID");
+  // const numberCollectiblesCount = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
+  const [yourCollectibles, setYourCollectibles] = useState();
+  const [yourCollectibles721, setYourCollectibles721] = useState();
+  // const balance = useContractReader(readContracts, "YourCollectible721", "balanceOf", [address]);
+  // const yourBalance = balance && balance.toNumber && balance.toNumber();
+
 
   useEffect(() => {
     const updateCollectibles = async () => {
       const collectiblesUpdate = [];
 
-      let totalSupply = 0;
+      let numberCollectiblesCount = 0;
       if (readContracts) {
-        const collectiblesCount = await readContracts.YourCollectible.getCurrentTokenID();
-        totalSupply = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
+        //const collectiblesCount = await readContracts.YourCollectible.getCurrentTokenID();
+        //numberCollectiblesCount = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
       }
 
-      for (let collectibleIndex = 0; collectibleIndex < totalSupply; collectibleIndex++) {
+      for (let collectibleIndex = 0; collectibleIndex < numberCollectiblesCount; collectibleIndex++) {
         try {
           const tokenSupply = await readContracts.YourCollectible.tokenSupply(collectibleIndex);
           const owned = await readContracts.YourCollectible.balanceOf(address, collectibleIndex);
@@ -263,13 +273,13 @@ const App = props => {
     const updateCollectibles721 = async () => {
       const collectibleUpdate = [];
 
-      let totalSupply = 0;
+      let yourBalance = 0;
       if (readContracts) {
-        const balance = await readContracts.YourCollectible721.balanceOf(address);
-        totalSupply = balance && balance.toNumber && balance.toNumber();
+        //const balance = await readContracts.YourCollectible721.balanceOf(address);
+        //yourBalance = balance && balance.toNumber && balance.toNumber();
       }
 
-      for (let tokenIndex = 0; tokenIndex < totalSupply; tokenIndex++) {
+      for (let tokenIndex = 0; tokenIndex < yourBalance; tokenIndex++) {
         try {
           let tokenId = await readContracts.YourCollectible721.tokenOfOwnerByIndex(address, tokenIndex);
           tokenId = tokenId.toNumber();
@@ -300,7 +310,7 @@ const App = props => {
     };
     updateCollectibles();
     updateCollectibles721();
-  }, [numberCollectiblesCount, yourLocalBalance, yourBalance, readContracts]);
+  }, [yourLocalBalance]);
 
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -317,9 +327,9 @@ const App = props => {
       address &&
       selectedChainId &&
       yourLocalBalance &&
+      yourMainnetBalance &&
       readContracts &&
-      writeContracts &&
-      yourBalance
+      writeContracts
     ) {
       /* console.log("_____________________________________ 🏗 scaffold-eth _____________________________________");
       console.log("🌎 mainnetProvider", mainnetProvider);
@@ -334,14 +344,21 @@ const App = props => {
       console.log("🔐 writeContracts", writeContracts);
       */
     }
-  }, [mainnetProvider, address, selectedChainId, yourLocalBalance, readContracts, writeContracts, yourBalance]);
+  }, [
+    mainnetProvider,
+    address,
+    selectedChainId,
+    yourLocalBalance,
+    yourMainnetBalance,
+    readContracts,
+    writeContracts,
+  ]);
 
   let networkDisplay = "";
   if (selectedChainId !== targetNetwork.chainId) {
     const networkSelected = NETWORK(selectedChainId);
-    // const networkLocal = NETWORK(localChainId);
-    const networkLocal = 0;
-    if (selectedChainId === 1337) {
+    const networkLocal = NETWORK(localChainId);
+    if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
         <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
           <Alert
@@ -434,9 +451,11 @@ const App = props => {
   }, [setRoute]);
 
   let faucetHint = "";
+  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
 
-  /*
+  const [faucetClicked, setFaucetClicked] = useState(false);
   if (
+    !faucetClicked &&
     localProvider &&
     localProvider._network &&
     localProvider._network.chainId == 31337 &&
@@ -448,6 +467,11 @@ const App = props => {
         <Button
           type="primary"
           onClick={() => {
+            faucetTx({
+              to: address,
+              value: ethers.utils.parseEther("0.01"),
+            });
+            setFaucetClicked(true);
           }}
         >
           💰 Grab funds from the faucet ⛽️
@@ -455,10 +479,20 @@ const App = props => {
       </div>
     );
   }
-   */
-
   faucetHint = (
     <div style={{ padding: 16 }}>
+      <Button
+        type="primary"
+        onClick={() => {
+          faucetTx({
+            to: address,
+            value: ethers.utils.parseEther("0.01"),
+          });
+          setFaucetClicked(true);
+        }}
+      >
+        💰 Grab funds from the faucet ⛽️
+      </Button>
       <Button
         onClick={async () => {
           const yourNumber = ethers.utils.hexlify(NETWORKS.goerli.chainId);
@@ -590,7 +624,7 @@ const App = props => {
                           onChange={newValue => {
                             const update = {};
                             update[id] = newValue;
-                            // setTransferToAddresses({ ...transferToAddresses, ...update });
+                            setTransferToAddresses({ ...transferToAddresses, ...update });
                           }}
                         />
                         <Button
@@ -645,7 +679,7 @@ const App = props => {
             <Contract
               name="YourCollectible"
               signer={userSigner}
-              provider={injectedProvider}
+              provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
@@ -654,7 +688,7 @@ const App = props => {
             <Contract
               name="YourCollectible721"
               signer={userSigner}
-              provider={injectedProvider}
+              provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
@@ -663,7 +697,7 @@ const App = props => {
             <Contract
               name="Barter"
               signer={userSigner}
-              provider={injectedProvider}
+              provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
@@ -672,27 +706,18 @@ const App = props => {
             <Contract
               name="BarterWithArrays"
               signer={userSigner}
-              provider={injectedProvider}
-              address={address}
-              blockExplorer={blockExplorer}
-            />
-          </Route>
-          <Route path="/debugcontractsWrapperFactory">
-            <Contract
-              name="WrapperFactory"
-              signer={userSigner}
-              provider={injectedProvider}
+              provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
           </Route>
           <Route exact path="/">
-            {readContracts && address && injectedProvider ? (
+            {readContracts && address && localProvider ? (
               <StartBarter
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}
-                localProvider={injectedProvider}
+                localProvider={localProvider}
                 mainnetProvider={mainnetProvider}
                 readContracts={readContracts}
                 blockExplorer={blockExplorer}
@@ -706,12 +731,12 @@ const App = props => {
             )}
           </Route>
           <Route path="/active_offers">
-            {readContracts && address && injectedProvider ? (
+            {readContracts && address && localProvider ? (
               <ActiveOffers
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}
-                localProvider={injectedProvider}
+                localProvider={localProvider}
                 mainnetProvider={mainnetProvider}
                 readContracts={readContracts}
                 blockExplorer={blockExplorer}
@@ -726,12 +751,12 @@ const App = props => {
             )}
           </Route>
           <Route path="/approve_barter">
-            {readContracts && address && injectedProvider ? (
+            {readContracts && address && localProvider ? (
               <ApproveBarter
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}
-                localProvider={injectedProvider}
+                localProvider={localProvider}
                 mainnetProvider={mainnetProvider}
                 readContracts={readContracts}
                 blockExplorer={blockExplorer}
@@ -758,7 +783,7 @@ const App = props => {
       <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
         <Account
           address={address}
-          localProvider={injectedProvider}
+          localProvider={localProvider}
           userSigner={userSigner}
           mainnetProvider={mainnetProvider}
           price={price}
@@ -769,8 +794,49 @@ const App = props => {
         />
         {faucetHint}
       </div>
+
+      {/* 🗺 Extra UI like gas price, eth price, faucet, and support:
+      <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
+        <Row align="middle" gutter={[4, 4]}>
+          <Col span={8}>
+            <Ramp price={price} address={address} networks={NETWORKS} />
+          </Col>
+
+          <Col span={8} style={{ textAlign: "center", opacity: 0.8 }}>
+            <GasGauge gasPrice={gasPrice} />
+          </Col>
+          <Col span={8} style={{ textAlign: "center", opacity: 1 }}>
+            <Button
+              onClick={() => {
+                window.open("https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA");
+              }}
+              size="large"
+              shape="round"
+            >
+              <span style={{ marginRight: 8 }} role="img" aria-label="support">
+                💬
+              </span>
+              Support
+            </Button>
+          </Col>
+        </Row>
+
+        <Row align="middle" gutter={[4, 4]}>
+          <Col span={24}>
+            {
+                if the local provider has a signer, let's show the faucet:
+              faucetAvailable ? (
+                <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
+              ) : (
+                ""
+              )
+            }
+          </Col>
+        </Row>
+      </div>
+    */}
     </div>
   );
-};
+}
 
 export default App;
