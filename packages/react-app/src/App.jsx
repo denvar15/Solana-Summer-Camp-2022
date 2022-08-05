@@ -35,6 +35,8 @@ import {
   useUserSigner,
 } from "./hooks";
 
+import { Wallet } from "./helpers/Wallet";
+
 const { BufferList } = require("bl");
 // https://www.npmjs.com/package/ipfs-http-client
 const ipfsAPI = require("ipfs-http-client");
@@ -218,6 +220,7 @@ const App = props => {
 
   const numberCollectiblesCount = 0;
   const yourBalance = 0;
+
 
   useEffect(() => {
     const updateCollectibles = async () => {
@@ -640,7 +643,7 @@ const App = props => {
               />
             </div>
           </Route>
-
+          <Route path="/test" />
           <Route path="/debugcontracts">
             <Contract
               name="YourCollectible"
@@ -769,6 +772,8 @@ const App = props => {
         />
         {faucetHint}
       </div>
+      <Wallet/>
+
     </div>
   );
 };

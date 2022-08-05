@@ -2,15 +2,37 @@ import { Layout, Menu, Breadcrumb, Row, Col, Card, Button, Badge, Input, List } 
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
-import axie from "../img/axie.jpg";
 import "../bootstrap-utilites.css";
 import { NodeExpandOutlined } from "@ant-design/icons";
-import { base58_to_binary } from "base58-js/public/";
+import { base58_to_binary, binary_to_base58 } from "base58-js";
 import { web3 } from "@project-serum/anchor";
+import { clusterApiUrl, Keypair, Transaction, SystemProgram, Connection, PublicKey } from "@solana/web3.js";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import axie from "../img/axie.jpg";
+
 import { AddressInput, Sidebar } from "./index";
 
-const { clusterApiUrl, Connection, PublicKey } = require("@solana/web3.js");
+export class Wallet {
+  constructor(payer) {
+    this.payer = payer;
+  }
+
+  async signTransaction(tx) {
+    tx.partialSign(this.payer);
+    return tx;
+  }
+
+  async signAllTransactions(txs) {
+    return txs.map(t => {
+      t.partialSign(this.payer);
+      return t;
+    });
+  }
+
+  get publicKey() {
+    return this.payer.publicKey;
+  }
+}
 
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
@@ -36,14 +58,20 @@ const getFromIPFS = async hashToGet => {
   }
 };
 
+function toHexString(byteArray) {
+  return Array.from(byteArray, function (byte) {
+    return ("0" + (byte & 0xff).toString(16)).slice(-2);
+  }).join("");
+}
+
 function hexStringToByteArray(hexString) {
   if (hexString.length % 2 !== 0) {
     throw "Must have an even number of hex digits to convert to bytes";
-  }/* w w w.  jav  a2 s .  c o  m*/
-  var numBytes = hexString.length / 2;
-  var byteArray = new Uint8Array(numBytes);
-  for (var i=0; i<numBytes; i++) {
-    byteArray[i] = parseInt(hexString.substr(i*2, 2), 16);
+  } /* w w w.  jav  a2 s .  c o  m */
+  const numBytes = hexString.length / 2;
+  const byteArray = new Uint8Array(numBytes);
+  for (let i = 0; i < numBytes; i++) {
+    byteArray[i] = parseInt(hexString.substr(i * 2, 2), 16);
   }
   return byteArray;
 }
@@ -268,6 +296,8 @@ export default function StartBarter(props) {
     const destPublicKey = new web3.PublicKey(to);
 
     // Get the derived address of the destination wallet which will hold the custom token
+    /*
+
     const associatedDestinationTokenAddr = await Token.getAssociatedTokenAddress(
       mintToken.associatedProgramId,
       mintToken.programId,
@@ -275,65 +305,94 @@ export default function StartBarter(props) {
       destPublicKey,
     );
 
+    console.log("aaa ", associatedDestinationTokenAddr);
+
     const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
+    */
+
+    const eth_account_addressbytes = hexStringToByteArray("5d9ba06d857EF3d2a6eCb00694D09328698dA006");
+    const a = PublicKey.findProgramAddressSync(
+      [hexStringToByteArray("01"), eth_account_addressbytes],
+      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+    )[0];
+    console.log("AAAAAAA ", a.toString());
+
+    const eth_account_addressbytes1 = hexStringToByteArray("3Cd3AA68E6f86c3e7237ee874EeB073c3D178339");
+    const b = PublicKey.findProgramAddressSync(
+      [hexStringToByteArray("01"), eth_account_addressbytes1],
+      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+    )[0];
+    console.log("BBBB ", b.toString());
+
+    const receiverAccount = await connection.getAccountInfo(destPublicKey);
 
     const instructions = [];
+    const mmm = new web3.PublicKey("11111111111111111111111111111111");
 
+    console.log("associatedProgramId ", mintToken.associatedProgramId.toString());
+    console.log("programId ", mintToken.programId.toString());
+    console.log("mint ", mintPublicKey.toString());
+    console.log("associatedAccount ", destPublicKey.toString());
+    console.log("owner ", a.toString());
+    console.log("payer ", wallet.publicKey.toString());
     if (receiverAccount === null) {
       instructions.push(
         Token.createAssociatedTokenAccountInstruction(
           mintToken.associatedProgramId,
           mintToken.programId,
           mintPublicKey,
-          associatedDestinationTokenAddr,
           destPublicKey,
+          a,
           wallet.publicKey,
         ),
       );
     }
 
-    instructions.push(
+    /* instructions.push(
       Token.createTransferInstruction(
         TOKEN_PROGRAM_ID,
         fromTokenAccount.address,
-        associatedDestinationTokenAddr,
+        destPublicKey,
         wallet.publicKey,
         [],
         amount,
       ),
-    );
+    ); */
 
     const transaction = new web3.Transaction().add(...instructions);
     transaction.feePayer = wallet.publicKey;
     transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
 
+
+    console.log("aaa ", transaction)
     const transactionSignature = await connection.sendRawTransaction(transaction.serialize(), { skipPreflight: true });
+
 
     await connection.confirmTransaction(transactionSignature);
   }
 
   async function SolidityChecks() {
     const tokenMint = base58_to_binary("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3");
-    console.log("A", tokenMint);
     const a = props.readContracts.WrapperFactory.createWrapp(tokenMint);
-    console.log("B", a);
     const utf8Encode = new TextEncoder();
     const connection = new Connection(clusterApiUrl("devnet"));
-    let c = base58_to_binary("2o9dqnTHjuyxKYAqJCMnypgvaFCD8otR1QZXTtz261D3qBm8e9Fkhkr2ztmyPXmX8Jdc9yZNLhvQ1NuQvbwFdhAK");
-    const wallet = web3.Keypair.fromSecretKey(
-      c,
+    const c = base58_to_binary(
+      "2stoq6WdqMPqmgfRiLqFdyTSkiVoXfRJHkV3xEyzQGfJJETZxhnTLeKdJUysfqwtraZLCwDA4cRNNGfZzjzz2Dve",
     );
-    console.log(wallet);
-
+    const pair = web3.Keypair.fromSecretKey(c);
+    const wallet = new Wallet(pair);
     const seeds = [
+      hexStringToByteArray("01"),
       utf8Encode.encode("ERC20Balance"),
       base58_to_binary("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3"),
-      hexStringToByteArray("0x5E0bb82D36Bdc757a507A3D0aBb0fFEA0C1F7936"),
-      hexStringToByteArray(props.address),
+      hexStringToByteArray("5d9ba06d857EF3d2a6eCb00694D09328698dA006"),
+      hexStringToByteArray("3Cd3AA68E6f86c3e7237ee874EeB073c3D178339"),
     ];
+    // В seeds - последнее это мой адрес кошелька, с которого захожу на сайт должен быть, ОБРЕЗАННЫЙ БЕЗ 0x
+    // Предпоследнее это адрес контракта и тоже обрезанный
+    // PublicKey.findProgramAddressSync - работает верно, проверял с питоном. Нужно только реальные данные подставлять
     const b = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
-
-    // вот до сюда вчера работало, зуб даю!
+    console.log("Mmm ", b.toString());
 
     transfer("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3", wallet, b, connection, 1);
 
