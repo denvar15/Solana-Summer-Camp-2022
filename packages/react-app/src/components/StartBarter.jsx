@@ -6,9 +6,24 @@ import "../bootstrap-utilites.css";
 import { NodeExpandOutlined } from "@ant-design/icons";
 import { base58_to_binary, binary_to_base58 } from "base58-js";
 import { web3 } from "@project-serum/anchor";
-import { clusterApiUrl, Keypair, Transaction, SystemProgram, Connection, PublicKey } from "@solana/web3.js";
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  clusterApiUrl,
+  Keypair,
+  Transaction,
+  SystemProgram,
+  Connection,
+  PublicKey,
+  SYSVAR_RENT_PUBKEY
+} from "@solana/web3.js";
+import {
+  createAssociatedTokenAccountInstruction,
+  createTransferCheckedInstruction,
+  getAccount,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID
+} from "@solana/spl-token";
 import axie from "../img/axie.jpg";
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
 import { AddressInput, Sidebar } from "./index";
 
@@ -37,6 +52,7 @@ export class Wallet {
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
 const { BufferList } = require("bl");
+const axios = require('axios')
 const ipfsAPI = require("ipfs-http-client");
 
 const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
@@ -56,6 +72,14 @@ const getFromIPFS = async hashToGet => {
     }
     return content;
   }
+};
+
+const getConfirmation = async (connection, tx) => {
+  const result = await connection.getSignatureStatus(tx, {
+    searchTransactionHistory: true,
+  });
+  console.log("RESULT ", result)
+  return result.value?.confirmationStatus;
 };
 
 function toHexString(byteArray) {
@@ -87,6 +111,7 @@ export default function StartBarter(props) {
   const [yourCollectibles721, setYourCollectibles721] = useState();
   const [selectedWantedNFT, setSelectedWantedNFT] = useState({ address: [], id: [], standard: [] });
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
+  const { wallet } = useWallet();
 
   const tx = props.tx;
 
@@ -282,146 +307,131 @@ export default function StartBarter(props) {
     setSelectedOfferNFT(item);
   }
 
-  async function transfer(tokenMintAddress, wallet, to, connection, amount) {
+  async function transfer(tokenMintAddress, wallet, to, connection) {
+    const mockTo = new web3.PublicKey("G3ukZRaZQgX5uF2Wq9V5jqf8JCKn8pKRxqiiCAqwCAuR");
+    to = mockTo;
+
     const mintPublicKey = new web3.PublicKey(tokenMintAddress);
-    const mintToken = new Token(
-      connection,
-      mintPublicKey,
-      TOKEN_PROGRAM_ID,
-      wallet.payer, // the wallet owner will pay to transfer and to create recipients associated token account if it does not yet exist.
-    );
+    let tokenAccountPubKey = await getAssociatedTokenAddress(mintPublicKey, wallet.publicKey);
+    let tokenAmount = await connection.getTokenAccountBalance(tokenAccountPubKey);
+    if (tokenAmount.value.amount == 0) {
+      return;
+    }
+    console.log("TOKEN BALANCE ", tokenAmount)
 
-    const fromTokenAccount = await mintToken.getOrCreateAssociatedAccountInfo(wallet.publicKey);
-
-    const destPublicKey = new web3.PublicKey(to);
-
-    // Get the derived address of the destination wallet which will hold the custom token
     /*
-
-    const associatedDestinationTokenAddr = await Token.getAssociatedTokenAddress(
-      mintToken.associatedProgramId,
-      mintToken.programId,
-      mintPublicKey,
-      destPublicKey,
-    );
-
-    console.log("aaa ", associatedDestinationTokenAddr);
-
-    const receiverAccount = await connection.getAccountInfo(associatedDestinationTokenAddr);
-    */
-
-    const eth_account_addressbytes = hexStringToByteArray("5d9ba06d857EF3d2a6eCb00694D09328698dA006");
-    const a = PublicKey.findProgramAddressSync(
-      [hexStringToByteArray("01"), eth_account_addressbytes],
-      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
-    )[0];
-    console.log("AAAAAAA ", a.toString());
-
-    const eth_account_addressbytes1 = hexStringToByteArray("3Cd3AA68E6f86c3e7237ee874EeB073c3D178339");
+    const eth_account_addressbytes1 = hexStringToByteArray(props.address.slice(2));
     const b = PublicKey.findProgramAddressSync(
       [hexStringToByteArray("01"), eth_account_addressbytes1],
       new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
     )[0];
-    console.log("BBBB ", b.toString());
 
-    const receiverAccount = await connection.getAccountInfo(destPublicKey);
+    let sys = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
+    console.log("sys", sys)
+    const transaction = new Transaction().add(
+      SystemProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        newAccountPubkey: b,
+        lamports: 10,
+        space: 100,
+        programId: sys,
+      })
+    );
 
-    const instructions = [];
-    const mmm = new web3.PublicKey("11111111111111111111111111111111");
-
-    console.log("associatedProgramId ", mintToken.associatedProgramId.toString());
-    console.log("programId ", mintToken.programId.toString());
-    console.log("mint ", mintPublicKey.toString());
-    console.log("associatedAccount ", destPublicKey.toString());
-    console.log("owner ", a.toString());
-    console.log("payer ", wallet.publicKey.toString());
-    if (receiverAccount === null) {
-      instructions.push(
-        Token.createAssociatedTokenAccountInstruction(
-          mintToken.associatedProgramId,
-          mintToken.programId,
-          mintPublicKey,
-          destPublicKey,
-          a,
-          wallet.publicKey,
-        ),
-      );
-    }
-
-    /* instructions.push(
-      Token.createTransferInstruction(
-        TOKEN_PROGRAM_ID,
-        fromTokenAccount.address,
-        destPublicKey,
-        wallet.publicKey,
-        [],
-        amount,
-      ),
-    ); */
-
-    const transaction = new web3.Transaction().add(...instructions);
     transaction.feePayer = wallet.publicKey;
     transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+    let res00 = await wallet.signAndSendTransaction(transaction)
 
+    //let res0 = await wallet.signTransaction(transaction);
+    console.log("RES0", res00)
+*/
 
-    console.log("aaa ", transaction)
-    const transactionSignature = await connection.sendRawTransaction(transaction.serialize(), { skipPreflight: true });
+    let tokenAccountTo = await getAssociatedTokenAddress(mintPublicKey, to);
 
+    let tokenAccountToInfo = await connection.getAccountInfo(tokenAccountTo);
 
-    await connection.confirmTransaction(transactionSignature);
+    if (!tokenAccountToInfo) {
+      let tx = new Transaction().add(
+        createAssociatedTokenAccountInstruction(
+          wallet.publicKey, // payer
+          tokenAccountTo, // ata
+          to, // owner
+          mintPublicKey, // mint
+        )
+      );
+
+      tx.feePayer = wallet.publicKey;
+      tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+      let res01 = await wallet.signAndSendTransaction(tx, connection)
+      console.log("RES1", res01)
+    } else {
+    }
+
+    let tx2 = new Transaction().add(
+      createTransferCheckedInstruction(
+        tokenAccountPubKey, // from (should be a token account)
+        mintPublicKey, // mint
+        tokenAccountTo, // to (should be a token account)
+        wallet.publicKey, // from's owner
+        1, // amount, if your deciamls is 8, send 10^8 for 1 token
+        0 // decimals
+      )
+    );
+
+    tx2.feePayer = wallet.publicKey;
+    tx2.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+    let res02 = await wallet.signAndSendTransaction(tx2, connection)
+    console.log("RES2", res02)
+    if (res02) {
+      console.log("EEEEEEEE")
+    }
   }
 
   async function SolidityChecks() {
-    const tokenMint = base58_to_binary("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3");
-    const a = props.readContracts.WrapperFactory.createWrapp(tokenMint);
+    const tokenMintAddressSolana = "JByUdYEh9tE3RYDYjgrhCVzMNxAKHDqbTinjprPp1zwz"
+    //const mintPublicKey = new web3.PublicKey(tokenMintAddressSolana);
+    const tokenMint = base58_to_binary(tokenMintAddressSolana);
+    //const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
+    const b = await props.readContracts.WrapperFactory.allWrapps(1, 1);
+    console.log("WRAP", b[b.length - 1])
     const utf8Encode = new TextEncoder();
     const connection = new Connection(clusterApiUrl("devnet"));
     const c = base58_to_binary(
       "2stoq6WdqMPqmgfRiLqFdyTSkiVoXfRJHkV3xEyzQGfJJETZxhnTLeKdJUysfqwtraZLCwDA4cRNNGfZzjzz2Dve",
     );
     const pair = web3.Keypair.fromSecretKey(c);
-    const wallet = new Wallet(pair);
+    //const wallet = new Wallet(pair);
     const seeds = [
       hexStringToByteArray("01"),
       utf8Encode.encode("ERC20Balance"),
-      base58_to_binary("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3"),
+      base58_to_binary(tokenMintAddressSolana),
       hexStringToByteArray("5d9ba06d857EF3d2a6eCb00694D09328698dA006"),
-      hexStringToByteArray("3Cd3AA68E6f86c3e7237ee874EeB073c3D178339"),
+      hexStringToByteArray(props.address.slice(2)),
     ];
     // В seeds - последнее это мой адрес кошелька, с которого захожу на сайт должен быть, ОБРЕЗАННЫЙ БЕЗ 0x
     // Предпоследнее это адрес контракта и тоже обрезанный
     // PublicKey.findProgramAddressSync - работает верно, проверял с питоном. Нужно только реальные данные подставлять
-    const b = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
-    console.log("Mmm ", b.toString());
 
-    transfer("ADG4tku1YyyDkwZA1XtWag3WooBVM2xBXMCCXp53zFx3", wallet, b, connection, 1);
+    //const d = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
 
-    /*
-    const payer = web3.Keypair.generate();
-    const connection = new web3.Connection(web3.clusterApiUrl("devnet"), "confirmed");
+    console.log(pair.publicKey._bn.words.concat(pair.secretKey), pair.publicKey, pair.secretKey)
+    axios.post('http://localhost:5000/', {
+      source_sol: pair.secretKey,
+      dest_neon: props.address,
+      wrapper: b[b.length - 1],
+      tokenMint: tokenMintAddressSolana
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin' : '*',
+      }
+    })
+      .then(function (response) {
+        console.log(response);
+      })
 
-    const airdropSignature = await connection.requestAirdrop(payer.publicKey, web3.LAMPORTS_PER_SOL);
-
-    await connection.confirmTransaction(airdropSignature);
-
-    const toAccount = web3.Keypair.generate();
-
-    // Create Simple Transaction
-    const transaction = new web3.Transaction();
-
-    const amount = 1
-
-    // Add an instruction to execute
-    transaction.add(
-      amount,
-      [payer.publicKey, toAccount.publicKey],
-      TOKEN_PROGRAM_ID,
-    );
-
-    // Send and confirm transaction
-    // Note: feePayer is by default the first signer, or payer, if the parameter is not set
-    await web3.sendAndConfirmTransaction(connection, transaction, [payer]);
-     */
+    //transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection);
   }
 
   async function StartBarter() {

@@ -22,6 +22,7 @@ const main = async () => {
   console.log("\n\n 🎫 Minting to " + toAddress + "...\n");
 
   const { deployer } = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
+
   const yourCollectible = await ethers.getContract("YourCollectible", deployer);
 
   await yourCollectible.mint(toAddress, 0, 4, []);
