@@ -15,6 +15,7 @@ import {
   PublicKey,
   SYSVAR_RENT_PUBKEY, TransactionInstruction, AccountMeta
 } from "@solana/web3.js";
+import { Metaplex } from "@metaplex-foundation/js";
 import {
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
@@ -109,6 +110,7 @@ export default function StartBarter(props) {
 
   const [values, setValues] = useState({});
   const [yourCollectibles721, setYourCollectibles721] = useState();
+  const [solanaNFT, setSolanaNFT] = useState([]);
   const [selectedWantedNFT, setSelectedWantedNFT] = useState({ address: [], id: [], standard: [] });
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const { wallet } = useWallet();
@@ -150,6 +152,28 @@ export default function StartBarter(props) {
       }
       setYourCollectibles721(collectibleUpdate);
     };
+
+    const getSolana = async () => {
+      const connection = new Connection(clusterApiUrl("devnet"));
+      let accs = await connection.getParsedTokenAccountsByOwner(wallet.adapter._wallet.publicKey, { programId: TOKEN_PROGRAM_ID })
+      let res = []
+      const mx = Metaplex.make(connection);
+      for (const acc of accs.value) {
+        let balance = await connection.getTokenAccountBalance(acc.pubkey)
+        if (balance.value.amount > 0) {
+          let detailedAcc = await getAccount(connection, acc.pubkey)
+          try {
+            const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
+            //console.log("nft", nft)
+            res.push(nft)
+          } catch(e) {
+            //console.log("NOT NFT")
+          }
+        }
+      }
+      setSolanaNFT(res);
+    }
+    getSolana();
     updateCollectibles721();
   }, []);
 
@@ -293,7 +317,7 @@ export default function StartBarter(props) {
     setSelectedWantedNFT(old);
   }
 
-  function selectOfferNFT(item) {
+  async function selectOfferNFT(item) {
     try {
       const old = selectedOfferNFT;
       const oldElem = document.getElementById(old.id + "_" + old.uri + "offer");
@@ -306,7 +330,6 @@ export default function StartBarter(props) {
     elem.style.border = "solid white 3px";
     setSelectedOfferNFT(item);
   }
-
 
 
   function create_account_layout(ether, nonce) {
@@ -383,12 +406,6 @@ export default function StartBarter(props) {
         ]}))
     }
 
-    //trx.feePayer = wallet.publicKey;
-    //trx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
-
-    //let res = await wallet.signAndSendTransaction(trx, connection)
-    //console.log("res", res)
-
     console.log("11", source_token_acc.toString())
     console.log("12", to.toString())
     console.log("13", wallet.publicKey.toString())
@@ -406,67 +423,70 @@ export default function StartBarter(props) {
 
     let res1 = await wallet.signAndSendTransaction(trx, connection)
     console.log("res1", res1)
+    if (res1) {
+      selectedOfferNFT.address = wrap
+    }
   }
 
-    async function mockTransfer(tokenMintAddress, wallet, to, connection) {
-    const mockTo = new web3.PublicKey("G3ukZRaZQgX5uF2Wq9V5jqf8JCKn8pKRxqiiCAqwCAuR");
-    to = mockTo;
+  async function mockTransfer(tokenMintAddress, wallet, to, connection) {
+      const mockTo = new web3.PublicKey("G3ukZRaZQgX5uF2Wq9V5jqf8JCKn8pKRxqiiCAqwCAuR");
+      to = mockTo;
 
-    const mintPublicKey = new web3.PublicKey(tokenMintAddress);
-    let tokenAccountPubKey = await getAssociatedTokenAddress(mintPublicKey, wallet.publicKey);
-    let tokenAmount = await connection.getTokenAccountBalance(tokenAccountPubKey);
-    if (tokenAmount.value.amount == 0) {
-      return;
-    }
-    console.log("TOKEN BALANCE ", tokenAmount)
+      const mintPublicKey = new web3.PublicKey(tokenMintAddress);
+      let tokenAccountPubKey = await getAssociatedTokenAddress(mintPublicKey, wallet.publicKey);
+      let tokenAmount = await connection.getTokenAccountBalance(tokenAccountPubKey);
+      if (tokenAmount.value.amount == 0) {
+        return;
+      }
+      console.log("TOKEN BALANCE ", tokenAmount)
 
-    /*
-    const eth_account_addressbytes1 = hexStringToByteArray(props.address.slice(2));
-    const b = PublicKey.findProgramAddressSync(
-      [hexStringToByteArray("01"), eth_account_addressbytes1],
-      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
-    )[0];
+      /*
+      const eth_account_addressbytes1 = hexStringToByteArray(props.address.slice(2));
+      const b = PublicKey.findProgramAddressSync(
+        [hexStringToByteArray("01"), eth_account_addressbytes1],
+        new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+      )[0];
 
-    let sys = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
-    console.log("sys", sys)
-    const transaction = new Transaction().add(
-      SystemProgram.createAccount({
-        fromPubkey: wallet.publicKey,
-        newAccountPubkey: b,
-        lamports: 10,
-        space: 100,
-        programId: sys,
-      })
-    );
-
-    transaction.feePayer = wallet.publicKey;
-    transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
-    let res00 = await wallet.signAndSendTransaction(transaction)
-
-    //let res0 = await wallet.signTransaction(transaction);
-    console.log("RES0", res00)
-*/
-
-    let tokenAccountTo = await getAssociatedTokenAddress(mintPublicKey, to);
-
-    let tokenAccountToInfo = await connection.getAccountInfo(tokenAccountTo);
-
-    if (!tokenAccountToInfo) {
-      let tx = new Transaction().add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey, // payer
-          tokenAccountTo, // ata
-          to, // owner
-          mintPublicKey, // mint
-        )
+      let sys = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
+      console.log("sys", sys)
+      const transaction = new Transaction().add(
+        SystemProgram.createAccount({
+          fromPubkey: wallet.publicKey,
+          newAccountPubkey: b,
+          lamports: 10,
+          space: 100,
+          programId: sys,
+        })
       );
 
-      tx.feePayer = wallet.publicKey;
-      tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+      transaction.feePayer = wallet.publicKey;
+      transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+      let res00 = await wallet.signAndSendTransaction(transaction)
 
-      let res01 = await wallet.signAndSendTransaction(tx, connection)
-      console.log("RES1", res01)
-    } else {
+      //let res0 = await wallet.signTransaction(transaction);
+      console.log("RES0", res00)
+  */
+
+      let tokenAccountTo = await getAssociatedTokenAddress(mintPublicKey, to);
+
+      let tokenAccountToInfo = await connection.getAccountInfo(tokenAccountTo);
+
+      if (!tokenAccountToInfo) {
+        let tx = new Transaction().add(
+          createAssociatedTokenAccountInstruction(
+            wallet.publicKey, // payer
+            tokenAccountTo, // ata
+            to, // owner
+            mintPublicKey, // mint
+          )
+        );
+
+        tx.feePayer = wallet.publicKey;
+        tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+        let res01 = await wallet.signAndSendTransaction(tx, connection)
+        console.log("RES1", res01)
+      } else {
     }
 
     let tx2 = new Transaction().add(
@@ -491,9 +511,10 @@ export default function StartBarter(props) {
   }
 
   async function SolidityChecks() {
-    const tokenMintAddressSolana = "BoPi4sbTbEsABA2WZdBex5Gj9ZHXWULNsLDGcEb8seGe"
-    //const mintPublicKey = new web3.PublicKey(tokenMintAddressSolana);
-    const tokenMint = base58_to_binary(tokenMintAddressSolana);
+    //const tokenMintAddressSolana = "BoPi4sbTbEsABA2WZdBex5Gj9ZHXWULNsLDGcEb8seGe"
+    //const tokenMint = base58_to_binary(tokenMintAddressSolana);
+    const tokenMint = base58_to_binary(selectedOfferNFT.mintAddress.toString());
+    const tokenMintAddressSolana = binary_to_base58(tokenMint)
     const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
     const b = await props.readContracts.WrapperFactory.allWrapps(1, 1);
     console.log("WRAP", b[b.length - 1])
@@ -534,11 +555,15 @@ export default function StartBarter(props) {
 
     //transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
 
-    transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
+    await transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
   }
 
   async function StartBarter() {
-    SolidityChecks();
+    console.log("selectedOfferNFT", selectedOfferNFT)
+    if (selectedOfferNFT.model === 'nft') {
+      console.log("AAAAAAAAAAAAAAAAAAAAAAA")
+      await SolidityChecks();
+    }
 
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
@@ -718,6 +743,24 @@ export default function StartBarter(props) {
                         }
                         return <div> </div>;
                       })}
+                    </Row>
+                    <Row>
+                      <h3>Ваши Solana NFT</h3>
+                    </Row>
+                    <Row>
+                      {solanaNFT &&
+                        solanaNFT.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri + "offer"}
+                            onClick={selectOfferNFT.bind(this, item)}
+                          >
+                            <img src={item.json.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.json.description} />
+                          </Card.Grid>
+                        ))}
                     </Row>
                     <Row>
                       <h3>Ваши NFT 721</h3>

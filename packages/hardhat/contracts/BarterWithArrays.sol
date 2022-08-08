@@ -86,7 +86,7 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC721List[token][tokenId].lender = msg.sender;
             barterERC721List[token][tokenId].borrowedAtTimestamp = block.timestamp;
             emit ERC721ForBarterUpdated(token);
-        }
+        } 
 
     }
 

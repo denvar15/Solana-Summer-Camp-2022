@@ -33,6 +33,8 @@ module.exports = function (config, env) {
         http: require.resolve("stream-http"),
         https: require.resolve("https-browserify"),
         os: require.resolve("os-browserify/browser"),
+        zlib: require.resolve("browserify-zlib"),
+        path: require.resolve("path-browserify"),
         fs: false,
       }
     },
