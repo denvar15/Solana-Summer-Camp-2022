@@ -13,7 +13,7 @@ import {
   SystemProgram,
   Connection,
   PublicKey,
-  SYSVAR_RENT_PUBKEY
+  SYSVAR_RENT_PUBKEY, TransactionInstruction, AccountMeta
 } from "@solana/web3.js";
 import {
   createAssociatedTokenAccountInstruction,
@@ -307,7 +307,108 @@ export default function StartBarter(props) {
     setSelectedOfferNFT(item);
   }
 
-  async function transfer(tokenMintAddress, wallet, to, connection) {
+
+
+  function create_account_layout(ether, nonce) {
+    let struct = {
+      ether: ether,
+      nonce: nonce
+    }
+    var mainbytesArray = [];
+    for(var i = 0; i < struct.length; i++){
+      var bytes = [];
+      for (var j = 0; j < struct[i].length; ++j)
+        bytes.push(struct[i].charCodeAt(j));
+      mainbytesArray.push(bytes);
+    }
+    return hexStringToByteArray("18") + mainbytesArray
+  }
+
+  async function transfer(tokenMintAddress, wallet, to, connection, wrap) {
+    const mintPublicKey = new web3.PublicKey(tokenMintAddress);
+
+    let EVM_LOADER_ID = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
+    const eth_account_addressbytes1 = hexStringToByteArray(props.address.slice(2));
+    let neon_acc = PublicKey.findProgramAddressSync(
+      [hexStringToByteArray("01"), eth_account_addressbytes1],
+      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+    )[0];
+
+    const eth_account_addressbytes = hexStringToByteArray(wrap.slice(2));
+    const solana_contract_address = PublicKey.findProgramAddressSync(
+      [hexStringToByteArray("01"), eth_account_addressbytes],
+      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+    )[0];
+
+    let source_token_acc = await getAssociatedTokenAddress(mintPublicKey, wallet.publicKey)
+
+    let neon_accInfo = await connection.getAccountInfo(neon_acc);
+
+    let nonce = 255;
+
+    let trx = new Transaction()
+    if (!neon_accInfo) {
+      console.log("HEELO")
+      trx.add(new TransactionInstruction({
+        programId: EVM_LOADER_ID,
+        data: create_account_layout(hexStringToByteArray(props.address.slice(2)), nonce),
+      keys: [
+        {pubkey: wallet.publicKey, isSigner: true, isWritable: true},
+        {pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false},
+        {pubkey: neon_acc, isSigner: false, isWritable: true},
+      ]}))
+    }
+
+    let destAccInfo = await connection.getAccountInfo(to);
+
+    if (!destAccInfo) {
+      console.log("1 ", wallet.publicKey.toString())
+      console.log("2 ", to.toString())
+      console.log("3 ", neon_acc.toString())
+      console.log("4 ", solana_contract_address.toString())
+      console.log("5 ", mintPublicKey.toString())
+      console.log("7 ", TOKEN_PROGRAM_ID.toString())
+      trx.add(new TransactionInstruction({
+        programId: EVM_LOADER_ID,
+        data: hexStringToByteArray('0F'),
+        keys: [
+          {pubkey: wallet.publicKey, isSigner: true, isWritable: true},
+          {pubkey: to, isSigner: false, isWritable: true},
+          {pubkey: neon_acc, isSigner: false, isWritable: true},
+          {pubkey: solana_contract_address, isSigner: false, isWritable: true},
+          {pubkey: mintPublicKey, isSigner: false, isWritable: true},
+          {pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false},
+          {pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
+          {pubkey: new PublicKey("SysvarRent111111111111111111111111111111111"), isSigner: false, isWritable: false},
+        ]}))
+    }
+
+    //trx.feePayer = wallet.publicKey;
+    //trx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+    //let res = await wallet.signAndSendTransaction(trx, connection)
+    //console.log("res", res)
+
+    console.log("11", source_token_acc.toString())
+    console.log("12", to.toString())
+    console.log("13", wallet.publicKey.toString())
+    trx.add(new TransactionInstruction({
+      programId: TOKEN_PROGRAM_ID,
+      data: hexStringToByteArray("030100000000000000"),
+      keys: [
+        {pubkey: source_token_acc, isSigner: false, isWritable: true},
+        {pubkey: to, isSigner: false, isWritable: true},
+        {pubkey: wallet.publicKey, isSigner: true, isWritable: false},
+      ]}))
+
+    trx.feePayer = wallet.publicKey;
+    trx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+    let res1 = await wallet.signAndSendTransaction(trx, connection)
+    console.log("res1", res1)
+  }
+
+    async function mockTransfer(tokenMintAddress, wallet, to, connection) {
     const mockTo = new web3.PublicKey("G3ukZRaZQgX5uF2Wq9V5jqf8JCKn8pKRxqiiCAqwCAuR");
     to = mockTo;
 
@@ -390,10 +491,10 @@ export default function StartBarter(props) {
   }
 
   async function SolidityChecks() {
-    const tokenMintAddressSolana = "JByUdYEh9tE3RYDYjgrhCVzMNxAKHDqbTinjprPp1zwz"
+    const tokenMintAddressSolana = "BoPi4sbTbEsABA2WZdBex5Gj9ZHXWULNsLDGcEb8seGe"
     //const mintPublicKey = new web3.PublicKey(tokenMintAddressSolana);
     const tokenMint = base58_to_binary(tokenMintAddressSolana);
-    //const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
+    const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
     const b = await props.readContracts.WrapperFactory.allWrapps(1, 1);
     console.log("WRAP", b[b.length - 1])
     const utf8Encode = new TextEncoder();
@@ -407,16 +508,16 @@ export default function StartBarter(props) {
       hexStringToByteArray("01"),
       utf8Encode.encode("ERC20Balance"),
       base58_to_binary(tokenMintAddressSolana),
-      hexStringToByteArray("5d9ba06d857EF3d2a6eCb00694D09328698dA006"),
+      hexStringToByteArray(b[b.length - 1].slice(2)),
       hexStringToByteArray(props.address.slice(2)),
     ];
     // В seeds - последнее это мой адрес кошелька, с которого захожу на сайт должен быть, ОБРЕЗАННЫЙ БЕЗ 0x
     // Предпоследнее это адрес контракта и тоже обрезанный
     // PublicKey.findProgramAddressSync - работает верно, проверял с питоном. Нужно только реальные данные подставлять
 
-    //const d = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
+    const d = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
 
-    console.log(pair.publicKey._bn.words.concat(pair.secretKey), pair.publicKey, pair.secretKey)
+    //console.log(pair.publicKey._bn.words.concat(pair.secretKey), pair.publicKey, pair.secretKey)
     axios.post('http://localhost:5000/', {
       source_sol: pair.secretKey,
       dest_neon: props.address,
@@ -431,7 +532,9 @@ export default function StartBarter(props) {
         console.log(response);
       })
 
-    //transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection);
+    //transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
+
+    transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
   }
 
   async function StartBarter() {
