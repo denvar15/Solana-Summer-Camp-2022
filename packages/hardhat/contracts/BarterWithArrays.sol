@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
@@ -26,6 +26,24 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
     event ERC1155ForBarterUpdated(address token);
     event ERC1155ForBarterRemoved(address token);
 
+    struct ERC20ForBarter {
+        uint256 durationHours;
+        uint256 borrowedAtTimestamp;
+        address lender;
+        address borrower;
+        address[] acceptedToken;
+        uint256[] acceptedTokenId;
+        uint256[] acceptedTokenStandard;
+        address fulfilledToken;
+        uint256 fulfilledTokenId;
+        uint256 fulfilledTokenStandard;
+    }
+
+    mapping(address => mapping(uint256 => ERC20ForBarter)) barterERC20List;
+
+    event ERC20ForBarterUpdated(address token);
+    event ERC20ForBarterRemoved(address token);
+
     struct ERC721ForBarter {
         uint256 durationHours;
         uint256 borrowedAtTimestamp;
@@ -40,6 +58,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
     }
 
     mapping(address => mapping(uint256 => ERC721ForBarter)) barterERC721List;
+
+    event ERC721ForBarterUpdated(address token);
+    event ERC721ForBarterRemoved(address token);
 
     struct Barter {
         uint256 status;
@@ -59,8 +80,6 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
 
     mapping(address => uint256) public UsersBarterCount;
 
-    event ERC721ForBarterUpdated(address token);
-    event ERC721ForBarterRemoved(address token);
     event Received();
 
     function startBartering(address token, uint256 tokenId, uint256 durationHours, address[] memory acceptedToken,
@@ -86,7 +105,15 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC721List[token][tokenId].lender = msg.sender;
             barterERC721List[token][tokenId].borrowedAtTimestamp = block.timestamp;
             emit ERC721ForBarterUpdated(token);
-        } 
+        } else if (tokenStandard == 20) {
+            require(barterERC20List[token][tokenId].borrower == address(0), 'Lending: Cannot change settings, token already lent');
+            IERC20(token).transferFrom(msg.sender, address(this), 1);
+            barterERC20List[token][tokenId] = ERC20ForBarter(durationHours, 0, address(this), address(0), acceptedToken,
+                acceptedTokenId, acceptedTokenStandard, address(0), 0, 0);
+            barterERC20List[token][tokenId].lender = msg.sender;
+            barterERC20List[token][tokenId].borrowedAtTimestamp = block.timestamp;
+            emit ERC20ForBarterUpdated(token);
+        }
 
     }
 

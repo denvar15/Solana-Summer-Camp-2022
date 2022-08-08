@@ -119,6 +119,27 @@ export default function StartBarter(props) {
 
   const writeContracts = props.writeContracts;
 
+  const getSolana = async () => {
+    const connection = new Connection(clusterApiUrl("devnet"));
+    let accs = await connection.getParsedTokenAccountsByOwner(wallet.adapter._wallet.publicKey, { programId: TOKEN_PROGRAM_ID })
+    let res = []
+    const mx = Metaplex.make(connection);
+    for (const acc of accs.value) {
+      let balance = await connection.getTokenAccountBalance(acc.pubkey)
+      if (balance.value.amount > 0) {
+        let detailedAcc = await getAccount(connection, acc.pubkey)
+        try {
+          const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
+          //console.log("nft", nft)
+          res.push(nft)
+        } catch(e) {
+          //console.log("NOT NFT")
+        }
+      }
+    }
+    setSolanaNFT(res);
+  }
+
   useEffect(() => {
     const updateCollectibles721 = async () => {
       const collectibleUpdate = [];
@@ -153,26 +174,6 @@ export default function StartBarter(props) {
       setYourCollectibles721(collectibleUpdate);
     };
 
-    const getSolana = async () => {
-      const connection = new Connection(clusterApiUrl("devnet"));
-      let accs = await connection.getParsedTokenAccountsByOwner(wallet.adapter._wallet.publicKey, { programId: TOKEN_PROGRAM_ID })
-      let res = []
-      const mx = Metaplex.make(connection);
-      for (const acc of accs.value) {
-        let balance = await connection.getTokenAccountBalance(acc.pubkey)
-        if (balance.value.amount > 0) {
-          let detailedAcc = await getAccount(connection, acc.pubkey)
-          try {
-            const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
-            //console.log("nft", nft)
-            res.push(nft)
-          } catch(e) {
-            //console.log("NOT NFT")
-          }
-        }
-      }
-      setSolanaNFT(res);
-    }
     getSolana();
     updateCollectibles721();
   }, []);
@@ -290,6 +291,24 @@ export default function StartBarter(props) {
       writeContracts[tokenName721].setApprovalForAll(props.readContracts[contractName].address, 1, {
         gasLimit: 200000,
       }),
+    );
+    const approveTxResult = await approveTx;
+    console.log("Approve results", approveTxResult);
+  }
+
+  async function setApproval20() {
+    const abi = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function decimals() view returns (uint8)",
+      "function symbol() view returns (string)",
+      "function transfer(address to, uint amount) returns (bool)",
+      "event Transfer(address indexed from, address indexed to, uint amount)",
+      "function approve(address spender, uint256 amount) external returns (bool)"
+    ];
+
+    const erc20_rw = new ethers.Contract(selectedOfferNFT.address, abi, props.signer);
+    const approveTx = await tx(
+      erc20_rw.approve(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -424,6 +443,7 @@ export default function StartBarter(props) {
     let res1 = await wallet.signAndSendTransaction(trx, connection)
     console.log("res1", res1)
     if (res1) {
+      getSolana();
       selectedOfferNFT.address = wrap
     }
   }
@@ -506,6 +526,7 @@ export default function StartBarter(props) {
     let res02 = await wallet.signAndSendTransaction(tx2, connection)
     console.log("RES2", res02)
     if (res02) {
+
       console.log("EEEEEEEE")
     }
   }
@@ -561,6 +582,8 @@ export default function StartBarter(props) {
   async function StartBarter() {
     console.log("selectedOfferNFT", selectedOfferNFT)
     if (selectedOfferNFT.model === 'nft') {
+      selectedOfferNFT.standard = 20;
+      selectedOfferNFT.id = 0;
       console.log("AAAAAAAAAAAAAAAAAAAAAAA")
       await SolidityChecks();
     }
@@ -581,6 +604,8 @@ export default function StartBarter(props) {
       await setApproval1155();
     } else if (selectedOfferNFT.standard == 721) {
       await setApproval721();
+    } else if (selectedOfferNFT.standard == 20) {
+      await setApproval20();
     }
     const setTx = await tx(
       writeContracts[contractName].startBartering(

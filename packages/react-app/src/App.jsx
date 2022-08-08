@@ -67,7 +67,7 @@ const { ethers } = require("ethers");
 /// 📡 What chain are your contracts deployed to?
 let targetNetwork = NETWORKS.neon; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
-const ownerAccountForTests = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
+const ownerAccountForTests = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
 localStorage.setItem("targetNetwork", targetNetwork.chainId);
 
 window.localStorage.setItem("theme", "dark");
@@ -202,7 +202,6 @@ const App = props => {
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(injectedProvider);
-
   // const readContracts = null;
   // const readContracts = {};
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
