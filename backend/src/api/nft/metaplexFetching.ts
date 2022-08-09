@@ -9,15 +9,5 @@ const solanaConnection = new Connection(
 const metaplex = new Metaplex(solanaConnection);
 
 export const fetchByMint = async (address: PublicKey): Promise<Nft> => {
-    const nft = await metaplex.nfts().findByMint(address).run();
-    const largestAcc = await solanaConnection.getTokenLargestAccounts(
-        address,
-    );
-
-    const accInfo = await solanaConnection.getParsedAccountInfo(
-        largestAcc.value[0].address,
-    );
-
-    console.log(accInfo.value.owner.toString());
-    return nft;
+    return await metaplex.nfts().findByMint(address).run();
 };
