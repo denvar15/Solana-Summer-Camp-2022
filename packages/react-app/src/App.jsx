@@ -746,7 +746,6 @@ const App = props => {
                 price={price}
                 yourCollectibles={yourCollectibles}
                 yourCollectibles721={yourCollectibles721}
-                ownerAccountForTests={ownerAccountForTests}
               />
             ) : (
               ""

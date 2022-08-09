@@ -3,6 +3,9 @@ import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hoo
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import contracts from "../contracts/hardhat_contracts.json";
+import {clusterApiUrl, Connection, PublicKey} from "@solana/web3.js";
+import {Metaplex} from "@metaplex-foundation/js";
+import {binary_to_base58} from "base58-js";
 
 const { BufferList } = require("bl");
 const ipfsAPI = require("ipfs-http-client");
@@ -19,7 +22,8 @@ const Networks = {
   4: "rinkeby",
   3: "ropsten",
   1: "mainnet",
-  31337: "localhost"
+  31337: "localhost",
+  245022926: "neon"
 };
 
 const targetNetwork = localStorage.getItem("targetNetwork")
@@ -35,11 +39,24 @@ const getFromIPFS = async hashToGet => {
   }
 };
 
+function hexStringToByteArray(hexString) {
+  if (hexString.length % 2 !== 0) {
+    throw "Must have an even number of hex digits to convert to bytes";
+  } /* w w w.  jav  a2 s .  c o  m */
+  const numBytes = hexString.length / 2;
+  const byteArray = new Uint8Array(numBytes);
+  for (let i = 0; i < numBytes; i++) {
+    byteArray[i] = parseInt(hexString.substr(i * 2, 2), 16);
+  }
+  return byteArray;
+}
+
 export default function ApproveBarter(props) {
   const display = [];
 
   const [values, setValues] = useState({});
   const [yourCollectibles721, setYourCollectibles721] = useState();
+  const [SolanaNFTs, setSolanaNFTs] = useState();
   const [usersLend, setUsersLend] = useState();
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
@@ -89,15 +106,15 @@ export default function ApproveBarter(props) {
     const updateUsersLend = async () => {
       const res = [];
       const count = await props.readContracts.BarterWithArrays.UsersBarterCount(
-        props.ownerAccountForTests,
+        props.address,
       );
       for (let i = 0; i < count; i++) {
         try {
           const ul = await props.readContracts.BarterWithArrays.UsersBarters(
-            props.ownerAccountForTests,
+            props.address,
             i,
           );
-          console.log(ul, ul.status);
+          //console.log(ul)
           if (ul.status.toNumber() === 2) {
             res.push(ul);
           }
@@ -105,14 +122,38 @@ export default function ApproveBarter(props) {
           console.log(e);
         }
       }
+      let resSolana = []
+      for (let i in res) {
+        console.log("AAAAAAA", res[i])
+        let addr = res[i].token
+        try {
+          const erc20_rw = new ethers.Contract(addr, contracts["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
+          const tokenMint = await erc20_rw.tokenMint();
+          const connection = new Connection(clusterApiUrl("devnet"));
+          const mx = Metaplex.make(connection);
+          const nft = await mx.nfts().findByMint(new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2))))).run();
+          let b = {};
+          b.address = res[i].token;
+          b.id = res[i].tokenId
+          b.nft = nft;
+          b.standard = 20
+          resSolana.push(b)
+
+        } catch(e) {
+          console.log(e)
+        }
+      }
+      setSolanaNFTs(resSolana);
       setUsersLend(res);
     };
+
     const backendMock = async () => {
       let a = JSON.parse(localStorage.getItem("madeOffers"));
       let b = JSON.parse(localStorage.getItem("startedBarters"));
       if (!a) {
         a = []
       }
+
       if (!b) {
         b = []
       }
@@ -315,17 +356,31 @@ export default function ApproveBarter(props) {
   };
 
   function selectOfferNFT(item) {
-    try {
-      const old = selectedOfferNFT;
-      const oldElem = document.getElementById(old.id + "_" + old.uri + "offer");
-      oldElem.style.border = "";
-    } catch (e) {
-      console.log(e);
-    }
+    if (item.standard === 20) {
+      try {
+        const old = selectedOfferNFT;
+        const oldElem = document.getElementById(old.nft.address);
+        oldElem.style.border = "";
+      } catch (e) {
+        console.log(e);
+      }
 
-    const elem = document.getElementById(item.id + "_" + item.uri + "offer");
-    elem.style.border = "solid white 3px";
-    setSelectedOfferNFT(item);
+      const elem = document.getElementById(item.nft.address);
+      elem.style.border = "solid white 3px";
+      setSelectedOfferNFT(item);
+    } else {
+      try {
+        const old = selectedOfferNFT;
+        const oldElem = document.getElementById(old.id + "_" + old.uri + "offer");
+        oldElem.style.border = "";
+      } catch (e) {
+        console.log(e);
+      }
+
+      const elem = document.getElementById(item.id + "_" + item.uri + "offer");
+      elem.style.border = "solid white 3px";
+      setSelectedOfferNFT(item);
+    }
   }
 
   async function approveBarter() {
@@ -333,6 +388,7 @@ export default function ApproveBarter(props) {
       alert("SELECT OFFER NFT!");
       return;
     }
+    console.log("selectedOfferNFT", selectedOfferNFT)
     const setTx = await tx(
       writeContracts[contractName].approveBarter(
         selectedOfferNFT.address,
@@ -362,7 +418,7 @@ export default function ApproveBarter(props) {
 
   async function approveInterChainBarter(item) {
     let author;
-    if (props.address !== props.ownerAccountForTests) {
+    if (props.address !== props.address) {
       alert("NOT OWNER OF CONTRACTS!");
       return;
     }
@@ -428,7 +484,7 @@ export default function ApproveBarter(props) {
 
   async function revokeInterChainBarter(item) {
     let author;
-    if (props.address !== props.ownerAccountForTests) {
+    if (props.address !== props.address) {
       alert("NOT OWNER OF CONTRACTS!");
       return;
     }
@@ -476,7 +532,7 @@ export default function ApproveBarter(props) {
         ),
       );
       const setTxResult = await setTx;
-      const p = JSON.parse(localStorage.getItem("revokes"));
+      let p = JSON.parse(localStorage.getItem("revokes"));
       if (p == null) {
         p = {};
       }
@@ -573,7 +629,7 @@ export default function ApproveBarter(props) {
             }}
           />
         </Col>
-        <Col span={10}>
+        <Col span={7}>
           <h1>Offer 1155</h1>
           <List
             style={{ marginLeft: "50%" }}
@@ -603,7 +659,7 @@ export default function ApproveBarter(props) {
             }}
           />
         </Col>
-        <Col span={10}>
+        <Col span={7}>
           <h1>Offer 721</h1>
           <List
             style={{ marginLeft: "50%" }}
@@ -624,6 +680,34 @@ export default function ApproveBarter(props) {
                       <img src={item.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
                     </div>
                     <div>{item.description}</div>
+                  </Card>
+                </List.Item>
+              );
+            }}
+          />
+        </Col>
+        <Col span={6}>
+          <h1>Wanted ERC20</h1>
+          <List
+            style={{ marginLeft: "50%" }}
+            bordered
+            dataSource={SolanaNFTs}
+            renderItem={item => {
+              console.log("ITEM", item)
+              const id = item.nft.address.toString();
+              return (
+                <List.Item key={id} id={id}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>{item.nft.name}</span>
+                      </div>
+                    }
+                  >
+                    <div>
+                      <img src={item.nft.json.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
+                    </div>
+                    <div>{item.nft.json.description}</div>
                   </Card>
                 </List.Item>
               );

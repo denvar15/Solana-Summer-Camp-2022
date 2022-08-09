@@ -144,7 +144,7 @@ export default function ActiveOffers(props) {
               console.log(e);
             }
           }
-          //console.log("AAAAAAAAA", res)
+          console.log("AAAAAAAAA", res)
         }
       }
       setUsersLend(res);

@@ -144,7 +144,7 @@ export const NETWORKS = {
   },
   neon: {
     name: "Neon Devnet",
-    color: "#f0da37",
+    color: "#7700ff",
     rpcUrl: "https://proxy.devnet.neonlabs.org/solana",
     chainId: 245022926,
   },

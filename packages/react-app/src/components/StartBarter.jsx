@@ -90,24 +90,26 @@ export default function StartBarter(props) {
   const writeContracts = props.writeContracts;
 
   const getSolana = async () => {
-    const connection = new Connection(clusterApiUrl("devnet"));
-    let accs = await connection.getParsedTokenAccountsByOwner(wallet.adapter._wallet.publicKey, { programId: TOKEN_PROGRAM_ID })
-    let res = []
-    const mx = Metaplex.make(connection);
-    for (const acc of accs.value) {
-      let balance = await connection.getTokenAccountBalance(acc.pubkey)
-      if (balance.value.amount > 0) {
-        let detailedAcc = await getAccount(connection, acc.pubkey)
-        try {
-          const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
-          //console.log("nft", nft)
-          res.push(nft)
-        } catch(e) {
-          //console.log("NOT NFT")
+    if (targetNetwork == 245022926) {
+      const connection = new Connection(clusterApiUrl("devnet"));
+      let accs = await connection.getParsedTokenAccountsByOwner(wallet.adapter._wallet.publicKey, { programId: TOKEN_PROGRAM_ID })
+      let res = []
+      const mx = Metaplex.make(connection);
+      for (const acc of accs.value) {
+        let balance = await connection.getTokenAccountBalance(acc.pubkey)
+        if (balance.value.amount > 0) {
+          let detailedAcc = await getAccount(connection, acc.pubkey)
+          try {
+            const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
+            //console.log("nft", nft)
+            res.push(nft)
+          } catch(e) {
+            //console.log("NOT NFT")
+          }
         }
       }
+      setSolanaNFT(res);
     }
-    setSolanaNFT(res);
   }
 
   useEffect(() => {
