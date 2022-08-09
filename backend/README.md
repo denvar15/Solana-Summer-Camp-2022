@@ -11,13 +11,12 @@ npm i --legacy-peer-deps
 ## Dev run
 
 ```bash
-npm run watch-node
+npm run dev
 ```
 
 ## Production run
 
 ```bash
-npm run prebuild
 npm run build
 npm run start
 ```
