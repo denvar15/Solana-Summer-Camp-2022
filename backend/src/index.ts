@@ -3,14 +3,17 @@ import { createConnection } from 'typeorm';
 require('dotenv').config();
 
 import app from './config/express';
-const PORT = 8080;
+import { addTokens } from './scipts/addToken';
+import { PORT } from './constants/port';
 
 createConnection()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.info(`Server running at ${PORT}`);
+    .then(async () => {
+        
+        await addTokens();
+        // app.listen(PORT, () => {
+        //     console.info(`Server started and running at ${PORT}`);
+        // });
+    })
+    .catch((error: Error) => {
+        console.info(`Database connection failed with error ${error}`);
     });
-  })
-  .catch((error: Error) => {
-    console.info(`Database connection failed with error ${error}`);
-  });

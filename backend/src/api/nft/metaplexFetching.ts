@@ -1,4 +1,4 @@
-import { Metaplex, LazyNft } from '@metaplex-foundation/js';
+import { Metaplex, LazyNft, Nft } from '@metaplex-foundation/js';
 import { Connection, clusterApiUrl, Cluster } from '@solana/web3.js';
 import { PublicKey } from '@solana/web3.js';
 import { solanaNet } from '../../constants/net';
@@ -8,20 +8,16 @@ const solanaConnection = new Connection(
 );
 const metaplex = new Metaplex(solanaConnection);
 
-export const fetchByMint = async (address: PublicKey) => {
-    const nft = await metaplex
-        .nfts()
-        .findAllByMintList(new Array(address))
-        // .findAllByOwner(address)
-        .run();
-    // async map doesn't work at all, so this is easiest solution
-    for (let token = 0; token < nft.length; token++) {
-        if (nft[token].lazy == true) {
-            nft[token] = await metaplex
-                .nfts()
-                .loadNft(nft[token] as LazyNft)
-                .run();
-        }
-    }
+export const fetchByMint = async (address: PublicKey): Promise<Nft> => {
+    const nft = await metaplex.nfts().findByMint(address).run();
+    const largestAcc = await solanaConnection.getTokenLargestAccounts(
+        address,
+    );
+
+    const accInfo = await solanaConnection.getParsedAccountInfo(
+        largestAcc.value[0].address,
+    );
+
+    console.log(accInfo.value.owner.toString());
     return nft;
 };
