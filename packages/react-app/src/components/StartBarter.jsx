@@ -28,28 +28,6 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
 import { AddressInput, Sidebar } from "./index";
 
-export class Wallet {
-  constructor(payer) {
-    this.payer = payer;
-  }
-
-  async signTransaction(tx) {
-    tx.partialSign(this.payer);
-    return tx;
-  }
-
-  async signAllTransactions(txs) {
-    return txs.map(t => {
-      t.partialSign(this.payer);
-      return t;
-    });
-  }
-
-  get publicKey() {
-    return this.payer.publicKey;
-  }
-}
-
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
 const { BufferList } = require("bl");
@@ -73,14 +51,6 @@ const getFromIPFS = async hashToGet => {
     }
     return content;
   }
-};
-
-const getConfirmation = async (connection, tx) => {
-  const result = await connection.getSignatureStatus(tx, {
-    searchTransactionHistory: true,
-  });
-  console.log("RESULT ", result)
-  return result.value?.confirmationStatus;
 };
 
 function toHexString(byteArray) {
@@ -638,6 +608,9 @@ export default function StartBarter(props) {
       data.author = props.address;
       a.push({ chainId: setTxResult.chainId ? setTxResult.chainId : targetNetwork, data });
       localStorage.setItem("startedBarters", JSON.stringify(a));
+      let accs = JSON.parse(localStorage.getItem("accounts"));
+      accs.push(props.address)
+      localStorage.setItem("accounts", JSON.stringify(accs));
     }
   }
 

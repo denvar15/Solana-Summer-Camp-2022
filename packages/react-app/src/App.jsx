@@ -65,10 +65,17 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-let targetNetwork = NETWORKS.neon; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+let targetNetworkStorage = localStorage.getItem("targetNetwork");
+let targetNetwork;
+if (!targetNetworkStorage) {
+  targetNetwork = NETWORKS.neon;
+  localStorage.setItem("targetNetwork", targetNetwork.chainId);
+} else {
+  targetNetwork = NETWORK(parseInt(targetNetworkStorage))
+  console.log(targetNetwork)
+}
 
 const ownerAccountForTests = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
-localStorage.setItem("targetNetwork", targetNetwork.chainId);
 
 window.localStorage.setItem("theme", "dark");
 
@@ -227,8 +234,16 @@ const App = props => {
 
       let totalSupply = 0;
       if (readContracts) {
-        const collectiblesCount = await readContracts.YourCollectible.getCurrentTokenID();
-        totalSupply = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
+        try {
+          const collectiblesCount = await readContracts.YourCollectible.getCurrentTokenID();
+          totalSupply = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
+        } catch(e) {
+          setYourCollectibles([]);
+        }
+      }
+
+      if (!totalSupply) {
+        setYourCollectibles([]);
       }
 
       for (let collectibleIndex = 0; collectibleIndex < totalSupply; collectibleIndex++) {
@@ -267,8 +282,16 @@ const App = props => {
 
       let totalSupply = 0;
       if (readContracts) {
-        const balance = await readContracts.YourCollectible721.balanceOf(address);
-        totalSupply = balance && balance.toNumber && balance.toNumber();
+        try {
+          const balance = await readContracts.YourCollectible721.balanceOf(address);
+          totalSupply = balance && balance.toNumber && balance.toNumber();
+        } catch(e) {
+          setYourCollectibles721([]);
+        }
+      }
+
+      if (!totalSupply) {
+        setYourCollectibles721([]);
       }
 
       for (let tokenIndex = 0; tokenIndex < totalSupply; tokenIndex++) {
@@ -477,17 +500,17 @@ const App = props => {
       </Button>
       <Button
         onClick={async () => {
-          const yourNumber = ethers.utils.hexlify(NETWORKS.kovan.chainId);
+          const yourNumber = ethers.utils.hexlify(NETWORKS.neon.chainId);
           console.log(yourNumber);
           await window.ethereum.request({
             method: "wallet_switchEthereumChain",
-            params: [{ chainId: yourNumber }],
+            params: [{ chainId: "0xE9AC0CE" }],
           });
-          targetNetwork = NETWORKS.kovan;
-          localStorage.setItem("targetNetwork", NETWORKS.kovan.chainId);
+          targetNetwork = NETWORKS.neon;
+          localStorage.setItem("targetNetwork", NETWORKS.neon.chainId);
         }}
       >
-        Kovan
+        Neon DevNet
       </Button>
     </div>
   );
@@ -743,7 +766,6 @@ const App = props => {
                 price={price}
                 yourCollectibles={yourCollectibles}
                 yourCollectibles721={yourCollectibles721}
-                ownerAccountForTests={ownerAccountForTests}
               />
             ) : (
               ""

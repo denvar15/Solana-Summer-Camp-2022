@@ -43,6 +43,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
+  await deploy("NeonERC20Wrapper", {
+    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+    from: deployer,
+    args: [ethers.utils.formatBytes32String("0")],
+    log: true,
+  });
+
   const BarterWithArrays = await deployments.get("BarterWithArrays");
 
   const contract = await ethers.getContractAt(
@@ -55,7 +62,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   );
 
   const toAddress = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
-  const toAddress2 = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
+  const toAddress2 = "0x3Cd3AA68E6f86c3e7237ee874EeB073c3D178339";
 
   const yourCollectible1 = await deployments.get("YourCollectible");
 

@@ -39,6 +39,13 @@ export const Wallet = ({ children }) => {
        * your users connect to will be loaded.
        */
       new PhantomWalletAdapter(),
+      new CoinbaseWalletAdapter(),
+      new GlowWalletAdapter(),
+      new SlopeWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new SolletExtensionWalletAdapter(),
+      new SolletWalletAdapter(),
+      new TorusWalletAdapter(),
     ],
     []
   );

@@ -2,7 +2,10 @@ import { Card, Col, Button, Input, Row, List } from "antd";
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
-
+import abi from "../contracts/hardhat_contracts.json"
+import {Metaplex} from "@metaplex-foundation/js";
+import {clusterApiUrl, Connection, PublicKey} from "@solana/web3.js";
+import {base58_to_binary, binary_to_base58} from "base58-js";
 const { BufferList } = require("bl");
 const ipfsAPI = require("ipfs-http-client");
 
@@ -23,6 +26,18 @@ const getFromIPFS = async hashToGet => {
     return content;
   }
 };
+
+function hexStringToByteArray(hexString) {
+  if (hexString.length % 2 !== 0) {
+    throw "Must have an even number of hex digits to convert to bytes";
+  } /* w w w.  jav  a2 s .  c o  m */
+  const numBytes = hexString.length / 2;
+  const byteArray = new Uint8Array(numBytes);
+  for (let i = 0; i < numBytes; i++) {
+    byteArray[i] = parseInt(hexString.substr(i * 2, 2), 16);
+  }
+  return byteArray;
+}
 
 export default function ActiveOffers(props) {
   const display = [];
@@ -71,63 +86,89 @@ export default function ActiveOffers(props) {
       }
       setYourCollectibles721(collectibleUpdate);
     };
+
     const updateUsersLend = async () => {
-      const res = [];
-      if (props.address !== props.ownerAccountForTests) {
-        const count = await props.readContracts.BarterWithArrays.UsersBarterCount(
-          props.ownerAccountForTests,
-        );
-        for (let i = 0; i < count; i++) {
-          try {
-            const ul_base = await props.readContracts.BarterWithArrays.UsersBarters(
-              props.ownerAccountForTests,
-              i,
-            );
-            const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesBarter(
-              props.ownerAccountForTests,
-              i,
-            );
-            const idTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedIdsBarter(
-              props.ownerAccountForTests,
-              i,
-            );
-            const standardTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedStandardsBarter(
-              props.ownerAccountForTests,
-              i,
-            );
-            const idTok = [];
-            const standardTok = [];
-            const ul = {};
-            for (let j = 0; j < idTok_bigs.length; j++) {
-              idTok[j] = idTok_bigs[j];
-              idTok[j] = idTok[j].toNumber();
-            }
-            for (let j = 0; j < standardTok_bigs.length; j++) {
-              standardTok[j] = standardTok_bigs[j];
-              standardTok[j] = standardTok[j].toNumber();
-            }
-            ul.token = ul_base.token;
-            ul.status = ul_base.status;
-            ul.tokenId = ul_base.tokenId;
-            ul.acceptedToken = addressTok;
-            ul.acceptedTokenId = idTok;
-            ul.acceptedTokenStandard = standardTok;
-            console.log(ul, ul.status);
-            if (ul.status.toNumber() === 1) {
-              res.push(ul);
-            }
-          } catch (e) {
-            console.log(e);
-          }
-        }
-        console.log("AAAAAAAAA", res)
-        setUsersLend(res);
+      let accounts = localStorage.getItem("accounts");
+      if (!accounts) {
+        accounts = []
       }
+      accounts.push("0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd")
+      const res = [];
+      for (let i in accounts) {
+        let acc = accounts[i]
+        console.log("aaaa", acc)
+        if (props.address !== acc) {
+          const count = await props.readContracts.BarterWithArrays.UsersBarterCount(
+            acc,
+          );
+          for (let i = 0; i < count; i++) {
+            try {
+              const ul_base = await props.readContracts.BarterWithArrays.UsersBarters(
+                acc,
+                i,
+              );
+              const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesBarter(
+                acc,
+                i,
+              );
+              const idTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedIdsBarter(
+                acc,
+                i,
+              );
+              const standardTok_bigs = await props.readContracts.BarterWithArrays.getAcceptedStandardsBarter(
+                acc,
+                i,
+              );
+              const idTok = [];
+              const standardTok = [];
+              const ul = {};
+              for (let j = 0; j < idTok_bigs.length; j++) {
+                idTok[j] = idTok_bigs[j];
+                idTok[j] = idTok[j].toNumber();
+              }
+              for (let j = 0; j < standardTok_bigs.length; j++) {
+                standardTok[j] = standardTok_bigs[j];
+                standardTok[j] = standardTok[j].toNumber();
+              }
+              ul.token = ul_base.token;
+              ul.status = ul_base.status;
+              ul.tokenId = ul_base.tokenId;
+              ul.acceptedToken = addressTok;
+              ul.acceptedTokenId = idTok;
+              ul.acceptedTokenStandard = standardTok;
+              //console.log(ul, ul.status);
+              if (ul.status.toNumber() === 1) {
+                res.push(ul);
+              }
+            } catch (e) {
+              console.log(e);
+            }
+          }
+          //console.log("AAAAAAAAA", res)
+        }
+      }
+      setUsersLend(res);
     };
+
     const backendMock = async () => {
       let a = JSON.parse(localStorage.getItem("startedBarters"));
       if (!a) {
         a = []
+      }
+      for (let i in a) {
+        let addr = a[i].data.token
+        try {
+          const erc20_rw = new ethers.Contract(addr, abi["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
+          const tokenMint = await erc20_rw.tokenMint();
+          const connection = new Connection(clusterApiUrl("devnet"));
+          const mx = Metaplex.make(connection);
+          //console.log("A", new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2)))))
+          const nft = await mx.nfts().findByMint(new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2))))).run();
+          a[i].data.nft = nft;
+          a[i].standard = 20
+        } catch(e) {
+          console.log(e)
+        }
       }
       setBackendMock(a);
     };
@@ -226,9 +267,7 @@ export default function ActiveOffers(props) {
 
   async function setApproval1155() {
     const approveTx = await tx(
-      writeContracts[tokenName].setApprovalForAll(props.readContracts[contractName].address, 1, {
-        gasLimit: 200000,
-      }),
+      writeContracts[tokenName].setApprovalForAll(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -236,9 +275,7 @@ export default function ActiveOffers(props) {
 
   async function setApproval721() {
     const approveTx = await tx(
-      writeContracts[tokenName721].setApprovalForAll(props.readContracts[contractName].address, 1, {
-        gasLimit: 200000,
-      }),
+      writeContracts[tokenName721].setApprovalForAll(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -247,15 +284,25 @@ export default function ActiveOffers(props) {
   function selectWantedNFT(item) {
     try {
       const old = selectedWantedNFT;
-      const oldElem = document.getElementById(old.id + "_" + old.uri);
-      oldElem.style.border = "";
+      if (old.standard === 20) {
+        const oldElem = document.getElementById(old.data.nft.address.toString());
+        oldElem.style.border = "";
+      } else {
+        const oldElem = document.getElementById(old.id + "_" + old.uri);
+        oldElem.style.border = "";
+      }
     } catch (e) {
       console.log(e);
     }
-
-    const elem = document.getElementById(item.id + "_" + item.uri);
-    elem.style.border = "solid white 3px";
-    setSelectedWantedNFT(item);
+    if (item.standard === 20) {
+      const elem = document.getElementById(item.data.nft.address.toString());
+      elem.style.border = "solid white 3px";
+      setSelectedWantedNFT(item);
+    } else {
+      const elem = document.getElementById(item.id + "_" + item.uri);
+      elem.style.border = "solid white 3px";
+      setSelectedWantedNFT(item);
+    }
   }
 
   function selectOfferNFT(item) {
@@ -286,6 +333,13 @@ export default function ActiveOffers(props) {
     } else if (selectedOfferNFT.standard == 721) {
       await setApproval721();
     }
+
+    if (selectedWantedNFT.standard === 20) {
+      selectedWantedNFT.address = selectedWantedNFT.data.token
+      console.log("M", selectedWantedNFT.address, selectedWantedNFT)
+      selectedWantedNFT.id = 0;
+    }
+
     if (targetNetwork !== chainId) {
       const data = {
         wantedToken: selectedWantedNFT.address,
@@ -485,7 +539,7 @@ export default function ActiveOffers(props) {
           }}
         />
       </Col>
-      <Col span={6}>
+      <Col span={4}>
         <h1>Wanted 1155</h1>
         <List
           style={{ marginLeft: "50%" }}
@@ -512,7 +566,7 @@ export default function ActiveOffers(props) {
           }}
         />
       </Col>
-      <Col span={6}>
+      <Col span={4}>
         <h1>Wanted 721</h1>
         <List
           style={{ marginLeft: "50%" }}
@@ -533,6 +587,33 @@ export default function ActiveOffers(props) {
                     <img src={item.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
                   </div>
                   <div>{item.description}</div>
+                </Card>
+              </List.Item>
+            );
+          }}
+        />
+      </Col>
+      <Col span={4}>
+        <h1>Wanted ERC20</h1>
+        <List
+          style={{ marginLeft: "50%" }}
+          bordered
+          dataSource={usersBackendMock}
+          renderItem={item => {
+            const id = item.data.nft.address.toString();
+            return (
+              <List.Item key={id} id={id}>
+                <Card
+                  title={
+                    <div>
+                      <span style={{ fontSize: 16, marginRight: 8 }}>{item.data.nft.name}</span>
+                    </div>
+                  }
+                >
+                  <div>
+                    <img src={item.data.nft.json.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
+                  </div>
+                  <div>{item.data.nft.json.description}</div>
                 </Card>
               </List.Item>
             );
