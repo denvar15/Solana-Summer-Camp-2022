@@ -124,7 +124,6 @@ export default function ApproveBarter(props) {
       }
       let resSolana = []
       for (let i in res) {
-        console.log("AAAAAAA", res[i])
         let addr = res[i].token
         try {
           const erc20_rw = new ethers.Contract(addr, contracts["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);

@@ -144,7 +144,6 @@ export default function ActiveOffers(props) {
               console.log(e);
             }
           }
-          console.log("AAAAAAAAA", res)
         }
       }
       setUsersLend(res);
@@ -600,27 +599,29 @@ export default function ActiveOffers(props) {
           bordered
           dataSource={usersBackendMock}
           renderItem={item => {
-            const id = item.data.nft.address.toString();
-            return (
-              <List.Item key={id} id={id}>
-                <Card
-                  title={
+            if (item.data.nft) {
+              const id = item.data.nft.address.toString();
+              return (
+                <List.Item key={id} id={id}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>{item.data.nft.name}</span>
+                      </div>
+                    }
+                  >
                     <div>
-                      <span style={{ fontSize: 16, marginRight: 8 }}>{item.data.nft.name}</span>
+                      <img src={item.data.nft.json.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
                     </div>
-                  }
-                >
-                  <div>
-                    <img src={item.data.nft.json.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
-                  </div>
-                  <div>{item.data.nft.json.description}</div>
-                </Card>
-              </List.Item>
-            );
+                    <div>{item.data.nft.json.description}</div>
+                  </Card>
+                </List.Item>
+              );
+            }
           }}
         />
       </Col>
-      <Col span={6}>
+      <Col span={4}>
         <h1>Offer 1155</h1>
         <List
           style={{ marginLeft: "50%" }}
@@ -650,7 +651,50 @@ export default function ActiveOffers(props) {
           }}
         />
       </Col>
-      <Col span={6}>
+      <Col span={4}>
+        <h1>Offer ERC20</h1>
+        <List
+          style={{ marginLeft: "50%" }}
+          bordered
+          dataSource={usersBackendMock}
+          renderItem={parentItem => {
+            console.log(parentItem.data)
+              const id = 0;
+              return (
+                <List.Item key={id + "_parent"} id={id + "_parent"}>
+                  <List
+                    style={{ marginLeft: "50%" }}
+                    bordered
+                    dataSource={parentItem.data.acceptedToken}
+                    renderItem={item => {
+                      let i = parentItem.data.acceptedToken.findIndex(el => {return el === item})
+                      if (parentItem.data.tokenStandard[i] === 20) {
+                        console.log("item", item, i)
+                        return(
+                          <List.Item key={id} id={id}>
+                            <Card
+                              title={
+                                <div>
+                                  <span style={{ fontSize: 16, marginRight: 8 }}>{item.data.nft.name}</span>
+                                </div>
+                              }
+                            >
+                              <div>
+                                <img src={item.data.nft.json.image} style={{ maxWidth: 100 }} onClick={selectedOfferNFT.bind(this, item)} />
+                              </div>
+                              <div>{item.data.nft.json.description}</div>
+                            </Card>
+                          </List.Item>
+                        );
+                      }
+                    }}
+                    />
+                </List.Item>
+              );
+          }}
+        />
+      </Col>
+      <Col span={4}>
         <h1>Offer 721</h1>
         <List
           style={{ marginLeft: "50%" }}

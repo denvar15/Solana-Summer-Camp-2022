@@ -101,7 +101,6 @@ export default function StartBarter(props) {
           let detailedAcc = await getAccount(connection, acc.pubkey)
           try {
             const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
-            //console.log("nft", nft)
             res.push(nft)
           } catch(e) {
             //console.log("NOT NFT")
@@ -250,9 +249,7 @@ export default function StartBarter(props) {
 
   async function setApproval1155() {
     const approveTx = await tx(
-      writeContracts[tokenName].setApprovalForAll(props.readContracts[contractName].address, 1, {
-        gasLimit: 200000,
-      }),
+      writeContracts[tokenName].setApprovalForAll(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -260,9 +257,7 @@ export default function StartBarter(props) {
 
   async function setApproval721() {
     const approveTx = await tx(
-      writeContracts[tokenName721].setApprovalForAll(props.readContracts[contractName].address, 1, {
-        gasLimit: 200000,
-      }),
+      writeContracts[tokenName721].setApprovalForAll(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -286,10 +281,9 @@ export default function StartBarter(props) {
     console.log("Approve results", approveTxResult);
   }
 
-  function selectWantedNFT(item) {
+  async function selectWantedNFT(item) {
     const old = selectedWantedNFT;
     const elem = document.getElementById(item.id + "_" + item.uri);
-    console.log("ASDASDASD ", elem.style.border, elem.style.border === null);
     if (elem.style.border) {
       elem.style.border = null;
       for (let i = 0; i < old.address.length; i++) {
@@ -297,13 +291,23 @@ export default function StartBarter(props) {
           old.address.splice(i);
           old.id.splice(i);
           old.standard.splice(i);
+          old.model.splice(i);
         }
       }
     } else {
       elem.style.border = "solid white 3px";
-      old.address.push(item.address);
-      old.id.push(item.id);
-      old.standard.push(item.standard);
+      old.id.push(0);
+      old.standard.push(20);
+      if (item.model === 'nft') {
+        const tokenMint = base58_to_binary(item.mintAddress.toString());
+        const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
+        const b = await props.readContracts.WrapperFactory.allWrapps(1, 1);
+        old.address.push(b[b.length - 1]);
+        old.model.push(item.model);
+      } else {
+        old.address.push(item.address);
+        old.model.push(0);
+      }
     }
     setSelectedWantedNFT(old);
   }
@@ -376,12 +380,12 @@ export default function StartBarter(props) {
     let destAccInfo = await connection.getAccountInfo(to);
 
     if (!destAccInfo) {
-      console.log("1 ", wallet.publicKey.toString())
-      console.log("2 ", to.toString())
-      console.log("3 ", neon_acc.toString())
-      console.log("4 ", solana_contract_address.toString())
-      console.log("5 ", mintPublicKey.toString())
-      console.log("7 ", TOKEN_PROGRAM_ID.toString())
+      //console.log("1 ", wallet.publicKey.toString())
+      //console.log("2 ", to.toString())
+      //console.log("3 ", neon_acc.toString())
+      //console.log("4 ", solana_contract_address.toString())
+      //console.log("5 ", mintPublicKey.toString())
+      //console.log("7 ", TOKEN_PROGRAM_ID.toString())
       trx.add(new TransactionInstruction({
         programId: EVM_LOADER_ID,
         data: hexStringToByteArray('0F'),
@@ -397,9 +401,9 @@ export default function StartBarter(props) {
         ]}))
     }
 
-    console.log("11", source_token_acc.toString())
-    console.log("12", to.toString())
-    console.log("13", wallet.publicKey.toString())
+    //console.log("11", source_token_acc.toString())
+    //console.log("12", to.toString())
+    //console.log("13", wallet.publicKey.toString())
     trx.add(new TransactionInstruction({
       programId: TOKEN_PROGRAM_ID,
       data: hexStringToByteArray("030100000000000000"),
@@ -431,33 +435,6 @@ export default function StartBarter(props) {
         return;
       }
       console.log("TOKEN BALANCE ", tokenAmount)
-
-      /*
-      const eth_account_addressbytes1 = hexStringToByteArray(props.address.slice(2));
-      const b = PublicKey.findProgramAddressSync(
-        [hexStringToByteArray("01"), eth_account_addressbytes1],
-        new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
-      )[0];
-
-      let sys = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
-      console.log("sys", sys)
-      const transaction = new Transaction().add(
-        SystemProgram.createAccount({
-          fromPubkey: wallet.publicKey,
-          newAccountPubkey: b,
-          lamports: 10,
-          space: 100,
-          programId: sys,
-        })
-      );
-
-      transaction.feePayer = wallet.publicKey;
-      transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
-      let res00 = await wallet.signAndSendTransaction(transaction)
-
-      //let res0 = await wallet.signTransaction(transaction);
-      console.log("RES0", res00)
-  */
 
       let tokenAccountTo = await getAssociatedTokenAddress(mintPublicKey, to);
 
@@ -552,11 +529,10 @@ export default function StartBarter(props) {
   }
 
   async function StartBarter() {
-    console.log("selectedOfferNFT", selectedOfferNFT)
+    console.log("selectedWantedNFT", selectedWantedNFT)
     if (selectedOfferNFT.model === 'nft') {
       selectedOfferNFT.standard = 20;
       selectedOfferNFT.id = 0;
-      console.log("AAAAAAAAAAAAAAAAAAAAAAA")
       await SolidityChecks();
     }
 
@@ -798,6 +774,24 @@ export default function StartBarter(props) {
                           >
                             <img src={item.image} width="72" height="72" />
                             <Meta title={item.name} description={item.description} />
+                          </Card.Grid>
+                        ))}
+                    </Row>
+                    <Row>
+                      <h3>Solana NFT</h3>
+                    </Row>
+                    <Row>
+                      {solanaNFT &&
+                        solanaNFT.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri}
+                            onClick={selectWantedNFT.bind(this, item)}
+                          >
+                            <img src={item.json.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.json.description} />
                           </Card.Grid>
                         ))}
                     </Row>
