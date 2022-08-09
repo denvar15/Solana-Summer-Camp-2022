@@ -8,11 +8,9 @@ import { PORT } from './constants/port';
 
 createConnection()
     .then(async () => {
-        
-        await addTokens();
-        // app.listen(PORT, () => {
-        //     console.info(`Server started and running at ${PORT}`);
-        // });
+        app.listen(PORT, () => {
+            console.info(`Server started and running at ${PORT}`);
+        });
     })
     .catch((error: Error) => {
         console.info(`Database connection failed with error ${error}`);

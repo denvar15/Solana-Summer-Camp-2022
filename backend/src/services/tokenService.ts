@@ -17,8 +17,9 @@ const saveToken = async (token: Token) => {
 const getTokensByAmount = async (amount: number) => {
     return await getRepository(Token)
         .createQueryBuilder('token')
-        .leftJoinAndSelect('token.collection', 'collection')
-        .orderBy('RAND()')
+        // raw query for possible solution
+        // .leftJoinAndSelect('token.collection', 'collection')
+        .orderBy('random()')
         .take(amount)
         .getMany();
 };

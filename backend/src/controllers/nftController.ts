@@ -7,6 +7,7 @@ import { PublicKey } from '@solana/web3.js';
 import { genopetsCollectionId } from '../constants/genopets';
 import { defaultListAmount } from '../constants/defaultListAmount';
 import { convertToken } from '../scipts/convertToken';
+import { Token } from '../entities/tokenEntity';
 
 const fetchSingleNFT = async (
     req: express.Request,
@@ -19,6 +20,7 @@ const fetchSingleNFT = async (
         );
 
         if (token == null) {
+            token = new Token();
             const nft = await fetchByMint(new PublicKey(address));
             convertToken(nft, token);
         }
