@@ -5,9 +5,9 @@ import React, { useEffect, useState } from "react";
 import { AddressInput } from "../index";
 
 const { BufferList } = require("bl");
-const ipfsAPI = require("ipfs-http-client");
-
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+//const ipfsAPI = require("ipfs-http-client");
+//const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+const ipfs = {}
 
 const contractName = "Barter";
 const tokenName = "YourCollectible";

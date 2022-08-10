@@ -6,11 +6,14 @@ import contracts from "../contracts/hardhat_contracts.json";
 import {clusterApiUrl, Connection, PublicKey} from "@solana/web3.js";
 import {Metaplex} from "@metaplex-foundation/js";
 import {binary_to_base58} from "base58-js";
+import axios from "axios";
 
 const { BufferList } = require("bl");
-const ipfsAPI = require("ipfs-http-client");
-
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+//const ipfsAPI = require("ipfs-http-client");
+//const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+const {create} = require('ipfs-http-client')
+const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
+const ipfs = create({ url: "https://denvar15.infura-ipfs.io/ipfs", headers: { Authorization: auth } });
 
 const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
@@ -29,14 +32,8 @@ const Networks = {
 const targetNetwork = localStorage.getItem("targetNetwork")
 
 const getFromIPFS = async hashToGet => {
-  for await (const file of ipfs.get(hashToGet)) {
-    if (!file.content) continue;
-    const content = new BufferList();
-    for await (const chunk of file.content) {
-      content.append(chunk);
-    }
-    return content;
-  }
+  let response = await  axios.get("https://denvar15.infura-ipfs.io/ipfs/" + hashToGet)
+  return JSON.stringify(response.data);
 };
 
 function hexStringToByteArray(hexString) {
@@ -142,6 +139,7 @@ export default function ApproveBarter(props) {
           console.log(e)
         }
       }
+      console.log("res", res)
       setSolanaNFTs(resSolana);
       setUsersLend(res);
     };
@@ -194,7 +192,7 @@ export default function ApproveBarter(props) {
           }
         }
       }
-      console.log("REs", res);
+      //console.log("REs", res);
       setBackendMock(res);
     };
     updateCollectibles721();

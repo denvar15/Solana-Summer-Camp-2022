@@ -32,9 +32,10 @@ const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
 const { BufferList } = require("bl");
 const axios = require('axios')
-const ipfsAPI = require("ipfs-http-client");
-
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+//const ipfsAPI = require("ipfs-http-client");
+const {create} = require('ipfs-http-client')
+const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
+const ipfs = create({ url: "https://denvar15.infura-ipfs.io/ipfs", headers: { Authorization: auth } });
 
 const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
@@ -43,21 +44,9 @@ const tokenName721 = "YourCollectible721";
 const targetNetwork = localStorage.getItem("targetNetwork");
 
 const getFromIPFS = async hashToGet => {
-  for await (const file of ipfs.get(hashToGet)) {
-    if (!file.content) continue;
-    const content = new BufferList();
-    for await (const chunk of file.content) {
-      content.append(chunk);
-    }
-    return content;
-  }
+  let response = await  axios.get("https://denvar15.infura-ipfs.io/ipfs/" + hashToGet)
+  return JSON.stringify(response.data);
 };
-
-function toHexString(byteArray) {
-  return Array.from(byteArray, function (byte) {
-    return ("0" + (byte & 0xff).toString(16)).slice(-2);
-  }).join("");
-}
 
 function hexStringToByteArray(hexString) {
   if (hexString.length % 2 !== 0) {
@@ -508,7 +497,7 @@ export default function StartBarter(props) {
 
     const d = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
 
-    //console.log(pair.publicKey._bn.words.concat(pair.secretKey), pair.publicKey, pair.secretKey)
+    /*
     axios.post('http://localhost:5000/', {
       source_sol: pair.secretKey,
       dest_neon: props.address,
@@ -522,8 +511,7 @@ export default function StartBarter(props) {
       .then(function (response) {
         console.log(response);
       })
-
-    //transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
+     */
 
     await transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
   }

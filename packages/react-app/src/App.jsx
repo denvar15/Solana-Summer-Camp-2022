@@ -36,13 +36,15 @@ import {
 } from "./hooks";
 
 import { Wallet } from "./helpers/Wallet";
+import axios from "axios";
 
 const { BufferList } = require("bl");
 // https://www.npmjs.com/package/ipfs-http-client
-const ipfsAPI = require("ipfs-http-client");
-
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
-
+//const ipfsAPI = require("ipfs-http-client");
+//const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+const {create} = require('ipfs-http-client')
+const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
+const ipfs = create({ url: "https://denvar15.infura-ipfs.io/ipfs", headers: { Authorization: auth } });
 const { ethers } = require("ethers");
 
 /*
@@ -104,14 +106,8 @@ const STARTING_JSON = {
 // helper function to "Get" from IPFS
 // you usually go content.toString() after this...
 const getFromIPFS = async hashToGet => {
-  for await (const file of ipfs.get(hashToGet)) {
-    if (!file.content) continue;
-    const content = new BufferList();
-    for await (const chunk of file.content) {
-      content.append(chunk);
-    }
-    return content;
-  }
+  let response = await  axios.get("https://denvar15.infura-ipfs.io/ipfs/" + hashToGet)
+  return JSON.stringify(response.data);
 };
 
 // 🛰 providers
@@ -733,23 +729,25 @@ const App = props => {
             </Wallet>
           </Route>
           <Route path="/active_offers">
-            {readContracts && address && injectedProvider ? (
-              <ActiveOffers
-                address={address}
-                tx={tx}
-                writeContracts={writeContracts}
-                localProvider={injectedProvider}
-                mainnetProvider={mainnetProvider}
-                readContracts={readContracts}
-                blockExplorer={blockExplorer}
-                signer={userSigner}
-                price={price}
-                yourCollectibles={yourCollectibles}
-                yourCollectibles721={yourCollectibles721}
-              />
-            ) : (
-              ""
-            )}
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <ActiveOffers
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
           </Route>
           <Route path="/approve_barter">
             {readContracts && address && injectedProvider ? (

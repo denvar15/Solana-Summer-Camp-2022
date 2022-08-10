@@ -4,12 +4,17 @@ import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import abi from "../contracts/hardhat_contracts.json"
 import {Metaplex} from "@metaplex-foundation/js";
-import {clusterApiUrl, Connection, PublicKey} from "@solana/web3.js";
+import {clusterApiUrl, Connection, PublicKey, Transaction, TransactionInstruction} from "@solana/web3.js";
 import {base58_to_binary, binary_to_base58} from "base58-js";
+import axios from "axios";
+import {getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID} from "@solana/spl-token";
+import {useWallet} from "@solana/wallet-adapter-react";
+import {web3} from "@project-serum/anchor";
 const { BufferList } = require("bl");
-const ipfsAPI = require("ipfs-http-client");
+const {create} = require('ipfs-http-client')
+const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
+const ipfs = create({ url: "https://denvar15.infura-ipfs.io/ipfs", headers: { Authorization: auth } });
 
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
 const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
@@ -17,14 +22,8 @@ const tokenName721 = "YourCollectible721";
 const targetNetwork = localStorage.getItem("targetNetwork");
 
 const getFromIPFS = async hashToGet => {
-  for await (const file of ipfs.get(hashToGet)) {
-    if (!file.content) continue;
-    const content = new BufferList();
-    for await (const chunk of file.content) {
-      content.append(chunk);
-    }
-    return content;
-  }
+  let response = await  axios.get("https://denvar15.infura-ipfs.io/ipfs/" + hashToGet)
+  return JSON.stringify(response.data);
 };
 
 function hexStringToByteArray(hexString) {
@@ -47,11 +46,35 @@ export default function ActiveOffers(props) {
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const [usersLend, setUsersLend] = useState();
+  const [solanaNFT, setSolanaNFT] = useState([]);
   const [usersBackendMock, setBackendMock] = useState();
+  const { wallet } = useWallet();
 
   const tx = props.tx;
 
   const writeContracts = props.writeContracts;
+
+  const getSolana = async () => {
+    if (targetNetwork == 245022926) {
+      const connection = new Connection(clusterApiUrl("devnet"));
+      let accs = await connection.getParsedTokenAccountsByOwner(wallet.adapter._wallet.publicKey, { programId: TOKEN_PROGRAM_ID })
+      let res = []
+      const mx = Metaplex.make(connection);
+      for (const acc of accs.value) {
+        let balance = await connection.getTokenAccountBalance(acc.pubkey)
+        if (balance.value.amount > 0) {
+          let detailedAcc = await getAccount(connection, acc.pubkey)
+          try {
+            const nft = await mx.nfts().findByMint(detailedAcc.mint).run();
+            res.push(nft)
+          } catch(e) {
+            //console.log("NOT NFT")
+          }
+        }
+      }
+      setSolanaNFT(res);
+    }
+  }
 
   useEffect(() => {
     const updateCollectibles721 = async () => {
@@ -146,6 +169,37 @@ export default function ActiveOffers(props) {
           }
         }
       }
+      for (let i in res) {
+        let acceptedAddrs = res[i].acceptedToken
+        res[i].tokenMint = []
+        for (let j in acceptedAddrs) {
+          let accAddr = acceptedAddrs[j]
+          try {
+            const erc20_rw = new ethers.Contract(accAddr, abi["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
+            const tokenMint = await erc20_rw.tokenMint();
+            res[i].tokenMint.push(tokenMint);
+          } catch(e) {
+            res[i].tokenMint.push(null);
+            console.log(e)
+          }
+        }
+      }
+      console.log("res", res)
+      /*
+      a[i].data.tokenMint = []
+      for (let j in acceptedAddrs) {
+        let accAddr = acceptedAddrs[j]
+        try {
+          const erc20_rw = new ethers.Contract(accAddr, abi["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
+          const tokenMint = await erc20_rw.tokenMint();
+          a[i].data.tokenMint.push(tokenMint);
+        } catch(e) {
+          a[i].data.tokenMint.push(null);
+          console.log(e)
+        }
+      }
+
+       */
       setUsersLend(res);
     };
 
@@ -174,6 +228,7 @@ export default function ActiveOffers(props) {
     updateCollectibles721();
     updateUsersLend();
     backendMock();
+    getSolana();
   }, []);
 
   const rowForm = (title, icon, onClick) => {
@@ -264,6 +319,110 @@ export default function ActiveOffers(props) {
     );
   };
 
+  function create_account_layout(ether, nonce) {
+    let struct = {
+      ether: ether,
+      nonce: nonce
+    }
+    var mainbytesArray = [];
+    for(var i = 0; i < struct.length; i++){
+      var bytes = [];
+      for (var j = 0; j < struct[i].length; ++j)
+        bytes.push(struct[i].charCodeAt(j));
+      mainbytesArray.push(bytes);
+    }
+    return hexStringToByteArray("18") + mainbytesArray
+  }
+
+  async function transfer(tokenMintAddress, wallet, to, connection, wrap) {
+    const mintPublicKey = new web3.PublicKey(tokenMintAddress);
+
+    let EVM_LOADER_ID = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
+    const eth_account_addressbytes1 = hexStringToByteArray(props.address.slice(2));
+    let neon_acc = PublicKey.findProgramAddressSync(
+      [hexStringToByteArray("01"), eth_account_addressbytes1],
+      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+    )[0];
+
+    const eth_account_addressbytes = hexStringToByteArray(wrap.slice(2));
+    const solana_contract_address = PublicKey.findProgramAddressSync(
+      [hexStringToByteArray("01"), eth_account_addressbytes],
+      new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"),
+    )[0];
+
+    let source_token_acc = await getAssociatedTokenAddress(mintPublicKey, wallet.publicKey)
+
+    let neon_accInfo = await connection.getAccountInfo(neon_acc);
+
+    let nonce = 255;
+
+    let trx = new Transaction()
+    if (!neon_accInfo) {
+      console.log("HEELO")
+      trx.add(new TransactionInstruction({
+        programId: EVM_LOADER_ID,
+        data: create_account_layout(hexStringToByteArray(props.address.slice(2)), nonce),
+        keys: [
+          {pubkey: wallet.publicKey, isSigner: true, isWritable: true},
+          {pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false},
+          {pubkey: neon_acc, isSigner: false, isWritable: true},
+        ]}))
+    }
+
+    let destAccInfo = await connection.getAccountInfo(to);
+
+    if (!destAccInfo) {
+      trx.add(new TransactionInstruction({
+        programId: EVM_LOADER_ID,
+        data: hexStringToByteArray('0F'),
+        keys: [
+          {pubkey: wallet.publicKey, isSigner: true, isWritable: true},
+          {pubkey: to, isSigner: false, isWritable: true},
+          {pubkey: neon_acc, isSigner: false, isWritable: true},
+          {pubkey: solana_contract_address, isSigner: false, isWritable: true},
+          {pubkey: mintPublicKey, isSigner: false, isWritable: true},
+          {pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false},
+          {pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false},
+          {pubkey: new PublicKey("SysvarRent111111111111111111111111111111111"), isSigner: false, isWritable: false},
+        ]}))
+    }
+
+    trx.add(new TransactionInstruction({
+      programId: TOKEN_PROGRAM_ID,
+      data: hexStringToByteArray("030100000000000000"),
+      keys: [
+        {pubkey: source_token_acc, isSigner: false, isWritable: true},
+        {pubkey: to, isSigner: false, isWritable: true},
+        {pubkey: wallet.publicKey, isSigner: true, isWritable: false},
+      ]}))
+
+    trx.feePayer = wallet.publicKey;
+    trx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+    let res1 = await wallet.signAndSendTransaction(trx, connection)
+    if (res1) {
+      getSolana();
+      selectedOfferNFT.address = wrap
+    }
+  }
+
+  async function sendSolanaNFT(wrap) {
+    const tokenMint = base58_to_binary(selectedOfferNFT.mintAddress.toString());
+    const tokenMintAddressSolana = binary_to_base58(tokenMint)
+    const utf8Encode = new TextEncoder();
+    const connection = new Connection(clusterApiUrl("devnet"));
+    const seeds = [
+      hexStringToByteArray("01"),
+      utf8Encode.encode("ERC20Balance"),
+      base58_to_binary(tokenMintAddressSolana),
+      hexStringToByteArray(wrap.slice(2)),
+      hexStringToByteArray(props.address.slice(2)),
+    ];
+    const d = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
+
+    await transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, wrap);
+  }
+
   async function setApproval1155() {
     const approveTx = await tx(
       writeContracts[tokenName].setApprovalForAll(props.readContracts[contractName].address, 1),
@@ -275,6 +434,24 @@ export default function ActiveOffers(props) {
   async function setApproval721() {
     const approveTx = await tx(
       writeContracts[tokenName721].setApprovalForAll(props.readContracts[contractName].address, 1),
+    );
+    const approveTxResult = await approveTx;
+    console.log("Approve results", approveTxResult);
+  }
+
+  async function setApproval20() {
+    const abi = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function decimals() view returns (uint8)",
+      "function symbol() view returns (string)",
+      "function transfer(address to, uint amount) returns (bool)",
+      "event Transfer(address indexed from, address indexed to, uint amount)",
+      "function approve(address spender, uint256 amount) external returns (bool)"
+    ];
+
+    const erc20_rw = new ethers.Contract(selectedOfferNFT.address, abi, props.signer);
+    const approveTx = await tx(
+      erc20_rw.approve(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -331,6 +508,16 @@ export default function ActiveOffers(props) {
       await setApproval1155();
     } else if (selectedOfferNFT.standard == 721) {
       await setApproval721();
+    } else if (selectedOfferNFT.model === "nft") {
+      let j = usersLend.findIndex(el => {return el === item})
+      let i = usersLend[j].tokenMint.findIndex(el =>
+      {return binary_to_base58(hexStringToByteArray(el.slice(2))).toString() === selectedOfferNFT.mintAddress.toString()})
+      console.log( usersLend[j].tokenMint, i, selectedOfferNFT.mintAddress)
+      await sendSolanaNFT(usersLend[j].acceptedToken[i]);
+      selectedOfferNFT.address = usersLend[j].acceptedToken[i];
+      selectedOfferNFT.id = 0;
+      selectedOfferNFT.standard = 20;
+      await setApproval20();
     }
 
     if (selectedWantedNFT.standard === 20) {
@@ -470,6 +657,8 @@ export default function ActiveOffers(props) {
                     }
                   }
                 }
+              } else {
+                styler = true;
               }
             }
             return (
@@ -541,7 +730,6 @@ export default function ActiveOffers(props) {
       <Col span={4}>
         <h1>Wanted 1155</h1>
         <List
-          style={{ marginLeft: "50%" }}
           bordered
           dataSource={props.yourCollectibles}
           renderItem={item => {
@@ -568,7 +756,6 @@ export default function ActiveOffers(props) {
       <Col span={4}>
         <h1>Wanted 721</h1>
         <List
-          style={{ marginLeft: "50%" }}
           bordered
           dataSource={yourCollectibles721}
           renderItem={item => {
@@ -595,7 +782,6 @@ export default function ActiveOffers(props) {
       <Col span={4}>
         <h1>Wanted ERC20</h1>
         <List
-          style={{ marginLeft: "50%" }}
           bordered
           dataSource={usersBackendMock}
           renderItem={item => {
@@ -624,7 +810,6 @@ export default function ActiveOffers(props) {
       <Col span={4}>
         <h1>Offer 1155</h1>
         <List
-          style={{ marginLeft: "50%" }}
           bordered
           dataSource={props.yourCollectibles}
           renderItem={item => {
@@ -651,38 +836,39 @@ export default function ActiveOffers(props) {
           }}
         />
       </Col>
+      {/*
       <Col span={4}>
         <h1>Offer ERC20</h1>
         <List
-          style={{ marginLeft: "50%" }}
           bordered
           dataSource={usersBackendMock}
           renderItem={parentItem => {
-            console.log(parentItem.data)
               const id = 0;
               return (
                 <List.Item key={id + "_parent"} id={id + "_parent"}>
                   <List
-                    style={{ marginLeft: "50%" }}
                     bordered
                     dataSource={parentItem.data.acceptedToken}
                     renderItem={item => {
                       let i = parentItem.data.acceptedToken.findIndex(el => {return el === item})
-                      if (parentItem.data.tokenStandard[i] === 20) {
-                        console.log("item", item, i)
+                      console.log(parentItem.data.acceptedTokensNft[i])
+                      if (parentItem.data.acceptedTokensNft[i] !== null) {
+                        const id = parentItem.data.acceptedTokensNft[i].address.toString();
                         return(
-                          <List.Item key={id} id={id}>
+                          <List.Item key={id + "_offer"} id={id + "_offer"}>
                             <Card
                               title={
                                 <div>
-                                  <span style={{ fontSize: 16, marginRight: 8 }}>{item.data.nft.name}</span>
+                                  <span style={{ fontSize: 16, marginRight: 8 }}>{parentItem.data.acceptedTokensNft[i].name}</span>
                                 </div>
                               }
                             >
                               <div>
-                                <img src={item.data.nft.json.image} style={{ maxWidth: 100 }} onClick={selectedOfferNFT.bind(this, item)} />
+                                <img src={parentItem.data.acceptedTokensNft[i].json.image} style={{ maxWidth: 100 }}
+                                     onClick={selectOfferNFT.bind(this, {standard: 20,
+                                       wrap:parentItem.data.acceptedToken[i], nft: parentItem.data.acceptedTokensNft[i]})} />
                               </div>
-                              <div>{item.data.nft.json.description}</div>
+                              <div>{parentItem.data.acceptedTokensNft[i].json.description}</div>
                             </Card>
                           </List.Item>
                         );
@@ -694,10 +880,36 @@ export default function ActiveOffers(props) {
           }}
         />
       </Col>
+      */}
+      <Col span={4}>
+        <h1>Offer ERC20</h1>
+        <List
+          bordered
+          dataSource={solanaNFT}
+          renderItem={item => {
+            const id = item.id;
+            return (
+              <List.Item key={id + "_" + item.uri} id={id + "_" + item.uri + "offer"}>
+                <Card
+                  title={
+                    <div>
+                      <span style={{ fontSize: 16, marginRight: 8 }}>#{id}</span> {item.name}
+                    </div>
+                  }
+                >
+                  <div>
+                    <img src={item.json.image} style={{ maxWidth: 100 }} onClick={selectOfferNFT.bind(this, item)} />
+                  </div>
+                  <div>{item.json.description}</div>
+                </Card>
+              </List.Item>
+            );
+          }}
+        />
+      </Col>
       <Col span={4}>
         <h1>Offer 721</h1>
         <List
-          style={{ marginLeft: "50%" }}
           bordered
           dataSource={props.yourCollectibles721}
           renderItem={item => {

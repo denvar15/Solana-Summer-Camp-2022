@@ -1,14 +1,9 @@
 // deploy/00_deploy_your_contract.js
-const ipfsAPI = require("ipfs-http-client");
+const {create} = require('ipfs-http-client')
+const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
+const ipfs = create({ host: "ipfs.infura.io", protocol: "https", port: "5001", headers: { Authorization: auth } });
 const { globSource } = require("ipfs-http-client");
 const { ethers } = require("hardhat");
-
-const ipfs = ipfsAPI({
-  host: "ipfs.infura.io",
-  port: "5001",
-  protocol: "https",
-});
-
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();

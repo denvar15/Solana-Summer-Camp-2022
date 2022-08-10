@@ -4,9 +4,10 @@ import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 
 const { BufferList } = require("bl");
-const ipfsAPI = require("ipfs-http-client");
+//const ipfsAPI = require("ipfs-http-client");
+//const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+const ipfs = {}
 
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
 const contractName = "Barter";
 const tokenName = "YourCollectible";
 const tokenName721 = "YourCollectible721";
