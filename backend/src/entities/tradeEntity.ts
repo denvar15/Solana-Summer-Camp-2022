@@ -27,4 +27,7 @@ export class Trade {
 
     @Column({ name: 'wanted_nft' })
     wantedNFT: string;
+
+    @Column({ name: 'evm_id' })
+    evmId: number;
 }
