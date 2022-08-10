@@ -572,11 +572,26 @@ export default function StartBarter(props) {
       }
       data.chainId = setTxResult.chainId ? setTxResult.chainId : targetNetwork;
       data.author = props.address;
-      a.push({ chainId: setTxResult.chainId ? setTxResult.chainId : targetNetwork, data });
+      a.push({chainId: setTxResult.chainId ? setTxResult.chainId : targetNetwork, data});
       localStorage.setItem("startedBarters", JSON.stringify(a));
       let accs = JSON.parse(localStorage.getItem("accounts"));
+      if (!accs) {
+        accs = [];
+      }
       accs.push(props.address)
       localStorage.setItem("accounts", JSON.stringify(accs));
+      let response = await axios.post('http://94.228.122.16:8080/trade', {
+        userFirst: props.address,
+        userSecond: null,
+        evmId: targetNetwork,
+        solanaMintAddress:selectedOfferNFT.mintAddress.toString(),
+        neonWrapAddress: selectedOfferNFT.address,
+        wantedNFT: selectedWantedNFT.address
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        }
+      })
     }
   }
 

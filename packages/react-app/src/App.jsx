@@ -21,6 +21,7 @@ import {
   ApproveBarter,
   P2p,
   AaveGotchi,
+  Withdraw
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -568,14 +569,14 @@ const App = props => {
               YourCollectibles
             </Link>
           </Menu.Item>
-          <Menu.Item key="/AaveGotchi">
+          <Menu.Item key="/withdraw">
             <Link
               onClick={() => {
-                setRoute("/AaveGotchi");
+                setRoute("/withdraw");
               }}
-              to="/AaveGotchi"
+              to="/withdraw"
             >
-              AaveGotchi
+              Withdraw
             </Link>
           </Menu.Item>
         </Menu>
@@ -773,6 +774,27 @@ const App = props => {
           </Route>
           <Route path="/AaveGotchi">
             <AaveGotchi />
+          </Route>
+          <Route path="/withdraw">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <Withdraw
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+                ): (
+                  ""
+                )}
+            </Wallet>
           </Route>
         </Switch>
       </BrowserRouter>

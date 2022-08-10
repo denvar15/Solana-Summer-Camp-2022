@@ -47,6 +47,7 @@ export default function ActiveOffers(props) {
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const [usersLend, setUsersLend] = useState();
   const [solanaNFT, setSolanaNFT] = useState([]);
+  const [bartersFromBackend, setBartersFromBackend] = useState([]);
   const [usersBackendMock, setBackendMock] = useState();
   const { wallet } = useWallet();
 
@@ -111,11 +112,14 @@ export default function ActiveOffers(props) {
     };
 
     const updateUsersLend = async () => {
-      let accounts = localStorage.getItem("accounts");
+      let accounts = JSON.parse(localStorage.getItem("accounts"));
       if (!accounts) {
         accounts = []
       }
-      accounts.push("0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd")
+      console.log("accounts", accounts)
+      if (accounts.find(el => {return el !=="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
+        accounts.push("0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd")
+      }
       const res = [];
       for (let i in accounts) {
         let acc = accounts[i]
@@ -220,15 +224,23 @@ export default function ActiveOffers(props) {
           a[i].data.nft = nft;
           a[i].standard = 20
         } catch(e) {
-          console.log(e)
+          //console.log(e)
         }
       }
       setBackendMock(a);
     };
+
+    const getBartersFromBackend = async () => {
+      let response = await  axios.get("http://94.228.122.16:8080/trade")
+      //response.data.shift();
+      setBartersFromBackend(response.data);
+    }
+
     updateCollectibles721();
     updateUsersLend();
     backendMock();
     getSolana();
+    getBartersFromBackend();
   }, []);
 
   const rowForm = (title, icon, onClick) => {

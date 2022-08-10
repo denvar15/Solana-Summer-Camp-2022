@@ -24,3 +24,4 @@ export { default as ActiveOffers } from "./ActiveOffers";
 export { default as Sidebar } from "./Sidebar"
 export { default as P2p } from "./P2p"
 export { default as AaveGotchi } from "./AaveGotchi.jsx"
+export { default as Withdraw } from "./Withdraw.jsx"
