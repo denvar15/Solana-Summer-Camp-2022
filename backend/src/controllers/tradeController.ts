@@ -4,6 +4,7 @@ import { DeepPartial, getRepository } from 'typeorm';
 import { Trade } from '../entities/tradeEntity';
 
 import tradeService from '../services/tradeService';
+import { defaultListAmount } from '../constants/defaultListAmount';
 
 const saveTradeFromPost = async (
     req: express.Request,
@@ -28,8 +29,11 @@ const getTrade = async (
     res: express.Response,
 ) => {
     try {
-        const userAddress = req.query.address as string;
-        const trades = await tradeService.getTradeByUser(userAddress);
+        const amount =
+            (req.query.amount as string) || defaultListAmount;
+        const trades = await tradeService.getTradeByUser(
+            Number.parseInt(amount),
+        );
         res.status(httpStatusCodes.OK).json(trades);
     } catch (e) {
         console.log(e);
