@@ -8,6 +8,6 @@ const solanaConnection = new Connection(
 );
 const metaplex = new Metaplex(solanaConnection);
 
-export const fetchByMint = async (address: PublicKey): Promise<Nft> => {
+export const fetchByMint = async (address: PublicKey) => {
     return await metaplex.nfts().findByMint(address).run();
 };
