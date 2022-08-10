@@ -11,9 +11,11 @@ const saveTradeFromPost = async (
     res: express.Response,
 ) => {
     try {
+        console.log(req.body);
         const createdTrade = getRepository(Trade).create(
             req.body as DeepPartial<Trade>,
         );
+        console.log(createdTrade);
         await tradeService.saveTrade(createdTrade);
         res.status(httpStatusCodes.OK).json('Successfully added');
     } catch (e) {

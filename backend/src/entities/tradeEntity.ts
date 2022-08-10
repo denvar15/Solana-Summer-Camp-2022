@@ -1,4 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Token } from './tokenEntity';
 
 @Entity('trades')

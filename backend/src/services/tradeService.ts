@@ -9,12 +9,12 @@ const saveTrade = async (trade: Trade) => {
 const getTradeByUser = async (amount: number) => {
     return await getRepository(Trade)
         .createQueryBuilder('trade')
-        .leftJoinAndSelect(
+        .leftJoinAndMapOne(
+            'trade.solana_metadata',
             Token,
             'token',
             'token.address = trade.solana_mint_address',
         )
-        .take(amount)
         .getMany();
 };
 
