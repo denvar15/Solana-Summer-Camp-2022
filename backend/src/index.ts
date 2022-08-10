@@ -3,7 +3,6 @@ import { createConnection } from 'typeorm';
 require('dotenv').config();
 
 import app from './config/express';
-import { addTokens } from './scipts/addToken';
 import { PORT } from './constants/port';
 
 createConnection()
