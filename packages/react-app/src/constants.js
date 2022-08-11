@@ -147,6 +147,7 @@ export const NETWORKS = {
     color: "#7700ff",
     rpcUrl: "https://proxy.devnet.neonlabs.org/solana",
     chainId: 245022926,
+    blockExplorer: "https://neonscan.org/",
   },
 };
 

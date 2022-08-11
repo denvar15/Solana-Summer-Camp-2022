@@ -70,7 +70,7 @@ export default function StartBarter(props) {
   const [values, setValues] = useState({});
   const [yourCollectibles721, setYourCollectibles721] = useState();
   const [solanaNFT, setSolanaNFT] = useState([]);
-  const [selectedWantedNFT, setSelectedWantedNFT] = useState({ address: [], id: [], standard: [] });
+  const [selectedWantedNFT, setSelectedWantedNFT] = useState({ address: [], id: [], standard: [], model: [], json: [], mintAddress: [] });
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const { wallet } = useWallet();
 
@@ -138,104 +138,6 @@ export default function StartBarter(props) {
     updateCollectibles721();
   }, []);
 
-  const rowForm = (title, icon, onClick) => {
-    return (
-      <Row style={{ marginBottom: 8 }}>
-        <Col span={8} style={{ textAlign: "center", paddingRight: 6, fontSize: 24 }}>
-          {title}
-        </Col>
-        <Col span={16}>
-          <div style={{ cursor: "pointer", margin: 2 }}>
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="Адрес предлагаемого токена"
-              value={values[title]}
-            />
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title + 1] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="id предлагаемого токена"
-              value={values[title + 1]}
-            />
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title + 2] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="Длительность действия предложения в часах"
-              value={values[title + 2]}
-            />
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title + 3] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="Адрес желаемого токена"
-              value={values[title + 3]}
-            />
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title + 4] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="id желаемого токена"
-              value={values[title + 4]}
-            />
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title + 5] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="Стандарт предлагаемого токена"
-              value={values[title + 5]}
-            />
-            <Input
-              onChange={e => {
-                const newValues = { ...values };
-                newValues[title + 6] = e.target.value;
-                setValues(newValues);
-              }}
-              placeholder="Стандарт желаемого токена"
-              value={values[title + 6]}
-              addonAfter={
-                <div
-                  type="default"
-                  onClick={() => {
-                    onClick(
-                      values[title],
-                      values[title + 1],
-                      values[title + 2],
-                      values[title + 3],
-                      values[title + 4],
-                      values[title + 5],
-                      values[title + 6],
-                    );
-                    const newValues = { ...values };
-                    newValues[title] = "";
-                    setValues(newValues);
-                  }}
-                >
-                  {icon}
-                </div>
-              }
-            />
-          </div>
-        </Col>
-      </Row>
-    );
-  };
-
   async function setApproval1155() {
     const approveTx = await tx(
       writeContracts[tokenName].setApprovalForAll(props.readContracts[contractName].address, 1),
@@ -281,6 +183,8 @@ export default function StartBarter(props) {
           old.id.splice(i);
           old.standard.splice(i);
           old.model.splice(i);
+          old.json.splice(i);
+          old.mintAddress.splice(i);
         }
       }
     } else {
@@ -293,9 +197,13 @@ export default function StartBarter(props) {
         const b = await props.readContracts.WrapperFactory.allWrapps(1, 1);
         old.address.push(b[b.length - 1]);
         old.model.push(item.model);
+        old.json.push(item.json);
+        old.mintAddress.push(item.mintAddress.toString());
       } else {
         old.address.push(item.address);
         old.model.push(0);
+        old.json.push({});
+        old.mintAddress.push("");
       }
     }
     setSelectedWantedNFT(old);
@@ -517,7 +425,6 @@ export default function StartBarter(props) {
   }
 
   async function StartBarter() {
-    console.log("selectedWantedNFT", selectedWantedNFT)
     if (selectedOfferNFT.model === 'nft') {
       selectedOfferNFT.standard = 20;
       selectedOfferNFT.id = 0;
@@ -574,78 +481,35 @@ export default function StartBarter(props) {
       data.author = props.address;
       a.push({chainId: setTxResult.chainId ? setTxResult.chainId : targetNetwork, data});
       localStorage.setItem("startedBarters", JSON.stringify(a));
-      let accs = JSON.parse(localStorage.getItem("accounts"));
+      /*let accs = JSON.parse(localStorage.getItem("accounts"));
       if (!accs) {
         accs = [];
       }
       if (!accs.find(el => {return el === props.address})) {
         accs.push(props.address)
       }
-      localStorage.setItem("accounts", JSON.stringify(accs));
+      localStorage.setItem("accounts", JSON.stringify(accs));*/
+      await axios.post('http://94.228.122.16:8080/user', {
+        solanaWallet: wallet.adapter._wallet.publicKey.toString(),
+        ethWallet: props.address,
+      })
       let response = await axios.post('http://94.228.122.16:8080/trade', {
         userFirst: props.address,
         userSecond: null,
         evmId: targetNetwork,
-        solanaMintAddress:selectedOfferNFT.mintAddress.toString(),
-        neonWrapAddress: selectedOfferNFT.address,
-        wantedNFT: selectedWantedNFT.address
-      }, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        }
+        firstNFTAddress: selectedOfferNFT.address,
+        secondNFTAddress: selectedWantedNFT.address,
+        firstNFTId: selectedOfferNFT.id,
+        secondNFTId: selectedWantedNFT.id,
+        firstNFTStandard: selectedOfferNFT.standard,
+        secondNFTStandard: selectedWantedNFT.standard,
+        firstSolanaMintAddress: selectedOfferNFT.mintAddress ? selectedOfferNFT.mintAddress.toString() : selectedOfferNFT.mintAddress,
+        secondSolanaMintAddress: selectedWantedNFT.mintAddress,
+        firstMetadata: selectedOfferNFT.json,
+        secondMetadata: selectedWantedNFT.json,
+        barterStatus: 1
       })
     }
-  }
-
-  if (props.readContracts && props.readContracts[contractName]) {
-    display.push(
-      <div>
-        {rowForm(
-          "startBartering",
-          "📤📤",
-          async (
-            addressFirst,
-            tokenIdFirst,
-            duration,
-            addressSecond,
-            tokenIdSecond,
-            tokenStandard,
-            acceptedTokenStandard,
-          ) => {
-            if (selectedWantedNFT) {
-              addressSecond = selectedWantedNFT.address;
-              tokenIdSecond = selectedWantedNFT.id;
-              acceptedTokenStandard = selectedWantedNFT.standard;
-              console.log(selectedWantedNFT);
-            }
-            if (selectedOfferNFT) {
-              addressFirst = selectedOfferNFT.address;
-              tokenIdFirst = selectedOfferNFT.id;
-              tokenStandard = selectedOfferNFT.standard;
-            }
-            if (tokenStandard == 1155) {
-              await setApproval1155();
-            } else if (tokenStandard == 721) {
-              await setApproval721();
-            }
-            console.log("AAAAAAAAAAAA ", values.duration);
-            const setTx = await tx(
-              writeContracts[contractName].startBartering(
-                addressFirst,
-                tokenIdFirst,
-                values.duration,
-                [addressSecond],
-                [tokenIdSecond],
-                tokenStandard,
-                [acceptedTokenStandard],
-              ),
-            );
-            const setTxResult = await setTx;
-            console.log("startBartering result", setTxResult);
-          },
-        )}
-      </div>,
-    );
   }
 
   return (
