@@ -15,7 +15,9 @@ const saveTradeFromPost = async (
             req.body as DeepPartial<Trade>,
         );
         await tradeService.saveTrade(createdTrade);
-        res.status(httpStatusCodes.OK).json('Successfully added new trade');
+        res.status(httpStatusCodes.OK).json(
+            'Successfully added new trade',
+        );
     } catch (e) {
         console.log(e);
         res.status(httpStatusCodes.BAD_REQUEST).json(

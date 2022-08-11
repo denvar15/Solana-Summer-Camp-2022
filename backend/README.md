@@ -21,6 +21,6 @@ npm run build
 npm run start
 ```
 
-## Accessing endpoints  
+## Accessing endpoints
 
 <http://localhost:8080/nft>

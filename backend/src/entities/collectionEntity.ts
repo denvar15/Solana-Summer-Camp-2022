@@ -1,4 +1,9 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Token } from './tokenEntity';
 
 @Entity('collections')
@@ -18,9 +23,13 @@ export class Collection {
     @Column({ type: 'text' })
     description: string;
 
-    @Column({ type: 'double precision', nullable: true, name: 'volume_traded' })
+    @Column({
+        type: 'double precision',
+        nullable: true,
+        name: 'volume_traded',
+    })
     volumeTraded?: number;
 
     @OneToMany(() => Token, (token) => token.collection)
-    tokens: Token[]
+    tokens: Token[];
 }

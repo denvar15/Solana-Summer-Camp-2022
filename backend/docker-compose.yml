@@ -1,8 +1,6 @@
 version: '3.3'
 
 services:
-  solana_production: 
-    image: solana_production:latest
-    network_mode: "host"
-
-
+    solana_production:
+        image: solana_production:latest
+        network_mode: 'host'

@@ -31,10 +31,10 @@ export class Token {
     @Column({ type: 'double precision', nullable: true })
     price?: number;
 
-    @Column({name: 'collection_id'})
+    @Column({ name: 'collection_id' })
     collectionId: number;
 
     @ManyToOne(() => Collection, (collection) => collection.tokens)
-    @JoinColumn({ name: 'collection_id'})
+    @JoinColumn({ name: 'collection_id' })
     collection: Collection;
 }
