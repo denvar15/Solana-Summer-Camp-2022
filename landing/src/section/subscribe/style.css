@@ -1,0 +1,97 @@
+.pageSubscribe {
+  width: 100%;
+  background-color: rgb(32, 32, 32);
+}
+
+.subscribe {
+  color: rgb(214, 214, 214);
+  width: 100%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.subscribeTitle {
+  font-size: 36px;
+  text-align: center;
+  margin-top: 36px;
+}
+
+.subscribeFormInput {
+  position: relative;
+  padding: 15px 0 0;
+  margin-top: 24px;
+  width: 30%;
+}
+
+.subscribeInput {
+  font-family: inherit;
+  width: 100%;
+  border: 0;
+  border-bottom: 2px solid #9b9b9b;
+  outline: 0;
+  font-size: 1rem;
+  color: #fff;
+  padding: 7px 0;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+.subscribeInput::placeholder {
+  color: transparent;
+}
+
+.subscribeInput:placeholder-shown ~ .subscribeLabel {
+  font-size: 1.1rem;
+  cursor: text;
+  top: 20px;
+}
+
+.subscribeLabel {
+  position: absolute;
+  top: 0;
+  display: block;
+  transition: 0.2s;
+  font-size: 1rem;
+  color: #9b9b9b;
+}
+
+.subscribeInput:focus {
+  padding-bottom: 6px;
+  background: transparent;
+  border-width: 3px;
+  border-image: linear-gradient(to right, #11998e, #38ef7d);
+  border-image-slice: 1;
+}
+.subscribeInput:focus ~ .subscribeLabel {
+  position: absolute;
+  top: 0;
+  display: block;
+  transition: 0.2s;
+  font-size: 1rem;
+  color: #11998e;
+  font-weight: 700;
+}
+
+.subscribeInput:required, .subscribeInput:invalid {
+  box-shadow: none;
+}
+
+.subscribeButton {
+  position: absolute;
+  right: -28px;
+  top: 50%;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+/* mobile */
+@media screen and (max-width: 768px) {
+  .subscribeTitle {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .subscribeFormInput {
+    width: 50%;
+  }
+}

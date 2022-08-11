@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Saira');
+.App {
+  text-align: center;
+}
+.mynft h2{
+  font-size: 28px;
+}
+h1{
+  font-size: 25px;
+}
+.mynft__bg-overlay{
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.mynft__text{
+  z-index: 99;
+  position: relative;
+}
+.mynft__text .ant-input{
+  color: white;
+  display: block;
+}
+.mynft__text .ant-input::placeholder{
+  color: white;
+}
+.game-cover{
+  text-align: left;
+  padding-left: 20px;
+  padding-top: 20px;
+}
+.game-cover h1{
+  font-size: 30px;
+  color: #00FFC8;
+  text-transform: uppercase;
+}
+.ant-list{
+  padding-bottom: 10px !important;
+}
+
+.ant-page-header-heading-title{
+  font-size: 40px !important;
+  font-family: 'Saira';
+  line-height: 60px !important;
+}
+
+.hide{
+  display: none;
+}
+.show{
+  display: block;
+}
+.steps-content{
+  padding-top: 25px;
+}
+.ant-steps{
+  margin-top: 50px !important;
+}
