@@ -1,8 +1,4 @@
-import {
-    Column,
-    Entity,
-    PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { Token } from './tokenEntity';
 
 @Entity('trades')
@@ -10,24 +6,36 @@ export class Trade {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'user_first' })
-    userFirst: string;
+    @Column({ name: 'first_nft_address' })
+    firstNFTAddress: string[];
 
-    @Column({ name: 'user_second' })
-    userSecond: string;
+    @Column({ name: 'second_nft_address' })
+    secondNFTAddress: string[];
 
-    @Column({ name: 'solana_mint_address' })
-    solanaMintAddress: string;
+    @Column({ name: 'first_nft_id' })
+    firstNFTId: number[];
 
-    @Column({ name: 'solana_metadata', type: 'json' })
-    solanaMetadata: Token;
+    @Column({ name: 'second_nft_id' })
+    secondNFTId: number[];
 
-    @Column({ name: 'neon_wrap_address' })
-    neonWrapAddress: string;
+    @Column({ name: 'first_solana_mint_address' })
+    firstSolanaMintAddress: string[];
 
-    @Column({ name: 'wanted_nft' })
-    wantedNFT: string;
+    @Column({ name: 'second_solana_mint_address' })
+    secondSolanaMintAddress: string[];
 
-    @Column({ name: 'evm_id' })
-    evmId: number;
+    @Column({ name: 'first_wrap' })
+    firstWrap: string[];
+
+    @Column({ name: 'second_wrap' })
+    secondWrap: string[];
+
+    @Column({ name: 'first_metadata', type: 'json', array: true })
+    firstMetadata: Token[];
+
+    @Column({ name: 'second_metadata', type: 'json', array: true })
+    secondMetadata: Token[];
+
+    @Column({ name: 'barter_status' })
+    barterStatus: number;
 }
