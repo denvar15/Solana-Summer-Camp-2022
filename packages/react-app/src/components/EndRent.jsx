@@ -38,7 +38,7 @@ function hexStringToByteArray(hexString) {
   return byteArray;
 }
 
-export default function ActiveRents(props) {
+export default function EndRent(props) {
   const display = [];
 
   const [values, setValues] = useState({});
@@ -141,7 +141,7 @@ export default function ActiveRents(props) {
               ul.collateralSum = ul_base.collateralSum.toNumber();
               ul.collateralSumBig = ul_base.collateralSum;
               ul.durationHours = ul_base.durationHours.toNumber();
-              if (ul.status.toNumber() === 1) {
+              if (ul.status.toNumber() === 2) {
                 res.push(ul);
               }
             } catch (e) {
@@ -340,7 +340,7 @@ export default function ActiveRents(props) {
     console.log("Approve results", approveTxResult);
   }
 
-  async function setApproval20(moraAddr, collateralSum) {
+  async function setApproval20(addr) {
     const abi = [
       "function balanceOf(address owner) view returns (uint256)",
       "function decimals() view returns (uint8)",
@@ -349,9 +349,9 @@ export default function ActiveRents(props) {
       "event Transfer(address indexed from, address indexed to, uint amount)",
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
-    const erc20_rw = new ethers.Contract(moraAddr, abi, props.signer);
+    const erc20_rw = new ethers.Contract(addr, abi, props.signer);
     const approveTx = await tx(
-      erc20_rw.approve(props.readContracts[contractName].address, ethers.utils.parseEther(collateralSum.toString())),
+      erc20_rw.approve(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
@@ -396,29 +396,24 @@ export default function ActiveRents(props) {
   }
 
   async function makeOffer(chainId, item) {
-    const moraAddr = "0x972f3FE7Cd7f10ae8D27AAc17F0938Ea4773b149"
-    await setApproval20(moraAddr, item.collateralSum);
+    if (item.tokenStandard === 1155) {
+      await setApproval1155();
+    } else if  (item.tokenStandard === 721) {
+      await setApproval721()
+    } else if  (item.tokenStandard === 20) {
+      await setApproval20(item.token)
+    }
 
     console.log(item)
     const setTx = await tx(
-      writeContracts[contractName].makeOffer(
+      writeContracts[contractName].endRent(
         item.token,
         item.tokenId,
         item.tokenStandard,
       ),
     );
-
-    /*const setTx = await tx(
-      writeContracts[contractName].makeOffer(
-        item.token,
-        item.tokenId,
-        item.tokenStandard,
-        { value: ethers.utils.parseEther(item.collateralSum) }
-      ),
-    );*/
-
     const setTxResult = await setTx;
-    console.log("makeOffer result", setTxResult);
+    console.log("endRent result", setTxResult);
   }
 
   return (

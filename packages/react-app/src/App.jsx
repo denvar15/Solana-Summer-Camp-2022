@@ -21,7 +21,7 @@ import {
   ApproveBarter,
   P2p,
   AaveGotchi,
-  Withdraw, StartRent
+  Withdraw, StartRent, EndRent
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -590,6 +590,16 @@ const App = props => {
               Active Rents
             </Link>
           </Menu.Item>
+          <Menu.Item key="/end_rent">
+            <Link
+              onClick={() => {
+                setRoute("/end_rent");
+              }}
+              to="/end_rent"
+            >
+              End Rent
+            </Link>
+          </Menu.Item>
         </Menu>
 
         <Switch>
@@ -805,6 +815,27 @@ const App = props => {
             <Wallet style={{margin: "10px"}} >
               {readContracts && address && injectedProvider ? (
                 <ActiveRents
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
+          </Route>
+          <Route path="/end_rent">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <EndRent
                   address={address}
                   tx={tx}
                   writeContracts={writeContracts}
