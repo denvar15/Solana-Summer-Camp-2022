@@ -10,8 +10,7 @@ const getTokenByAddress = async (mintAddress: string) => {
 };
 
 const saveToken = async (token: Token) => {
-    const dbToken = getRepository(Token).create(token);
-    await getRepository(Token).save(dbToken);
+    await getRepository(Token).save(token);
 };
 
 const getTokensByAmount = async (amount: number) => {

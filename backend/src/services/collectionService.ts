@@ -2,8 +2,7 @@ import { getRepository } from 'typeorm';
 import { Collection } from '../entities/collectionEntity';
 
 const saveCollection = async (collection: Collection) => {
-    const dbCollection = getRepository(Collection).create(collection);
-    await getRepository(Collection).save(dbCollection);
+    await getRepository(Collection).save(collection);
 };
 
 const getCollectionById = async (id: number) => {

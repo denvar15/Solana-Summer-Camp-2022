@@ -15,6 +15,7 @@ const getTradeByUser = async (amount: number) => {
             'token',
             'token.address = trade.solana_mint_address',
         )
+        .take(amount)
         .getMany();
 };
 
