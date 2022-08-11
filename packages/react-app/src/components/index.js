@@ -26,3 +26,4 @@ export { default as P2p } from "./P2p";
 export { default as AaveGotchi } from "./AaveGotchi.jsx";
 export { default as Withdraw } from "./Withdraw.jsx";
 export { default as StartRent } from "./StartRent.jsx";
+export { default as ActiveRents } from "./ActiveRents.jsx";

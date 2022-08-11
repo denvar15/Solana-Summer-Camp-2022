@@ -69,6 +69,7 @@ contract RentContract is ERC1155Receiver, Ownable {
     event Received();
 
     address AromAddress = 0xBc22A1304213b1a11eed3c5D116908575939BC4b;
+    address MoraAddress = 0x972f3FE7Cd7f10ae8D27AAc17F0938Ea4773b149;
 
     function startRent(address token, uint256 tokenId, uint256 tokenStandard, uint256 durationHours, uint256 collateralSum) public {
         require(durationHours > 0, 'Lending: Lending duration must be above 0');
@@ -100,12 +101,13 @@ contract RentContract is ERC1155Receiver, Ownable {
         bytes memory data = abi.encodeWithSignature("");
         if (wantedTokenStandard == 1155) {
             require(rentERC1155List[wantedToken][wantedTokenId].borrowedAtTimestamp == 0, "Rent already started!");
-            require(IERC20(wantedToken).allowance(msg.sender, address(this)) > rentERC1155List[wantedToken][wantedTokenId].collateralSum,
+            require(IERC20(MoraAddress).allowance(msg.sender, address(this)) >= rentERC1155List[wantedToken][wantedTokenId].collateralSum,
                 "Not enough collateral allowance!");
-            IERC20(AromAddress).transferFrom(msg.sender, address(this), rentERC1155List[wantedToken][wantedTokenId].collateralSum);
+            IERC20(MoraAddress).transferFrom(msg.sender, address(this), rentERC1155List[wantedToken][wantedTokenId].collateralSum);
             rentERC1155List[wantedToken][wantedTokenId].borrower = msg.sender;
             require(IERC1155(wantedToken).balanceOf(address(this), wantedTokenId) > 0, 'Not enough tokens!');
             IERC1155(wantedToken).safeTransferFrom(address(this), rentERC1155List[wantedToken][wantedTokenId].borrower, wantedTokenId, 1, data);
+            IERC20(MoraAddress).approve(AromAddress, rentERC1155List[wantedToken][wantedTokenId].collateralSum);
             IArom(AromAddress).enter(rentERC1155List[wantedToken][wantedTokenId].collateralSum);
             rentERC1155List[wantedToken][wantedTokenId].borrowedAtTimestamp = block.timestamp;
             rentERC1155List[wantedToken][wantedTokenId].aromAtStart = IArom(AromAddress).moraForArom(rentERC1155List[wantedToken][wantedTokenId].collateralSum);
@@ -113,12 +115,13 @@ contract RentContract is ERC1155Receiver, Ownable {
             emit ERC1155ForRentUpdated(wantedToken);
         } else if (wantedTokenStandard == 721) {
             require(rentERC721List[wantedToken][wantedTokenId].borrowedAtTimestamp == 0, "Rent already started!");
-            require(IERC20(wantedToken).allowance(msg.sender, address(this)) > rentERC721List[wantedToken][wantedTokenId].collateralSum,
+            require(IERC20(MoraAddress).allowance(msg.sender, address(this)) >= rentERC721List[wantedToken][wantedTokenId].collateralSum,
                 "Not enough collateral allowance!");
-            IERC20(AromAddress).transferFrom(msg.sender, address(this), rentERC721List[wantedToken][wantedTokenId].collateralSum);
+            IERC20(MoraAddress).transferFrom(msg.sender, address(this), rentERC721List[wantedToken][wantedTokenId].collateralSum);
             rentERC721List[wantedToken][wantedTokenId].borrower = msg.sender;
             require(IERC721(wantedToken).balanceOf(address(this)) > 0, 'Not enough tokens!');
             IERC721(wantedToken).safeTransferFrom(address(this), rentERC721List[wantedToken][wantedTokenId].borrower, wantedTokenId);
+            IERC20(MoraAddress).approve(AromAddress, rentERC1155List[wantedToken][wantedTokenId].collateralSum);
             IArom(AromAddress).enter(rentERC721List[wantedToken][wantedTokenId].collateralSum);
             rentERC721List[wantedToken][wantedTokenId].borrowedAtTimestamp = block.timestamp;
             rentERC721List[wantedToken][wantedTokenId].aromAtStart = IArom(AromAddress).moraForArom(rentERC721List[wantedToken][wantedTokenId].collateralSum);
@@ -126,12 +129,13 @@ contract RentContract is ERC1155Receiver, Ownable {
             emit ERC721ForRentUpdated(wantedToken);
         } else if (wantedTokenStandard == 20) {
             require(rentERC20List[wantedToken][wantedTokenId].borrowedAtTimestamp == 0, "Rent already started!");
-            require(IERC20(wantedToken).allowance(msg.sender, address(this)) > rentERC20List[wantedToken][wantedTokenId].collateralSum,
+            require(IERC20(MoraAddress).allowance(msg.sender, address(this)) >= rentERC20List[wantedToken][wantedTokenId].collateralSum,
                 "Not enough collateral allowance!");
-            IERC20(AromAddress).transferFrom(msg.sender, address(this), rentERC20List[wantedToken][wantedTokenId].collateralSum);
+            IERC20(MoraAddress).transferFrom(msg.sender, address(this), rentERC20List[wantedToken][wantedTokenId].collateralSum);
             rentERC20List[wantedToken][wantedTokenId].borrower = msg.sender;
-            IERC20(wantedToken).transfer(rentERC20List[wantedToken][wantedTokenId].borrower, 1);
             require(IERC20(wantedToken).balanceOf(address(this)) > 0, 'Not enough tokens!');
+            IERC20(wantedToken).transfer(rentERC20List[wantedToken][wantedTokenId].borrower, 1);
+            IERC20(MoraAddress).approve(AromAddress, rentERC1155List[wantedToken][wantedTokenId].collateralSum);
             IArom(AromAddress).enter(rentERC20List[wantedToken][wantedTokenId].collateralSum);
             rentERC20List[wantedToken][wantedTokenId].borrowedAtTimestamp = block.timestamp;
             rentERC20List[wantedToken][wantedTokenId].aromAtStart = IArom(AromAddress).moraForArom(rentERC20List[wantedToken][wantedTokenId].collateralSum);

@@ -38,6 +38,7 @@ import {
 
 import { Wallet } from "./helpers/Wallet";
 import axios from "axios";
+import ActiveRents from "./components/ActiveRents";
 
 const { BufferList } = require("bl");
 // https://www.npmjs.com/package/ipfs-http-client
@@ -579,6 +580,16 @@ const App = props => {
               Start Rent
             </Link>
           </Menu.Item>
+          <Menu.Item key="/active_rents">
+            <Link
+              onClick={() => {
+                setRoute("/active_rents");
+              }}
+              to="/active_rents"
+            >
+              Active Rents
+            </Link>
+          </Menu.Item>
         </Menu>
 
         <Switch>
@@ -773,6 +784,27 @@ const App = props => {
             <Wallet style={{margin: "10px"}} >
               {readContracts && address && injectedProvider ? (
                 <StartRent
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
+          </Route>
+          <Route path="/active_rents">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <ActiveRents
                   address={address}
                   tx={tx}
                   writeContracts={writeContracts}

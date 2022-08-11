@@ -578,7 +578,9 @@ export default function StartBarter(props) {
       if (!accs) {
         accs = [];
       }
-      accs.push(props.address)
+      if (!accs.find(el => {return el === props.address})) {
+        accs.push(props.address)
+      }
       localStorage.setItem("accounts", JSON.stringify(accs));
       let response = await axios.post('http://94.228.122.16:8080/trade', {
         userFirst: props.address,
