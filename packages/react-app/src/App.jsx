@@ -21,7 +21,7 @@ import {
   ApproveBarter,
   P2p,
   AaveGotchi,
-  Withdraw
+  Withdraw, StartRent
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -559,16 +559,6 @@ const App = props => {
               Approve Barter
             </Link>
           </Menu.Item>
-          <Menu.Item key="/your_collectibles">
-            <Link
-              onClick={() => {
-                setRoute("/your_collectibles");
-              }}
-              to="/your_collectibles"
-            >
-              YourCollectibles
-            </Link>
-          </Menu.Item>
           <Menu.Item key="/withdraw">
             <Link
               onClick={() => {
@@ -577,6 +567,16 @@ const App = props => {
               to="/withdraw"
             >
               Withdraw
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/start_rent">
+            <Link
+              onClick={() => {
+                setRoute("/start_rent");
+              }}
+              to="/start_rent"
+            >
+              Start Rent
             </Link>
           </Menu.Item>
         </Menu>
@@ -699,9 +699,9 @@ const App = props => {
               blockExplorer={blockExplorer}
             />
           </Route>
-          <Route path="/debugcontractsWrapperFactory">
+          <Route path="/debugcontracts_rent">
             <Contract
-              name="WrapperFactory"
+              name="RentContract"
               signer={userSigner}
               provider={injectedProvider}
               address={address}
@@ -769,11 +769,32 @@ const App = props => {
               ""
             )}
           </Route>
+          <Route exact path="/start_rent">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <StartRent
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
+          </Route>
           <Route path="/p2p">
             <P2p />
           </Route>
           <Route path="/AaveGotchi">
-            <AaveGotchi />
+            <AaveGotchi signer={userSigner} />
           </Route>
           <Route path="/withdraw">
             <Wallet style={{margin: "10px"}} >
