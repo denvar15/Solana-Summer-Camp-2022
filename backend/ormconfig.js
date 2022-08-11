@@ -6,8 +6,8 @@ module.exports = {
   database: process.env.DB_NAME || 'postgres',
   charset: 'utf8',
   entities:[
-    '**/**Entity.ts'
-    // '**/**.entity.js'
+    'src/entities/*',
+    'dist/entities/*'
   ],
   connectTimeout: 30000,
   acquireTimeout: 30000

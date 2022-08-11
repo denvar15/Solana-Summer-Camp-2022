@@ -12,5 +12,6 @@ createConnection()
         });
     })
     .catch((error: Error) => {
+        console.log(error);
         console.info(`Database connection failed with error ${error}`);
     });
