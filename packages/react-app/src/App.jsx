@@ -21,7 +21,8 @@ import {
   ApproveBarter,
   P2p,
   AaveGotchi,
-  Withdraw, StartRent, EndRent
+  Withdraw, StartRent, EndRent,
+  Game, Nft
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -529,78 +530,7 @@ const App = props => {
       <Header />
       {networkDisplay}
       <BrowserRouter>
-        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
-            <Link
-              onClick={() => {
-                setRoute("/");
-              }}
-              to="/"
-            >
-              Start Barter
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/active_offers">
-            <Link
-              onClick={() => {
-                setRoute("/active_offers");
-              }}
-              to="/active_offers"
-            >
-              Active Barter Offers
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/approve_barter">
-            <Link
-              onClick={() => {
-                setRoute("/approve_barter");
-              }}
-              to="/approve_barter"
-            >
-              Approve Barter
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/withdraw">
-            <Link
-              onClick={() => {
-                setRoute("/withdraw");
-              }}
-              to="/withdraw"
-            >
-              Withdraw
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/start_rent">
-            <Link
-              onClick={() => {
-                setRoute("/start_rent");
-              }}
-              to="/start_rent"
-            >
-              Start Rent
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/active_rents">
-            <Link
-              onClick={() => {
-                setRoute("/active_rents");
-              }}
-              to="/active_rents"
-            >
-              Active Rents
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/end_rent">
-            <Link
-              onClick={() => {
-                setRoute("/end_rent");
-              }}
-              to="/end_rent"
-            >
-              End Rent
-            </Link>
-          </Menu.Item>
-        </Menu>
+        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal"></Menu>
 
         <Switch>
           <Route path="/your_collectibles">
@@ -749,6 +679,7 @@ const App = props => {
                 ""
               )}
             </Wallet>
+            
           </Route>
           <Route path="/active_offers">
             <Wallet style={{margin: "10px"}} >
@@ -879,6 +810,12 @@ const App = props => {
                   ""
                 )}
             </Wallet>
+          </Route>
+          <Route path="/genopets">
+              <Game/>
+          </Route>
+          <Route exact path="/nft/:address">
+              <Nft />
           </Route>
         </Switch>
       </BrowserRouter>

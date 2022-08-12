@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Saira');
 .App {
   text-align: center;
 }
@@ -23,4 +24,44 @@
 }
 .mynft__text .ant-input::placeholder{
   color: white;
+}
+.game-cover{
+  text-align: left;
+  padding-left: 20px;
+  padding-top: 20px;
+}
+.game-cover h1{
+  font-size: 30px;
+  color: #00FFC8;
+  text-transform: uppercase;
+}
+.ant-list{
+  padding-bottom: 10px !important;
+}
+
+.ant-page-header-heading-title{
+  font-size: 40px !important;
+  font-family: 'Saira';
+  line-height: 60px !important;
+}
+
+.hide{
+  display: none;
+}
+.show{
+  display: block;
+}
+.steps-content{
+  padding-top: 25px;
+}
+.ant-steps{
+  margin-top: 50px !important;
+}
+.mute{
+position: absolute;
+top: -2px;
+bottom: 0;
+left: -1px;
+background-color: rgba(0,0,0,0.7);
+width: calc(100% + 2px);
 }

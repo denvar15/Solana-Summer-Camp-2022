@@ -58,11 +58,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   );
 
   await contract.transferOwnership(
-    "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"
+    "0x03cb144b401139a96873836f8e9B12f013FdEcA9"
   );
 
-  const toAddress = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
-  const toAddress2 = "0x3Cd3AA68E6f86c3e7237ee874EeB073c3D178339";
+  const toAddress = "0x03cb144b401139a96873836f8e9B12f013FdEcA9";
+  const toAddress2 = "0xC95e4bb1145a696EA4F1467eE7f664051319d0D9";
 
   const yourCollectible1 = await deployments.get("YourCollectible");
 

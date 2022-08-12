@@ -1,4 +1,4 @@
-import { Layout, Menu, Breadcrumb, Row, Col, Card, Button, Badge, Input, List } from "antd";
+import { Layout, Menu, Breadcrumb, Row, Col, Card, Button, Badge, Input, List, Steps, Space, DatePicker, message } from "antd";
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
@@ -6,6 +6,8 @@ import "../bootstrap-utilites.css";
 import { NodeExpandOutlined } from "@ant-design/icons";
 import { base58_to_binary, binary_to_base58 } from "base58-js";
 import { web3 } from "@project-serum/anchor";
+import genoImg from "../img/page-fg--hero.png";
+import {Home} from "./index";
 import {
   clusterApiUrl,
   Keypair,
@@ -27,7 +29,7 @@ import axie from "../img/axie.jpg";
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
 import { AddressInput, Sidebar } from "./index";
-
+const { Step } = Steps;
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
 const { BufferList } = require("bl");
@@ -61,8 +63,25 @@ function hexStringToByteArray(hexString) {
 }
 
 const gridStyle = {
-  width: "25%",
+  width: "15%",
   textAlign: "center",
+};
+const steps = [
+  {
+    title: 'Select your NFT',
+    id: 'one'
+  },
+  {
+    title: 'Choose NFT you want',
+    id: 'two'
+  },
+  {
+    title: 'Change!',
+    id: 'three'
+  },
+];
+const ChangeTime = (date, dateString) => {
+  console.log(date, dateString);
 };
 export default function StartBarter(props) {
   const display = [];
@@ -73,11 +92,17 @@ export default function StartBarter(props) {
   const [selectedWantedNFT, setSelectedWantedNFT] = useState({ address: [], id: [], standard: [], model: [], json: [], mintAddress: [] });
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const { wallet } = useWallet();
-
+  const [current, setCurrent] = useState(0);
   const tx = props.tx;
 
   const writeContracts = props.writeContracts;
+  const next = () => {
+    setCurrent(current + 1);
+  };
 
+  const prev = () => {
+    setCurrent(current - 1);
+  };
   const getSolana = async () => {
     if (targetNetwork == 245022926) {
       const connection = new Connection(clusterApiUrl("devnet"));
@@ -533,7 +558,205 @@ export default function StartBarter(props) {
         <Layout>
           <Sidebar />
           <Layout style={{ padding: "0 24px 24px" }}>
-            <Content
+          <Steps current={current}>
+            {steps.map((item) => (
+              <Step key={item.title} title={item.title} />
+            ))}
+          </Steps>
+          <div className="steps-content">
+          
+          {(() => {
+      switch (steps[current].id) {
+        case "one":   return (
+          <div id="one">
+              <br />
+              <Row><h3>Yours 1151</h3></Row>
+              <Row>
+                {props.yourCollectibles.map(item => {
+                          if (item.owned.toNumber() > 0) {
+                            return (
+                              <Card.Grid
+                                style={gridStyle}
+                                title={item.name}
+                                key={item.id + "_" + item.uri}
+                                id={item.id + "_" + item.uri + "offer"}
+                                onClick={selectOfferNFT.bind(this, item)}
+                              >
+                                <img src={item.image} width="100" height="100" />
+                                <Meta title={item.name} description={item.description} />
+                              </Card.Grid>
+                            );
+                          }
+                          return <div> </div>;
+                  })}
+              </Row>
+              <Row>
+                      <h3>Yours NFT 721</h3>
+                    </Row>
+                    <Row>
+                      {props.yourCollectibles721 &&
+                        props.yourCollectibles721.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri + "offer"}
+                            onClick={selectOfferNFT.bind(this, item)}
+                          >
+                            <img src={item.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.description} />
+                          </Card.Grid>
+                        ))}
+                    </Row>
+                    <Row>
+                      <h3>Yours Solana NFT</h3>
+                    </Row>
+                    <Row>
+                      {solanaNFT &&
+                        solanaNFT.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri + "offer"}
+                            onClick={selectOfferNFT.bind(this, item)}
+                          >
+                            <img src={item.json.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.json.description} />
+                          </Card.Grid>
+                        ))}
+                    </Row>
+          </div>
+        );
+        case "two": return (
+          <div id="two">
+              <br />
+              <Row>
+                      <h3>NFT 1155</h3>
+                    </Row>
+                    <Row>
+                      {props.yourCollectibles &&
+                        props.yourCollectibles.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri}
+                            onClick={selectWantedNFT.bind(this, item)}
+                          >
+                            <img src={item.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.description} />
+                          </Card.Grid>
+                        ))}
+                    </Row>
+                    <Row>
+                      <h3>Solana NFT</h3>
+                    </Row>
+                    <Row>
+                      {solanaNFT &&
+                        solanaNFT.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri}
+                            onClick={selectWantedNFT.bind(this, item)}
+                          >
+                            <img src={item.json.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.json.description} />
+                          </Card.Grid>
+                        ))}
+                    </Row>
+                    <Row>
+                      <h3>NFT 721</h3>
+                    </Row>
+                    <Row>
+                      {yourCollectibles721 &&
+                        yourCollectibles721.map(item => (
+                          <Card.Grid
+                            style={gridStyle}
+                            title={item.name}
+                            key={item.id + "_" + item.uri}
+                            id={item.id + "_" + item.uri}
+                            onClick={selectWantedNFT.bind(this, item)}
+                          >
+                            <img src={item.image} width="72" height="72" />
+                            <Meta title={item.name} description={item.description} />
+                          </Card.Grid>
+                        ))}
+                    </Row>
+          </div> 
+        );
+        case "three":  return (
+          <div id="three">
+
+              <Card
+                  className="mynft text-start"
+                  style={{
+                    background: `url(${genoImg})`,
+                    backgroundPosition: "contain",
+                    height: 220,
+                  }}
+                >
+                  <div className="mynft__text">
+                    <h2 className="text-start">Select NFT Freeze Time</h2>
+                    <small className="text-start">This is necessary to guarantee the exchange for other users</small>
+                    <div className="mt-3 text-center">
+                      <Space direction="vertical">
+                          {/* <DatePicker onChange={ChangeTime} /> */}
+                          <Input
+                          onChange={e => {
+                            const newValues = { ...values };
+                            newValues.duration = e.target.value;
+                            setValues(newValues);
+                          }}
+                          placeholder="Время обмена (NFT будет заморожена)"
+                          value={values.duration}
+                        />{" "}
+                      </Space>
+                      <br /><br />
+                      <Button type="primary" onClick={StartBarter.bind(this)}>
+                          Начать обмен
+                        </Button>
+                    </div>
+                  </div>
+
+                  <div className="mynft__bg-overlay" />
+                </Card>
+
+          </div>
+        );
+        default:      return (
+        <div>error</div>
+        );
+          }
+      })()}
+    
+    </div>
+    <div className="steps-action">
+        {current < steps.length - 1 && (
+          <Button type="primary" onClick={() => next()}>
+            Next
+          </Button>
+        )}
+        {current === steps.length - 1 && (
+          <Button type="primary" onClick={() => message.success('Processing complete!')}>
+            Done
+          </Button>
+        )}
+        {current > 0 && (
+          <Button
+            style={{
+              margin: '0 8px',
+            }}
+            onClick={() => prev()}
+          >
+            Previous
+          </Button>
+        )}
+      </div>
+      <Home/>
+          {/*  <Content
               className="site-layout-background"
               style={{
                 padding: 24,
@@ -694,7 +917,7 @@ export default function StartBarter(props) {
                   </Card>
                 </Col>
               </Row>
-            </Content>
+                        </Content> */}
           </Layout>
         </Layout>
       </Layout>

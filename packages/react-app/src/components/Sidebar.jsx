@@ -1,10 +1,13 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Layout, Menu, Breadcrumb, Row, Col, Card, Button, Badge } from 'antd';
-import { WechatOutlined } from '@ant-design/icons';
+import { WechatOutlined, MoneyCollectOutlined, ProfileOutlined, FireOutlined, AliwangwangOutlined, HomeOutlined, SmileOutlined } from '@ant-design/icons';
+import { Link } from "react-router-dom";
 const { SubMenu } = Menu;
 const { Sider } = Layout;
 
+
 const Sidebar = () => {
+
     return (
         <Sider width={300} className="site-layout-background">
         <Menu
@@ -13,33 +16,78 @@ const Sidebar = () => {
           defaultOpenKeys={['sub1']}
           style={{ height: '100%', borderRight: 0 }}
         >
-            <Menu.Item key="1">Профиль</Menu.Item>
-            <Menu.Item key="2">Инвентарь</Menu.Item>
-            <Menu.Item key="3">Активность</Menu.Item>
-            <Menu.Item key="4">Биржа</Menu.Item>
-            
+        <Menu.Item 
+          key="2"
+          icon={<HomeOutlined />}
+        >
+          <Link to="/">Home</Link>
+          </Menu.Item>
         <SubMenu 
-        key="sub2" 
-        icon={<WechatOutlined />} 
-        title={<span>Друзья онлайн <Badge count={5} style={{ backgroundColor: '#868686' }} ></Badge></span>}
-        
+        key="sub33"
+        icon={<MoneyCollectOutlined />} 
+        title = {<span>Barter</span>}
         >
-            <Menu.Item key="5">dona</Menu.Item>
-            <Menu.Item key="6">miki</Menu.Item>
-            <Menu.Item key="7">raf</Menu.Item>
-            <Menu.Item key="8">leo</Menu.Item>
-          </SubMenu>
-          <SubMenu 
-        key="sub3" 
-        icon={<WechatOutlined />} 
-        title={<span>Активные обмены <Badge count={2} ></Badge></span>}
-        
+          <Menu.Item key="31"><Link
+              to="/"
+            >
+              Start Barter
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="32"><Link
+              to="active_offers"
+            >
+              Active Barter Offers
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="33"><Link
+              to="approve_barter"
+            >
+             Approve Barter
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="34"><Link
+              to="your_collectibles"
+            >
+            YourCollectibles
+            </Link>
+          </Menu.Item>
+
+        </SubMenu>
+        {/*
+        <Menu.Item 
+          key="1"
+          icon={<ProfileOutlined/>}
         >
-            <Menu.Item key="5">dona</Menu.Item>
-            <Menu.Item key="6">miki</Menu.Item>
-            <Menu.Item key="7">raf</Menu.Item>
-            <Menu.Item key="8">leo</Menu.Item>
-          </SubMenu>
+          Profile
+    </Menu.Item> */}
+        <SubMenu 
+          key="9"
+          icon={ <SmileOutlined spin />} 
+          title = {<span>Rent</span>}
+          >
+            <Menu.Item key="91">
+              <Link to="start_rent" > Start rent </Link>
+            </Menu.Item>
+            <Menu.Item key="92">
+              <Link to="active_rents" > Active rents </Link>
+            </Menu.Item>
+            <Menu.Item key="93">
+              <Link to="end_rent" > End rent </Link>
+            </Menu.Item>
+        </SubMenu>
+        <Menu.Item 
+          key="10"
+          icon={<FireOutlined />} 
+        >
+          <Link to="withdraw">Withdraw</Link>
+        </Menu.Item>
+        <Menu.Item 
+          key="4"
+          icon={<AliwangwangOutlined />} 
+        >
+          <Link to="AaveGotchi">AaveGotchi</Link>
+        </Menu.Item>
+
         </Menu>
       </Sider>
     )

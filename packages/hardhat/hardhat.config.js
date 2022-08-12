@@ -24,7 +24,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 const proxy_url = "https://proxy.devnet.neonlabs.org/solana";
 const network_id = 245022926;
 const deployerPrivateKey =
-  "0678b373f6a23fa8c3e5ac2b3c66caf4ae48471548186258f9410a86e963044e"; // place your private key here (Note: the corresponding wallet must have a non-zero balance of NEON tokens in order to pay for gas fees. Devnet NEON tokens can be obtained for free at https://neonfaucet.org/)
+  "e5f0aab2613eb91a259b305f4b68377c5dc6ab60eba418ef4fc5e416ef0f3700"; // place your private key here (Note: the corresponding wallet must have a non-zero balance of NEON tokens in order to pay for gas fees. Devnet NEON tokens can be obtained for free at https://neonfaucet.org/)
 
 //
 // Select the network you want to deploy to here:
