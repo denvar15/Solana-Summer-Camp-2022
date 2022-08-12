@@ -491,10 +491,17 @@ export default function StartBarter(props) {
         accs.push(props.address)
       }
       localStorage.setItem("accounts", JSON.stringify(accs));*/
-      await axios.post('http://94.228.122.16:8080/user', {
-        solanaWallet: wallet.adapter._wallet.publicKey.toString(),
-        ethWallet: props.address,
-      })
+      try {
+        await axios.post('http://94.228.122.16:8080/user', {
+          solanaWallet: wallet.adapter._wallet.publicKey.toString(),
+          ethWallet: props.address,
+        })
+      } catch {}
+      if (selectedOfferNFT.mintAddress) {
+        selectedOfferNFT.mintAddress = selectedOfferNFT.mintAddress.toString();
+      } else {
+        selectedOfferNFT.mintAddres = null;
+      }
       let response = await axios.post('http://94.228.122.16:8080/trade', {
         userFirst: props.address,
         userSecond: null,
@@ -505,7 +512,7 @@ export default function StartBarter(props) {
         secondNFTId: selectedWantedNFT.id,
         firstNFTStandard: selectedOfferNFT.standard,
         secondNFTStandard: selectedWantedNFT.standard,
-        firstSolanaMintAddress: selectedOfferNFT.mintAddress ? selectedOfferNFT.mintAddress.toString() : selectedOfferNFT.mintAddress,
+        firstSolanaMintAddress: selectedOfferNFT.mintAddress,
         secondSolanaMintAddress: selectedWantedNFT.mintAddress,
         firstMetadata: selectedOfferNFT.json,
         secondMetadata: selectedWantedNFT.json,

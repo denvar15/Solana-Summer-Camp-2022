@@ -48,7 +48,7 @@ export default function ActiveOffers(props) {
   const [usersLend, setUsersLend] = useState();
   const [solanaNFT, setSolanaNFT] = useState([]);
   const [bartersFromBackend, setBartersFromBackend] = useState([]);
-  const [usersBackendMock, setBackendMock] = useState();
+  const [usersBackend, setBackend] = useState();
   const { wallet } = useWallet();
 
   const tx = props.tx;
@@ -135,7 +135,6 @@ export default function ActiveOffers(props) {
          try {
             count = count.toNumber();
           } catch {}
-          console.log("count", count)
           for (let i = 0; i < count; i++) {
             try {
               const ul_base = await props.readContracts.BarterWithArrays.UsersBarters(
@@ -195,7 +194,6 @@ export default function ActiveOffers(props) {
           }
         }
       }
-      console.log("res", res)
       /*
       a[i].data.tokenMint = []
       for (let j in acceptedAddrs) {
@@ -214,27 +212,33 @@ export default function ActiveOffers(props) {
       setUsersLend(res);
     };
 
-    const backendMock = async () => {
-      let a = JSON.parse(localStorage.getItem("startedBarters"));
+    const backend = async () => {
+      //let a = JSON.parse(localStorage.getItem("startedBarters"));
+      const res = await axios.get('http://94.228.122.16:8080/trade');
+      let a = res.data;
       if (!a) {
         a = []
       }
       for (let i in a) {
-        let addr = a[i].data.token
-        try {
-          const erc20_rw = new ethers.Contract(addr, abi["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
-          const tokenMint = await erc20_rw.tokenMint();
-          const connection = new Connection(clusterApiUrl("devnet"));
-          const mx = Metaplex.make(connection);
-          //console.log("A", new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2)))))
-          const nft = await mx.nfts().findByMint(new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2))))).run();
-          a[i].data.nft = nft;
-          a[i].standard = 20
-        } catch(e) {
-          //console.log(e)
+        if (a[i].barterStatus === 1) {
+          let addr = a[i].firstNFTAddress
+          try {
+            const erc20_rw = new ethers.Contract(addr, abi["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
+            const tokenMint = await erc20_rw.tokenMint();
+            const connection = new Connection(clusterApiUrl("devnet"));
+            const mx = Metaplex.make(connection);
+            //console.log("A", new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2)))))
+            const nft = await mx.nfts().findByMint(new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2))))).run();
+            a[i].nft = nft;
+            a[i].standard = 20
+          } catch(e) {
+            //console.log(e)
+          }
+        } else {
+          a.splice(i);
         }
       }
-      setBackendMock(a);
+      setBackend(a);
     };
 
     const getBartersFromBackend = async () => {
@@ -245,7 +249,7 @@ export default function ActiveOffers(props) {
 
     updateCollectibles721();
     updateUsersLend();
-    backendMock();
+    backend();
     getSolana();
     getBartersFromBackend();
   }, []);
@@ -710,19 +714,19 @@ export default function ActiveOffers(props) {
         <h1>Active InterChain Offers</h1>
         <List
           bordered
-          dataSource={usersBackendMock}
+          dataSource={usersBackend}
           renderItem={item => {
-            item = item.data;
-            if (targetNetwork == item.chainId) {
+            console.log("item", item)
+            if (targetNetwork == item.evmId) {
               return <div> </div>;
             }
-            if (item.author == props.address) {
+            if (item.userFirst == props.address) {
               return <div> </div>;
             }
             let styler = true;
-            if (item.acceptedToken) {
+            if (item.secondNFTAddress) {
               return (
-                <List.Item key={item.token + "_" + item.acceptedToken[0]} id={item.token + "_" + item.acceptedToken[0]}>
+                <List.Item key={item.token + "_" + item.secondNFTAddress[0]} id={item.token + "_" + item.secondNFTAddress[0]}>
                   <Card
                     title={
                       <div>
@@ -730,11 +734,10 @@ export default function ActiveOffers(props) {
                       </div>
                     }
                   >
-                    <div>Wanted addresses {item.acceptedToken}</div>
-                    <div>Wanted ids {item.acceptedTokenId}</div>
-                    <div>Offered address {item.token}</div>
-                    <div>Offered id {item.tokenId}</div>
-                    <div>Duration {item.durationHours}</div>
+                    <div>Wanted addresses {item.secondNFTAddress}</div>
+                    <div>Wanted ids {item.secondNFTId}</div>
+                    <div>Offered address {item.firstNFTAddress}</div>
+                    <div>Offered id {item.firstNFTId}</div>
                     <Button
                       onClick={styler ? makeOffer.bind(this, item.chainId, item) : null}
                       style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
@@ -804,23 +807,23 @@ export default function ActiveOffers(props) {
         <h1>Wanted ERC20</h1>
         <List
           bordered
-          dataSource={usersBackendMock}
+          dataSource={usersBackend}
           renderItem={item => {
-            if (item.data.nft) {
-              const id = item.data.nft.address.toString();
+            if (item.nft) {
+              const id = item.nft.address.toString();
               return (
                 <List.Item key={id} id={id}>
                   <Card
                     title={
                       <div>
-                        <span style={{ fontSize: 16, marginRight: 8 }}>{item.data.nft.name}</span>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>{item.nft.name}</span>
                       </div>
                     }
                   >
                     <div>
-                      <img src={item.data.nft.json.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
+                      <img src={item.nft.json.image} style={{ maxWidth: 100 }} onClick={selectWantedNFT.bind(this, item)} />
                     </div>
-                    <div>{item.data.nft.json.description}</div>
+                    <div>{item.nft.json.description}</div>
                   </Card>
                 </List.Item>
               );

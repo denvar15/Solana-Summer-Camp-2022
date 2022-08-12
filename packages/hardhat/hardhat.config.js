@@ -29,7 +29,7 @@ const deployerPrivateKey =
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "goerli";
+const defaultNetwork = "neonlabs";
 
 function mnemonic() {
   try {

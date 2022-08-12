@@ -7,6 +7,7 @@ import {clusterApiUrl, Connection, PublicKey} from "@solana/web3.js";
 import {Metaplex} from "@metaplex-foundation/js";
 import {binary_to_base58} from "base58-js";
 import axios from "axios";
+import abi from "../contracts/hardhat_contracts.json";
 
 const { BufferList } = require("bl");
 //const ipfsAPI = require("ipfs-http-client");
@@ -58,6 +59,7 @@ export default function ApproveBarter(props) {
   const [selectedWantedNFT, setSelectedWantedNFT] = useState();
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const [usersBackendMock, setBackendMock] = useState();
+  const [usersBackend, setBackend] = useState();
 
   // const ul = useContractReader(props.readContracts, contractName, "UsersLend", [props.address]);
   // console.log("AAAAAAAAAAA ", ul);
@@ -194,9 +196,40 @@ export default function ApproveBarter(props) {
       //console.log("REs", res);
       setBackendMock(res);
     };
+
+    const backend = async () => {
+      const res = await axios.get('http://94.228.122.16:8080/trade');
+      let a = res.data;
+      let b = res.data;
+      if (!a) {
+        a = []
+      }
+      for (let i in a) {
+        if (a[i].barterStatus === 2) {
+          let addr = a[i].firstNFTAddress
+          try {
+            const erc20_rw = new ethers.Contract(addr, abi["245022926"]["neonlabs"]["contracts"]["NeonERC20Wrapper"]["abi"], props.signer);
+            const tokenMint = await erc20_rw.tokenMint();
+            const connection = new Connection(clusterApiUrl("devnet"));
+            const mx = Metaplex.make(connection);
+            //console.log("A", new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2)))))
+            const nft = await mx.nfts().findByMint(new PublicKey(binary_to_base58(hexStringToByteArray(tokenMint.slice(2))))).run();
+            a[i].nft = nft;
+            a[i].standard = 20
+          } catch(e) {
+            //console.log(e)
+          }
+        } else {
+          a.splice(i);
+        }
+      }
+      setBackend(a);
+    };
+
     updateCollectibles721();
     updateUsersLend();
     backendMock();
+    backend();
   }, []);
 
   const rowForm = (title, icon, onClick) => {
