@@ -356,7 +356,7 @@ export default function StartRent(props) {
       data.chainId = setTxResult.chainId ? setTxResult.chainId : targetNetwork;
       data.author = props.address;
       a.push({chainId: setTxResult.chainId ? setTxResult.chainId : targetNetwork, data});
-      localStorage.setItem("startedBarters", JSON.stringify(a));
+      localStorage.setItem("startedRents", JSON.stringify(a));
     }
   }
 

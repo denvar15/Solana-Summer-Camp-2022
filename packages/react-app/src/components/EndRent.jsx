@@ -112,21 +112,18 @@ export default function EndRent(props) {
     };
 
     const updateUsersLend = async () => {
-      let accounts = JSON.parse(localStorage.getItem("accounts"));
-      if (!accounts) {
-        accounts = []
-      }
-      console.log("accounts", accounts)
-      if (!accounts.find(el => {return el ==="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
-        accounts.push("0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd")
-      }
+      let response = await axios.get('http://94.228.122.16:8080/user');
+      let accounts = response.data;
       const res = [];
       for (let i in accounts) {
-        let acc = accounts[i]
+        let acc = accounts[i].ethWallet;
         if (props.address !== acc) {
-          const count = await props.readContracts[contractName].UsersRentCount(
-            acc,
-          );
+          let count = 0;
+          try {
+            count = await props.readContracts[contractName].UsersRentCount(
+              acc,
+            );
+          } catch {}
           for (let i = 0; i < count; i++) {
             try {
               const ul_base = await props.readContracts[contractName].UsersRents(
@@ -141,7 +138,7 @@ export default function EndRent(props) {
               ul.collateralSum = ul_base.collateralSum.toNumber();
               ul.collateralSumBig = ul_base.collateralSum;
               ul.durationHours = ul_base.durationHours.toNumber();
-              if (ul.status.toNumber() === 2) {
+              if (ul.status.toNumber() === 2 && ul_base.borrower === props.address) {
                 res.push(ul);
               }
             } catch (e) {

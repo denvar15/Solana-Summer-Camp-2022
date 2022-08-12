@@ -116,11 +116,15 @@ export default function ActiveRents(props) {
       let accounts = response.data;
       const res = [];
       for (let i in accounts) {
-        let acc = accounts[i]
+        let acc = accounts[i].ethWallet;
         if (props.address !== acc) {
-          const count = await props.readContracts[contractName].UsersRentCount(
-            acc,
-          );
+          let count = 0;
+          try {
+            count = await props.readContracts[contractName].UsersRentCount(
+              acc,
+            );
+          } catch {}
+          console.log("count", count, acc)
           for (let i = 0; i < count; i++) {
             try {
               const ul_base = await props.readContracts[contractName].UsersRents(

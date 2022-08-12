@@ -29,7 +29,7 @@ const deployerPrivateKey =
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "neonlabs";
+const defaultNetwork = "goerli";
 
 function mnemonic() {
   try {
@@ -85,10 +85,8 @@ module.exports = {
       },
     },
     goerli: {
-      url: "https://goerli.infura.io/v3/1c9133d3356f4b97954d8ee90b485b65", // <---- YOUR INFURA ID! (or it won't work)
-      accounts: {
-        mnemonic: mnemonic(),
-      },
+      url: "https://goerli.infura.io/v3/5c16757e2e1541dbbbe621d0409e6a4b", // <---- YOUR INFURA ID! (or it won't work)
+      accounts: [deployerPrivateKey],
     },
     xdai: {
       url: "https://rpc.xdaichain.com/",

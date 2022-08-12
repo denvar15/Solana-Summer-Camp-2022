@@ -189,8 +189,6 @@ export default function StartBarter(props) {
       }
     } else {
       elem.style.border = "solid white 3px";
-      old.id.push(0);
-      old.standard.push(20);
       if (item.model === 'nft') {
         const tokenMint = base58_to_binary(item.mintAddress.toString());
         const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
@@ -199,7 +197,11 @@ export default function StartBarter(props) {
         old.model.push(item.model);
         old.json.push(item.json);
         old.mintAddress.push(item.mintAddress.toString());
+        old.id.push(0);
+        old.standard.push(20);
       } else {
+        old.id.push(item.id);
+        old.standard.push(item.standard);
         old.address.push(item.address);
         old.model.push(0);
         old.json.push({});

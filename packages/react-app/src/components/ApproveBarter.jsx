@@ -26,7 +26,7 @@ const Networks = {
   3: "ropsten",
   1: "mainnet",
   31337: "localhost",
-  245022926: "neon"
+  245022926: "neonlabs"
 };
 
 const targetNetwork = localStorage.getItem("targetNetwork")
@@ -157,20 +157,19 @@ export default function ApproveBarter(props) {
       const res = [];
       for (let i = 0; i < a.length; i++) {
         for (let j = 0; j < b.length; j++) {
-          // console.log(a[i].data["wantedToken"] in b[j].data["acceptedToken"], a[i].data["wantedToken"], b[j].data["acceptedToken"])
-          if (a[i].data.wantedTokenId in b[j].data.acceptedTokenId) {
+          if (a[i].data.wantedToken === b[j].data.token) {
             if (a[i].data.chainId !== b[j].data.chainId) {
               const inter = Number(a[i].data.chainId);
               const inter2 = Number(b[j].data.chainId);
               const name = Networks[a[i].data.chainId];
               const name2 = Networks[b[j].data.chainId];
-              // console.log(a[i].data.chainId, contracts[5], contracts[inter])
+              console.log(contracts[inter], contracts[inter2], name, name2)
               const addr1155 = contracts[inter][name].contracts.YourCollectible.address;
               const addr721 = contracts[inter][name].contracts.YourCollectible721.address;
               const addr1155_second = contracts[inter2][name2].contracts.YourCollectible.address;
               const addr721_second = contracts[inter2][name2].contracts.YourCollectible721.address;
               // console.log(contracts[inter][name].contracts.YourCollectible.address, contracts[inter][name].contracts.YourCollectible721.address);
-              console.log(addr1155, addr1155_second, a[i].data.offerToken, b[j].data.acceptedToken);
+              //console.log(addr1155, addr1155_second, a[i].data.offerToken, b[j].data.acceptedToken);
               console.log(inter, inter2)
               if (a[i].data.offerToken === addr1155) {
                 console.log(addr1155_second, b[j].data.acceptedToken, addr1155_second in b[j].data.acceptedToken);

@@ -38,11 +38,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
-  await deploy("RentContractWithFarms", {
-    from: deployer,
-    log: true,
-  });
-
   await deploy("WrapperFactory", {
     from: deployer,
     log: true,

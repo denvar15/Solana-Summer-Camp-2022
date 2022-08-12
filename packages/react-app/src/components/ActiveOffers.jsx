@@ -124,12 +124,18 @@ export default function ActiveOffers(props) {
       let accounts = response.data;
       const res = [];
       for (let i in accounts) {
-        let acc = accounts[i]
-        console.log("aaaa", acc)
+        let acc = accounts[i].ethWallet;
         if (props.address !== acc) {
-          const count = await props.readContracts.BarterWithArrays.UsersBarterCount(
-            acc,
-          );
+          let count = 0;
+          try {
+            count = await props.readContracts.BarterWithArrays.UsersBarterCount(
+              acc,
+            );
+          } catch {}
+         try {
+            count = count.toNumber();
+          } catch {}
+          console.log("count", count)
           for (let i = 0; i < count; i++) {
             try {
               const ul_base = await props.readContracts.BarterWithArrays.UsersBarters(
@@ -186,7 +192,6 @@ export default function ActiveOffers(props) {
             res[i].tokenMint.push(tokenMint);
           } catch(e) {
             res[i].tokenMint.push(null);
-            console.log(e)
           }
         }
       }
@@ -542,11 +547,11 @@ export default function ActiveOffers(props) {
 
     if (targetNetwork !== chainId) {
       const data = {
-        wantedToken: selectedWantedNFT.address,
-        wantedTokenId: selectedWantedNFT.id,
+        wantedToken: item.token,
+        wantedTokenId: item.tokenId,
         offerToken: selectedOfferNFT.address,
         offerTokenId: selectedOfferNFT.id,
-        wantedTokenStandard: selectedWantedNFT.standard,
+        wantedTokenStandard: item.tokenStandard,
         offerTokenStandard: selectedOfferNFT.standard,
       };
       console.log("DATA", data, item.durationHours);
@@ -562,7 +567,7 @@ export default function ActiveOffers(props) {
         ),
       );
       const setTxResult = await setTx;
-      console.log("startBartering result", setTxResult);
+      console.log("madeOffers Inter Chain result", setTxResult);
 
       let a = JSON.parse(localStorage.getItem("madeOffers"));
       if (!a) {
@@ -573,20 +578,20 @@ export default function ActiveOffers(props) {
       console.log("A", a);
       a.push({ chainId: targetNetwork, data });
       localStorage.setItem("madeOffers", JSON.stringify(a));
-      return;
+    } else {
+      const setTx = await tx(
+        writeContracts[contractName].makeOffer(
+          selectedWantedNFT.address,
+          selectedWantedNFT.id,
+          selectedOfferNFT.address,
+          selectedOfferNFT.id,
+          selectedWantedNFT.standard,
+          selectedOfferNFT.standard,
+        ),
+      );
+      const setTxResult = await setTx;
+      console.log("makeOffer result", setTxResult);
     }
-    const setTx = await tx(
-      writeContracts[contractName].makeOffer(
-        selectedWantedNFT.address,
-        selectedWantedNFT.id,
-        selectedOfferNFT.address,
-        selectedOfferNFT.id,
-        selectedWantedNFT.standard,
-        selectedOfferNFT.standard,
-      ),
-    );
-    const setTxResult = await setTx;
-    console.log("makeOffer result", setTxResult);
   }
 
   if (props.readContracts && props.readContracts[contractName]) {
@@ -715,29 +720,31 @@ export default function ActiveOffers(props) {
               return <div> </div>;
             }
             let styler = true;
-
-            return (
-              <List.Item key={item.token + "_" + item.acceptedToken[0]} id={item.token + "_" + item.acceptedToken[0]}>
-                <Card
-                  title={
-                    <div>
-                      <span style={{ fontSize: 16, marginRight: 8 }}>#{item.chainId}</span>
-                    </div>
-                  }
-                >
-                  <div>Wanted addresses {item.acceptedToken}</div>
-                  <div>Wanted ids {item.acceptedTokenId}</div>
-                  <div>Offered address {item.token}</div>
-                  <div>Offered id {item.tokenId}</div>
-                  <Button
-                    onClick={styler ? makeOffer.bind(this, item.chainId, item) : null}
-                    style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
+            if (item.acceptedToken) {
+              return (
+                <List.Item key={item.token + "_" + item.acceptedToken[0]} id={item.token + "_" + item.acceptedToken[0]}>
+                  <Card
+                    title={
+                      <div>
+                        <span style={{ fontSize: 16, marginRight: 8 }}>#{item.chainId}</span>
+                      </div>
+                    }
                   >
-                    Make Offer
-                  </Button>
-                </Card>
-              </List.Item>
-            );
+                    <div>Wanted addresses {item.acceptedToken}</div>
+                    <div>Wanted ids {item.acceptedTokenId}</div>
+                    <div>Offered address {item.token}</div>
+                    <div>Offered id {item.tokenId}</div>
+                    <div>Duration {item.durationHours}</div>
+                    <Button
+                      onClick={styler ? makeOffer.bind(this, item.chainId, item) : null}
+                      style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
+                    >
+                      Make Offer
+                    </Button>
+                  </Card>
+                </List.Item>
+              );
+            }
           }}
         />
       </Col>
