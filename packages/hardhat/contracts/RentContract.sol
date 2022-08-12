@@ -357,6 +357,18 @@ contract RentContract is ERC1155Receiver, Ownable {
         return hoursPassed > durationHours;
     }
 
+    function getOfferedAddressesRent(address user, uint256 counter) public view returns(address[] memory) {
+        return UsersRents[user][counter].token;
+    }
+
+    function getOfferedIdsRent(address user, uint256 counter) public view returns(uint256[] memory) {
+        return UsersRents[user][counter].tokenId;
+    }
+
+    function getOfferedStandardsRent(address user, uint256 counter) public view returns(uint256[] memory) {
+        return UsersRents[user][counter].tokenStandard;
+    }
+
     function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual override returns (bytes4) {
         return this.onERC1155Received.selector;
     }

@@ -427,6 +427,7 @@ export default function StartBarter(props) {
   }
 
   async function StartBarter() {
+    console.log(selectedWantedNFT)
     if (selectedOfferNFT.model === 'nft') {
       selectedOfferNFT.standard = 20;
       selectedOfferNFT.id = 0;

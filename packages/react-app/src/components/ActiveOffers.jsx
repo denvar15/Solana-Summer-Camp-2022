@@ -112,16 +112,15 @@ export default function ActiveOffers(props) {
     };
 
     const updateUsersLend = async () => {
-      /*let accounts = JSON.parse(localStorage.getItem("accounts"));
+      let accounts = JSON.parse(localStorage.getItem("accounts"));
       if (!accounts) {
         accounts = []
       }
-      console.log("accounts", accounts)
-      if (accounts.find(el => {return el !=="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
-        accounts.push("0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd")
-      }*/
-      let response = await axios.get('http://94.228.122.16:8080/user');
-      let accounts = response.data;
+      if (!accounts.find(el => {return el ==="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
+        accounts.push({ethWallet: "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})
+      }
+      /*let response = await axios.get('http://94.228.122.16:8080/user');
+      let accounts = response.data;*/
       const res = [];
       for (let i in accounts) {
         let acc = accounts[i].ethWallet;
@@ -141,6 +140,7 @@ export default function ActiveOffers(props) {
                 acc,
                 i,
               );
+              console.log("ul_base", ul_base)
               const addressTok = await props.readContracts.BarterWithArrays.getAcceptedAddressesBarter(
                 acc,
                 i,

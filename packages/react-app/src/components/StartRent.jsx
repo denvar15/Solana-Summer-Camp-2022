@@ -71,7 +71,7 @@ export default function StartRent(props) {
   const [yourCollectibles721, setYourCollectibles721] = useState();
   const [solanaNFT, setSolanaNFT] = useState([]);
   const [selectedWantedNFT, setSelectedWantedNFT] = useState({ address: [], id: [], standard: [] });
-  const [selectedOfferNFT, setSelectedOfferNFT] = useState();
+  const [selectedOfferNFT, setSelectedOfferNFT] = useState({ address: [], id: [], standard: [], model: [], json: [], mintAddress: [] });
   const { wallet } = useWallet();
 
   const tx = props.tx;
@@ -154,7 +154,7 @@ export default function StartRent(props) {
     console.log("Approve results", approveTxResult);
   }
 
-  async function setApproval20() {
+  async function setApproval20(i) {
     const abi = [
       "function balanceOf(address owner) view returns (uint256)",
       "function decimals() view returns (uint8)",
@@ -163,16 +163,16 @@ export default function StartRent(props) {
       "event Transfer(address indexed from, address indexed to, uint amount)",
       "function approve(address spender, uint256 amount) external returns (bool)"
     ];
-
-    const erc20_rw = new ethers.Contract(selectedOfferNFT.address, abi, props.signer);
+    const erc20_rw = new ethers.Contract(selectedOfferNFT.address[i], abi, props.signer);
     const approveTx = await tx(
       erc20_rw.approve(props.readContracts[contractName].address, 1),
     );
     const approveTxResult = await approveTx;
     console.log("Approve results", approveTxResult);
+
   }
 
-  async function selectOfferNFT(item) {
+  /*async function selectOfferNFT(item) {
     try {
       const old = selectedOfferNFT;
       const oldElem = document.getElementById(old.id + "_" + old.uri + "offer");
@@ -184,6 +184,42 @@ export default function StartRent(props) {
     const elem = document.getElementById(item.id + "_" + item.uri + "offer");
     elem.style.border = "solid white 3px";
     setSelectedOfferNFT(item);
+  }*/
+
+  async function selectOfferNFT(item) {
+    const old = selectedOfferNFT;
+    const elem = document.getElementById(item.id + "_" + item.uri + "offer");
+    if (elem.style.border) {
+      elem.style.border = null;
+      for (let i = 0; i < old.address.length; i++) {
+        if (old.address[i] === item.address) {
+          old.address.splice(i);
+          old.id.splice(i);
+          old.standard.splice(i);
+          old.model.splice(i);
+          old.json.splice(i);
+          old.mintAddress.splice(i);
+        }
+      }
+    } else {
+      elem.style.border = "solid white 3px";
+      if (item.model === 'nft') {
+        old.address.push(null);
+        old.model.push(item.model);
+        old.json.push(item.json);
+        old.mintAddress.push(item.mintAddress.toString());
+        old.id.push(0);
+        old.standard.push(20);
+      } else {
+        old.id.push(item.id);
+        old.standard.push(item.standard);
+        old.address.push(item.address);
+        old.model.push(0);
+        old.json.push({});
+        old.mintAddress.push("");
+      }
+    }
+    setSelectedOfferNFT(old);
   }
 
 
@@ -202,7 +238,7 @@ export default function StartRent(props) {
     return hexStringToByteArray("18") + mainbytesArray
   }
 
-  async function transfer(tokenMintAddress, wallet, to, connection, wrap) {
+  async function transfer(tokenMintAddress, wallet, to, connection, wrap, index) {
     const mintPublicKey = new web3.PublicKey(tokenMintAddress);
 
     let EVM_LOADER_ID = new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU");
@@ -271,12 +307,12 @@ export default function StartRent(props) {
     console.log("res1", res1)
     if (res1) {
       getSolana();
-      selectedOfferNFT.address = wrap
+      selectedOfferNFT.address[index] = wrap
     }
   }
 
-  async function SolidityChecks() {
-    const tokenMint = base58_to_binary(selectedOfferNFT.mintAddress.toString());
+  async function SolidityChecks(i) {
+    const tokenMint = base58_to_binary(selectedOfferNFT.mintAddress[i]);
     const tokenMintAddressSolana = binary_to_base58(tokenMint)
     const a = await props.readContracts.WrapperFactory.createWrapp(tokenMint);
     const b = await props.readContracts.WrapperFactory.allWrapps(1, 1);
@@ -297,22 +333,12 @@ export default function StartRent(props) {
     ];
     const d = PublicKey.findProgramAddressSync(seeds, new PublicKey("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU"))[0];
 
-    await transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1]);
+    await transfer(tokenMintAddressSolana, wallet.adapter._wallet, d, connection, b[b.length - 1], i);
   }
 
   async function StartBarter() {
-    if (selectedOfferNFT.model === 'nft') {
-      selectedOfferNFT.standard = 20;
-      selectedOfferNFT.id = 0;
-      await SolidityChecks();
-    }
-
     if (!selectedOfferNFT) {
       alert("SELECT OFFER NFT!");
-      return;
-    }
-    if (!selectedWantedNFT) {
-      alert("SELECT WANTED NFT!");
       return;
     }
     if (!values.duration) {
@@ -323,13 +349,21 @@ export default function StartRent(props) {
       alert("TYPE collateralSum OF RENT!");
       return;
     }
-    if (selectedOfferNFT.standard == 1155) {
-      await setApproval1155();
-    } else if (selectedOfferNFT.standard == 721) {
-      await setApproval721();
-    } else if (selectedOfferNFT.standard == 20) {
-      await setApproval20();
+    for (let i in selectedOfferNFT.model) {
+      if (selectedOfferNFT.model[i] === 'nft') {
+        selectedOfferNFT.standard[i] = 20;
+        selectedOfferNFT.id[i] = 0;
+        await SolidityChecks(i);
+      }
+      if (selectedOfferNFT.standard[i] == 1155) {
+        await setApproval1155();
+      } else if (selectedOfferNFT.standard[i] == 721) {
+        await setApproval721();
+      } else if (selectedOfferNFT.standard[i] == 20) {
+        await setApproval20(i);
+      }
     }
+    console.log(selectedOfferNFT)
     const setTx = await tx(
       writeContracts[contractName].startRent(
         selectedOfferNFT.address,

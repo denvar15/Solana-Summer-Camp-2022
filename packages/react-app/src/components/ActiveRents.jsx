@@ -47,7 +47,6 @@ export default function ActiveRents(props) {
   const [selectedOfferNFT, setSelectedOfferNFT] = useState();
   const [usersLend, setUsersLend] = useState();
   const [solanaNFT, setSolanaNFT] = useState([]);
-  const [bartersFromBackend, setBartersFromBackend] = useState([]);
   const [usersBackendMock, setBackendMock] = useState();
   const { wallet } = useWallet();
 
@@ -112,8 +111,15 @@ export default function ActiveRents(props) {
     };
 
     const updateUsersLend = async () => {
-      let response = await axios.get('http://94.228.122.16:8080/user');
-      let accounts = response.data;
+      /*let response = await axios.get('http://94.228.122.16:8080/user');
+      let accounts = response.data;*/
+      let accounts = JSON.parse(localStorage.getItem("accounts"));
+      if (!accounts) {
+        accounts = []
+      }
+      if (!accounts.find(el => {return el ==="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
+        accounts.push({ethWallet: "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})
+      }
       const res = [];
       for (let i in accounts) {
         let acc = accounts[i].ethWallet;
@@ -124,18 +130,35 @@ export default function ActiveRents(props) {
               acc,
             );
           } catch {}
-          console.log("count", count, acc)
           for (let i = 0; i < count; i++) {
             try {
               const ul_base = await props.readContracts[contractName].UsersRents(
                 acc,
                 i,
               );
+              const addressTok = await props.readContracts[contractName].getOfferedAddressesRent(
+                acc,
+                i,
+              );
+              const idTok_bigs = await props.readContracts[contractName].getOfferedIdsRent(
+                acc,
+                i,
+              );
+              const standardTok_bigs = await props.readContracts[contractName].getOfferedStandardsRent(
+                acc,
+                i,
+              );
+              let idTok = [];
+              let standardTok = [];
+              for (let i in idTok_bigs) {
+                idTok.push(idTok_bigs[i].toNumber());
+                standardTok.push(standardTok_bigs[i].toNumber());
+              }
               const ul = {};
-              ul.token = ul_base.token;
+              ul.token = addressTok;
               ul.status = ul_base.status;
-              ul.tokenId = ul_base.tokenId;
-              ul.tokenStandard = ul_base.tokenStandard.toNumber();
+              ul.tokenId = idTok;
+              ul.tokenStandard = standardTok;
               ul.collateralSum = ul_base.collateralSum.toNumber();
               ul.collateralSumBig = ul_base.collateralSum;
               ul.durationHours = ul_base.durationHours.toNumber();
@@ -205,17 +228,10 @@ export default function ActiveRents(props) {
       setBackendMock(a);
     };
 
-    const getBartersFromBackend = async () => {
-      let response = await  axios.get("http://94.228.122.16:8080/trade")
-      //response.data.shift();
-      setBartersFromBackend(response.data);
-    }
-
     updateCollectibles721();
     updateUsersLend();
     backendMock();
     getSolana();
-    getBartersFromBackend();
   }, []);
 
   function create_account_layout(ether, nonce) {
@@ -440,7 +456,7 @@ export default function ActiveRents(props) {
                 >
                   <div>Wanted sum {item.collateralSum} Mora</div>
                   <div>Offered address {item.token}</div>
-                  <div>Offered id {item.tokenId.toNumber()}</div>
+                  <div>Offered id {item.tokenId}</div>
                   <Button
                     onClick={styler ? makeOffer.bind(this, targetNetwork, item) : null}
                     style={{ backgroundColor: styler ? "green" : "red", color: "white" }}
