@@ -162,6 +162,7 @@ export default function EndRent(props) {
               ul.collateralSum = ul_base.collateralSum.toNumber();
               ul.collateralSumBig = ul_base.collateralSum;
               ul.durationHours = ul_base.durationHours.toNumber();
+              ul.lender = acc;
               if (ul.status.toNumber() === 2 && ul_base.borrower === props.address) {
                 res.push(ul);
               }
@@ -426,6 +427,7 @@ export default function EndRent(props) {
         item.token,
         item.tokenId,
         item.tokenStandard,
+        item.lender,
       ),
     );
     const setTxResult = await setTx;

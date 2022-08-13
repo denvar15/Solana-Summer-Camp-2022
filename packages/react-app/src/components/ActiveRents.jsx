@@ -162,6 +162,7 @@ export default function ActiveRents(props) {
               ul.collateralSum = ul_base.collateralSum.toNumber();
               ul.collateralSumBig = ul_base.collateralSum;
               ul.durationHours = ul_base.durationHours.toNumber();
+              ul.lender = acc;
               if (ul.status.toNumber() === 1) {
                 res.push(ul);
               }
@@ -419,6 +420,7 @@ export default function ActiveRents(props) {
         item.token,
         item.tokenId,
         item.tokenStandard,
+        item.lender,
       ),
     );
 
