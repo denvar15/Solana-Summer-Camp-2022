@@ -65,3 +65,16 @@ left: -1px;
 background-color: rgba(0,0,0,0.7);
 width: calc(100% + 2px);
 }
+.wallet-adapter-button{
+  position: fixed;
+  bottom: 0;
+  z-index: 2;
+  padding: 0 4px !important;
+  left: 0px;
+}
+.wallet-adapter-button:disabled{
+  left: 115px;
+}
+.wallet-adapter-dropdown .wallet-adapter-button{
+  left: 140px;
+}

@@ -81,12 +81,7 @@ const Sidebar = () => {
         >
           <Link to="withdraw">Withdraw</Link>
         </Menu.Item>
-        <Menu.Item 
-          key="4"
-          icon={<AliwangwangOutlined />} 
-        >
-          <Link to="AaveGotchi">AaveGotchi</Link>
-        </Menu.Item>
+
 
         </Menu>
       </Sider>
