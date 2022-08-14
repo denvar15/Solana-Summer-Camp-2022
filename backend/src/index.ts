@@ -7,9 +7,10 @@ import { PORT } from './constants/port';
 
 createConnection()
     .then(async () => {
-        app.listen(PORT, () => {
-            console.info(`Server started and running at ${PORT}`);
-        });
+
+        // app.listen(PORT, () => {
+        //     console.info(`Server started and running at ${PORT}`);
+        // });
     })
     .catch((error: Error) => {
         console.log(error);
