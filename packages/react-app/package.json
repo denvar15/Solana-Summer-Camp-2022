@@ -4,9 +4,11 @@
   "homepage": ".",
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "chrome >= 67",
+      "edge >= 79",
+      "firefox >= 68",
+      "opera >= 54",
+      "safari >= 14"
     ],
     "development": [
       "last 1 chrome version",
@@ -94,7 +96,7 @@
     "extends": "react-app"
   },
   "scripts": {
-    "build": "react-scripts build",
+    "build": "react-app-rewired build",
     "eject": "react-scripts eject",
     "prestart": "node ./scripts/create_contracts.js",
     "start": "react-app-rewired start",

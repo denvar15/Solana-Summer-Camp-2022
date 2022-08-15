@@ -477,7 +477,7 @@ export default function ActiveOffers(props) {
     try {
       const old = selectedWantedNFT;
       if (old.standard === 20) {
-        const oldElem = document.getElementById(old.data.nft.address.toString());
+        const oldElem = document.getElementById(old.nft.address.toString());
         oldElem.style.border = "";
       } else {
         const oldElem = document.getElementById(old.id + "_" + old.uri);
@@ -487,7 +487,7 @@ export default function ActiveOffers(props) {
       console.log(e);
     }
     if (item.standard === 20) {
-      const elem = document.getElementById(item.data.nft.address.toString());
+      const elem = document.getElementById(item.nft.address.toString());
       elem.style.border = "solid white 3px";
       setSelectedWantedNFT(item);
     } else {
@@ -537,7 +537,7 @@ export default function ActiveOffers(props) {
     }
 
     if (selectedWantedNFT.standard === 20) {
-      selectedWantedNFT.address = selectedWantedNFT.data.token
+      selectedWantedNFT.address = selectedWantedNFT.firstNFTAddress
       console.log("M", selectedWantedNFT.address, selectedWantedNFT)
       selectedWantedNFT.id = 0;
     }

@@ -5,10 +5,10 @@ import bg_head from "../img/logo.aadda478.svg";
 
 export default function Header() {
   return (
-    <a href="/" target="_blank" rel="noopener noreferrer">
+    <a href="/gtg" target="_blank" rel="noopener noreferrer">
       <PageHeader
         title="GtG"
-        subTitle="Guild to Guild"
+        subTitle="Guild to Guild NFT cross-chain barter "
         style={{ cursor: "pointer", backgroundImage: `url(${bg_head})`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center center', backgroundSize: '8%' }}
       />
     </a>
