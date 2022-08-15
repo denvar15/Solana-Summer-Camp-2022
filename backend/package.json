@@ -7,6 +7,7 @@
     "dev": "export NODE_OPTIONS=--openssl-legacy-provider && nodemon",
     "prebuild": "rimraf dist/",
     "build": "tsc",
+    "lint": "prettier --write .",
     "start": "ts-node dist/index.js"
   },
   "keywords": [
