@@ -68,7 +68,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   );
 
  await contract.transferOwnership(  
-    "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"
+    "0x1259767183B189d7a4f8429A711eEA435e698a84"
   );
 
   contract = await ethers.getContractAt(
@@ -80,8 +80,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   await contract.transferOwnership(RentContract.address);
 
-  const toAddress = "0x03cb144b401139a96873836f8e9B12f013FdEcA9";
-  const toAddress2 = "0xC95e4bb1145a696EA4F1467eE7f664051319d0D9";
+  const toAddress = "0x1259767183B189d7a4f8429A711eEA435e698a84";
+  const toAddress2 = "0xf38b0043a5768b6d8012e22F21BcbAC628CD858A";
 
   const yourCollectible1 = await deployments.get("YourCollectible");
 

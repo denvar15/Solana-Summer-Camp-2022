@@ -6,9 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract YourCollectible721 is ERC721URIStorage, ERC721Enumerable, Ownable  {
+contract YourCollectible721 is ERC721URIStorage, ERC721Enumerable  {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -52,7 +51,7 @@ contract YourCollectible721 is ERC721URIStorage, ERC721Enumerable, Ownable  {
         return super.supportsInterface(interfaceId);
     }
 
-    function safeMint(address to, uint256 tokenId) public onlyOwner {
+    function safeMint(address to, uint256 tokenId) public {
         _safeMint(to, tokenId);
     }
 

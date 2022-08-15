@@ -7,7 +7,7 @@ import { NodeExpandOutlined } from "@ant-design/icons";
 import { base58_to_binary, binary_to_base58 } from "base58-js";
 import { web3 } from "@project-serum/anchor";
 import genoImg from "../img/page-fg--hero.png";
-import {Home} from "./index";
+import {ApproveBarter, Home} from "./index";
 import {
   clusterApiUrl,
   Keypair,
@@ -404,6 +404,11 @@ export default function StartBarter(props) {
     }
   }
 
+  async function mintTestNft() {
+    await props.readContracts[tokenName].mint(props.address, 1, 5, 0);
+    await props.readContracts[tokenName721].mintItem(props.address, '');
+  }
+
   async function SolidityChecks() {
     //const tokenMintAddressSolana = "BoPi4sbTbEsABA2WZdBex5Gj9ZHXWULNsLDGcEb8seGe"
     //const tokenMint = base58_to_binary(tokenMintAddressSolana);
@@ -547,6 +552,14 @@ export default function StartBarter(props) {
     }
   }
 
+  let myCollectibles = []
+
+  for (let i in props.yourCollectibles) {
+    if (props.yourCollectibles[i].owned.toNumber() > 0) {
+      myCollectibles.push(props.yourCollectibles[i]);
+    }
+  }
+
   return (
     <div>
       {/*  <Button style={{ marginLeft: "50%" }} onClick={setApproval1155.bind(this)}>
@@ -565,6 +578,16 @@ export default function StartBarter(props) {
             ))}
           </Steps>
           <div className="steps-content">
+
+            {(myCollectibles.length === 0 && props.yourCollectibles721.length === 0) ? (
+              <div>
+                <Button onClick={mintTestNft.bind(this)}>
+                  Mint test NFT
+                </Button>
+              </div>
+            ) : (
+              ""
+            )}
 
           {(() => {
       switch (steps[current].id) {
@@ -711,13 +734,13 @@ export default function StartBarter(props) {
                             newValues.duration = e.target.value;
                             setValues(newValues);
                           }}
-                          placeholder="Время обмена (NFT будет заморожена)"
+                          placeholder="Freezing time"
                           value={values.duration}
                         />{" "}
                       </Space>
                       <br /><br />
                       <Button type="primary" onClick={StartBarter.bind(this)}>
-                          Начать обмен
+                          Start Barter
                         </Button>
                     </div>
                   </div>

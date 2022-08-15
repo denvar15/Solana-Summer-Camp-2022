@@ -7,8 +7,8 @@ export default function Header() {
   return (
     <a href="/" target="_blank" rel="noopener noreferrer">
       <PageHeader
-        title="Crypto steam"
-        subTitle="NFT Barter"
+        title="GtG"
+        subTitle="Guild to Guild"
         style={{ cursor: "pointer", backgroundImage: `url(${bg_head})`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center center', backgroundSize: '8%' }}
       />
     </a>

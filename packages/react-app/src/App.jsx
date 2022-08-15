@@ -820,9 +820,7 @@ const App = props => {
       </BrowserRouter>
 
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
-      <div style={{ position: "fixed", textAlign: "center", right: 0, top: 0, padding: 10,
-        display: "grid", gridTemplateColumns: "1fr 1fr", gridGap: "20px", width: "50%"}}>
-
+      <div style={{ position: "fixed", textAlign: "center", right: 0, top: 0, padding: 10}}>
         <Account
           style={{margin: "10px"}}
           address={address}
