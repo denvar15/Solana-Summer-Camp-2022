@@ -1,10 +1,26 @@
-# CryptoSteam backend
+# CryptoSteam backend, node.js version
 
-# Установка
+## Setup
+
+```bash
+git clone https://github.com/denvar15/Solana-Summer-Camp-2022.git
+cd backend
+npm i --legacy-peer-deps
 ```
-git clone https://github.com/k0b1x/pbs
-cd pbs/backend
-docker-compose up -d --build
-``` 
-# Запуск
-http://localhost:8999/api/
+
+## Dev run
+
+```bash
+npm run dev
+```
+
+## Production run
+
+```bash
+npm run build
+npm run start
+```
+
+## Accessing endpoints
+
+<http://localhost:8080/nft>
