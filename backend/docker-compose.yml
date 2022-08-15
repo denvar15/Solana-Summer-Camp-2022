@@ -2,5 +2,5 @@ version: '3.3'
 
 services:
     solana_production:
-        image: solana_production:latest
+        image: solana_production:contracts
         network_mode: 'host'
