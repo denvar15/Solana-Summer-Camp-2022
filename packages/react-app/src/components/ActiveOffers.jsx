@@ -112,15 +112,13 @@ export default function ActiveOffers(props) {
     };
 
     const updateUsersLend = async () => {
-      let accounts = JSON.parse(localStorage.getItem("accounts"));
+      /*let accounts = JSON.parse(localStorage.getItem("accounts"));
       if (!accounts) {
         accounts = []
-      }
-      if (!accounts.find(el => {return el ==="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
-        accounts.push({ethWallet: "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})
-      }
-      /*let response = await axios.get('http://94.228.122.16:8080/user');
-      let accounts = response.data;*/
+      }*/
+
+      let response = await axios.get('http://94.228.122.16:8080/user');
+      let accounts = response.data;
       const res = [];
       for (let i in accounts) {
         let acc = accounts[i].ethWallet;
@@ -241,17 +239,10 @@ export default function ActiveOffers(props) {
       setBackend(a);
     };
 
-    const getBartersFromBackend = async () => {
-      let response = await  axios.get("http://94.228.122.16:8080/trade")
-      //response.data.shift();
-      setBartersFromBackend(response.data);
-    }
-
     updateCollectibles721();
     updateUsersLend();
     backend();
     getSolana();
-    getBartersFromBackend();
   }, []);
 
   const rowForm = (title, icon, onClick) => {

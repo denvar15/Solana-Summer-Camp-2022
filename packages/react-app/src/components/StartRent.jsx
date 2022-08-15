@@ -376,6 +376,12 @@ export default function StartRent(props) {
     const setTxResult = await setTx;
     console.log("startRent result", setTxResult);
     if (setTxResult != null) {
+      try {
+        await axios.post('http://94.228.122.16:8080/user', {
+          solanaWallet: "",
+          ethWallet: props.address,
+        })
+      } catch {}
       const data = {
         token: selectedOfferNFT.address,
         tokenId: selectedOfferNFT.id,

@@ -111,15 +111,15 @@ export default function ActiveRents(props) {
     };
 
     const updateUsersLend = async () => {
-      /*let response = await axios.get('http://94.228.122.16:8080/user');
-      let accounts = response.data;*/
-      let accounts = JSON.parse(localStorage.getItem("accounts"));
+      let response = await axios.get('http://94.228.122.16:8080/user');
+      let accounts = response.data;
+      /*let accounts = JSON.parse(localStorage.getItem("accounts"));
       if (!accounts) {
         accounts = []
       }
-      if (!accounts.find(el => {return el ==="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
-        accounts.push({ethWallet: "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})
-      }
+      if (!accounts.find(el => {return el ==="0x1259767183B189d7a4f8429A711eEA435e698a84"})) {
+        accounts.push({ethWallet: "0x1259767183B189d7a4f8429A711eEA435e698a84"})
+      }*/
       const res = [];
       for (let i in accounts) {
         let acc = accounts[i].ethWallet;

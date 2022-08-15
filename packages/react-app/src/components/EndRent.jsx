@@ -111,15 +111,15 @@ export default function EndRent(props) {
     };
 
     const updateUsersLend = async () => {
-      /*let response = await axios.get('http://94.228.122.16:8080/user');
-      let accounts = response.data;*/
-      let accounts = JSON.parse(localStorage.getItem("accounts"));
+      let response = await axios.get('http://94.228.122.16:8080/user');
+      let accounts = response.data;
+      /*let accounts = JSON.parse(localStorage.getItem("accounts"));
       if (!accounts) {
         accounts = []
       }
       if (!accounts.find(el => {return el ==="0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})) {
         accounts.push({ethWallet: "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"})
-      }
+      }*/
       const res = [];
       for (let i in accounts) {
         let acc = accounts[i].ethWallet;

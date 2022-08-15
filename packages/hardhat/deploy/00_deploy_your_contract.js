@@ -33,15 +33,18 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
   });
 
-  await deploy("RentContract", {
-    from: deployer,
-    log: true,
-  });
-
   await deploy("Treaty", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
     args: [tokenUri],
+    log: true,
+  });
+
+  const Treaty  = await deployments.get("Treaty");
+
+  await deploy("RentContract", {
+    from: deployer,
+    args: [Treaty.address],
     log: true,
   });
 
@@ -59,17 +62,26 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const BarterWithArrays = await deployments.get("BarterWithArrays");
 
-  const contract = await ethers.getContractAt(
+  let contract = await ethers.getContractAt(
     BarterWithArrays.abi,
     BarterWithArrays.address
   );
 
-  await contract.transferOwnership(
+ await contract.transferOwnership(  
     "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd"
   );
 
-  const toAddress = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
-  const toAddress2 = "0x3Cd3AA68E6f86c3e7237ee874EeB073c3D178339";
+  contract = await ethers.getContractAt(
+    Treaty.abi,
+    Treaty.address
+  );
+
+  const RentContract  = await deployments.get("RentContract");
+
+  await contract.transferOwnership(RentContract.address);
+
+  const toAddress = "0x1259767183B189d7a4f8429A711eEA435e698a84";
+  const toAddress2 = "0xf38b0043a5768b6d8012e22F21BcbAC628CD858A";
 
   const yourCollectible1 = await deployments.get("YourCollectible");
 

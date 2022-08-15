@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "./IArom.sol";
+import "./Treaty.sol";
 
 contract RentContract is ERC1155Receiver, Ownable {
     /*
@@ -84,8 +85,13 @@ contract RentContract is ERC1155Receiver, Ownable {
 
     event Received();
 
+    address treatyAddress;
     address AromAddress = 0xBc22A1304213b1a11eed3c5D116908575939BC4b;
     address MoraAddress = 0x972f3FE7Cd7f10ae8D27AAc17F0938Ea4773b149;
+
+    constructor(address treatyAddr) {
+        treatyAddress = treatyAddr;
+    }
 
     function startRent(address[] memory token, uint256[] memory tokenId, uint256[] memory tokenStandard, uint256 durationHours, uint256 collateralSum) public {
         require(durationHours > 0, 'Lending: Lending duration must be above 0');
@@ -169,6 +175,12 @@ contract RentContract is ERC1155Receiver, Ownable {
             rentERCList[wantedTokenStandard[i]][wantedToken[i]][wantedTokenId[i]][index].borrower = msg.sender;
             rentERCList[wantedTokenStandard[i]][wantedToken[i]][wantedTokenId[i]][index].aromAtStart = IArom(AromAddress).moraForArom(item.collateralSum);
             updateUsersLend(wantedToken[i], wantedTokenId[i], wantedTokenStandard[i], msg.sender, block.timestamp, lender);
+            uint256 tokId = Treaty(treatyAddress).getCurrentTokenID();
+            address tokAddr = wantedToken[i];
+            //uint256 tokIdent = wantedTokenId[i];
+            //uint256 tokStand = wantedTokenStandard[i];
+            //bytes calldata finData = (abi.encodePacked(tokAddr) << 10) + (abi.encodePacked(tokIdent) << 5) + abi.encodePacked(tokStand);
+            Treaty(treatyAddress).mint(msg.sender, lender, tokId, 1, abi.encodePacked(tokAddr));
             emit NFTForRentUpdated(wantedToken[i], wantedTokenId[i]);
         }
     }
