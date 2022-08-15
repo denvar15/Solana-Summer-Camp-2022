@@ -1,4 +1,4 @@
-import { Card, Col, Button, Input, Row, List } from "antd";
+import { Card, Col, Button, Input, Row, List, Layout } from "antd";
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
@@ -10,6 +10,8 @@ import axios from "axios";
 import {getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID} from "@solana/spl-token";
 import {useWallet} from "@solana/wallet-adapter-react";
 import {web3} from "@project-serum/anchor";
+import { Sidebar } from "./index";
+
 const { BufferList } = require("bl");
 const {create} = require('ipfs-http-client')
 const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
@@ -435,6 +437,8 @@ export default function EndRent(props) {
   }
 
   return (
+    <Layout>
+      <Sidebar/>
     <Row>
       <Col span={24}>
         <h1>Active Offers</h1>
@@ -469,5 +473,6 @@ export default function EndRent(props) {
         />
       </Col>
     </Row>
+    </Layout>
   );
 }

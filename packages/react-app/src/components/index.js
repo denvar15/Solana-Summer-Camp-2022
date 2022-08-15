@@ -28,3 +28,6 @@ export { default as Withdraw } from "./Withdraw.jsx";
 export { default as StartRent } from "./StartRent.jsx";
 export { default as ActiveRents } from "./ActiveRents.jsx";
 export { default as EndRent } from "./EndRent.jsx";
+export { default as Home } from "./Home.jsx";
+export { default as Game } from "./Game.jsx";
+export { default as Nft } from "./Nft.jsx";

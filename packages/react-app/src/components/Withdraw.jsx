@@ -452,7 +452,7 @@ export default function Withdraw(props) {
                 <Col span={16} className="ps-5">
                   <Card>
                     <Row>
-                      <h3>Ваши Solana NFT в ERC20</h3>
+                      <h3>Yours Solana NFT в ERC20</h3>
                     </Row>
                     <Row>
                       {solanaNFT &&

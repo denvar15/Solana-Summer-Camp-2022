@@ -425,8 +425,6 @@ export default function StartRent(props) {
                     }}
                   >
                     <div className="mynft__text">
-                      <h2 className="text-start">16 в кошельке</h2>
-                      <small className="text-start">20 торгуется</small>
                       <div className="mt-3 text-center">
                         <Input
                           onChange={e => {
@@ -434,7 +432,7 @@ export default function StartRent(props) {
                             newValues.duration = e.target.value;
                             setValues(newValues);
                           }}
-                          placeholder="Время обмена (NFT будет заморожена)"
+                          placeholder="Exchange time (NFT will be frozen)"
                           value={values.duration}
                         />{" "}
                         <br />
@@ -444,12 +442,12 @@ export default function StartRent(props) {
                             newValues.collateralSum = e.target.value;
                             setValues(newValues);
                           }}
-                          placeholder="Желаемая сумма залога"
+                          placeholder="Desired deposit amount"
                           value={values.collateralSum}
                         />{" "}
                         <br />
                         <Button type="primary" onClick={StartBarter.bind(this)}>
-                          Начать обмен
+                        Start exchange
                         </Button>
                       </div>
                     </div>
@@ -460,7 +458,7 @@ export default function StartRent(props) {
                 <Col span={16} className="ps-5">
                   <Card>
                     <Row>
-                      <h3>Ваши 1155</h3>
+                      <h3>Yours 1155</h3>
                     </Row>
                     <Row>
                       {props.yourCollectibles.map(item => {
@@ -482,7 +480,7 @@ export default function StartRent(props) {
                       })}
                     </Row>
                     <Row>
-                      <h3>Ваши Solana NFT</h3>
+                      <h3>Yours Solana NFT</h3>
                     </Row>
                     <Row>
                       {solanaNFT &&
@@ -500,7 +498,7 @@ export default function StartRent(props) {
                         ))}
                     </Row>
                     <Row>
-                      <h3>Ваши NFT 721</h3>
+                      <h3>Yours NFT 721</h3>
                     </Row>
                     <Row>
                       {props.yourCollectibles721 &&

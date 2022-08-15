@@ -1,4 +1,4 @@
-import { Card, Col, Button, Input, Row, List } from "antd";
+import { Card, Col, Button, Input, Row, List, Layout } from "antd";
 import { useBalance, useContractReader, useContractReaderUntyped } from "eth-hooks";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import {Metaplex} from "@metaplex-foundation/js";
 import {binary_to_base58} from "base58-js";
 import axios from "axios";
 import abi from "../contracts/hardhat_contracts.json";
+import { Sidebar } from './../components'
 
 const { BufferList } = require("bl");
 //const ipfsAPI = require("ipfs-http-client");
@@ -15,6 +16,7 @@ const { BufferList } = require("bl");
 const {create} = require('ipfs-http-client')
 const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
 const ipfs = create({ url: "https://denvar15.infura-ipfs.io/ipfs", headers: { Authorization: auth } });
+const { Header, Content, Sider } = Layout;
 
 const contractName = "BarterWithArrays";
 const tokenName = "YourCollectible";
@@ -590,6 +592,8 @@ export default function ApproveBarter(props) {
 
   return (
     <div>
+      <Layout>
+        <Sidebar/>
       <Row>
         <Col span={24}>
           <h1>Awaiting Approve</h1>
@@ -744,6 +748,7 @@ export default function ApproveBarter(props) {
           />
         </Col>
       </Row>
+      </Layout>
     </div>
   );
 }

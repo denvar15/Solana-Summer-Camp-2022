@@ -5,7 +5,7 @@
       "chainId": "245022926",
       "contracts": {
         "YourCollectible": {
-          "address": "0xa71c4FC68EfD588C48c388C911E82840bD658e20",
+          "address": "0x9FB4C7a7111ced9cA80C13430032D38D64798321",
           "abi": [
             {
               "inputs": [
@@ -445,7 +445,7 @@
           ]
         },
         "YourCollectible721": {
-          "address": "0xd45FcA385bdf722c706a3C7190b64c263420355b",
+          "address": "0xbAdC2BA1fed5C6Dd5a782c72896a0aC42AB00Cdb",
           "abi": [
             {
               "inputs": [],
@@ -935,7 +935,7 @@
           ]
         },
         "BarterWithArrays": {
-          "address": "0xaE91C47Bf8075AF982166D64aB7b45E337FAc5f2",
+          "address": "0x6233840a5584dE29c348A60f81306623EF15875D",
           "abi": [
             {
               "anonymous": false,
@@ -1592,7 +1592,7 @@
           ]
         },
         "Treaty": {
-          "address": "0xca4465692D89B511de3112b4B0C791F248194fE7",
+          "address": "0xd97C1CcAfc254528bc530D2B0031d2b3037376f9",
           "abi": [
             {
               "inputs": [
@@ -2037,7 +2037,7 @@
           ]
         },
         "RentContract": {
-          "address": "0x003f8998De7eA11D57a6E716Be37207077A76e69",
+          "address": "0x5e97d6386b5c4E71e28b2B9EF88F825847020f56",
           "abi": [
             {
               "inputs": [
@@ -2556,7 +2556,7 @@
           ]
         },
         "WrapperFactory": {
-          "address": "0x6F4Ce6ec4F7E7C75Fc22A8788C6B4d0947994c88",
+          "address": "0x0A4114382365437f029ac7cAbBB9c15591Ae4F5E",
           "abi": [
             {
               "inputs": [
@@ -2617,7 +2617,7 @@
           ]
         },
         "NeonERC20Wrapper": {
-          "address": "0x8aE92370cEB8C3CaDEe1D773051D01d4D5BE405b",
+          "address": "0x38d6Cdbd105cB381962525D4eb7593B9eF157d0A",
           "abi": [
             {
               "inputs": [
