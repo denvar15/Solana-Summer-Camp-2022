@@ -665,7 +665,7 @@ export default function ApproveBarter(props) {
         <Col span={7}>
           <h1>Offer 1155</h1>
           <List
-            style={{ marginLeft: "50%" }}
+            style={{ marginLeft: "35%" }}
             bordered
             dataSource={props.yourCollectibles}
             renderItem={item => {
@@ -695,7 +695,7 @@ export default function ApproveBarter(props) {
         <Col span={7}>
           <h1>Offer 721</h1>
           <List
-            style={{ marginLeft: "50%" }}
+            style={{ marginLeft: "35%" }}
             bordered
             dataSource={yourCollectibles721}
             renderItem={item => {
@@ -722,7 +722,7 @@ export default function ApproveBarter(props) {
         <Col span={6}>
           <h1>Wanted ERC20</h1>
           <List
-            style={{ marginLeft: "50%" }}
+            style={{ marginLeft: "35%" }}
             bordered
             dataSource={SolanaNFTs}
             renderItem={item => {
