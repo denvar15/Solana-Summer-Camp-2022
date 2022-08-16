@@ -20,7 +20,9 @@ import {
   ActiveOffers,
   ApproveBarter,
   P2p,
-  AaveGotchi
+  AaveGotchi,
+  Withdraw, StartRent, EndRent,
+  Game, Nft
 } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -35,12 +37,17 @@ import {
   useUserSigner,
 } from "./hooks";
 
+import { Wallet } from "./helpers/Wallet";
+import axios from "axios";
+import ActiveRents from "./components/ActiveRents";
+
 const { BufferList } = require("bl");
 // https://www.npmjs.com/package/ipfs-http-client
-const ipfsAPI = require("ipfs-http-client");
-
-const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
-
+//const ipfsAPI = require("ipfs-http-client");
+//const ipfs = ipfsAPI({ host: "ipfs.infura.io", port: "5001", protocol: "https" });
+const {create} = require('ipfs-http-client')
+const auth = 'Basic ' + Buffer.from("2DAF3VlkmCD9NtqMk2hIxxawzak" + ':' + "f3c411643318af9767a14a1a7c4ca6b9").toString('base64');
+const ipfs = create({ url: "https://denvar15.infura-ipfs.io/ipfs", headers: { Authorization: auth } });
 const { ethers } = require("ethers");
 
 /*
@@ -63,10 +70,17 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-let targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+let targetNetworkStorage = localStorage.getItem("targetNetwork");
+let targetNetwork;
+if (!targetNetworkStorage) {
+  targetNetwork = NETWORKS.neon;
+  localStorage.setItem("targetNetwork", targetNetwork.chainId);
+} else {
+  targetNetwork = NETWORK(parseInt(targetNetworkStorage))
+  console.log(targetNetwork)
+}
 
-const ownerAccountForTests = "0x62FaFb31cfB1e57612bE488035B3783048cFe813";
-localStorage.setItem("targetNetwork", targetNetwork.chainId);
+const ownerAccountForTests = "0xa5B49719612954fa7bE1616B27Aff95eBBcdDfcd";
 
 window.localStorage.setItem("theme", "dark");
 
@@ -95,14 +109,8 @@ const STARTING_JSON = {
 // helper function to "Get" from IPFS
 // you usually go content.toString() after this...
 const getFromIPFS = async hashToGet => {
-  for await (const file of ipfs.get(hashToGet)) {
-    if (!file.content) continue;
-    const content = new BufferList();
-    for await (const chunk of file.content) {
-      content.append(chunk);
-    }
-    return content;
-  }
+  let response = await  axios.get("https://denvar15.infura-ipfs.io/ipfs/" + hashToGet)
+  return JSON.stringify(response.data);
 };
 
 // 🛰 providers
@@ -155,7 +163,7 @@ const logoutOfWeb3Modal = async () => {
   }, 1);
 };
 
-function App(props) {
+const App = props => {
   const mainnetProvider = scaffoldEthProvider && scaffoldEthProvider._network ? scaffoldEthProvider : mainnetInfura;
 
   const [injectedProvider, setInjectedProvider] = useState();
@@ -166,7 +174,7 @@ function App(props) {
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
-  const userSigner = useUserSigner(injectedProvider, localProvider);
+  const userSigner = useUserSigner(injectedProvider, injectedProvider);
 
   useEffect(() => {
     async function getAddress() {
@@ -179,7 +187,7 @@ function App(props) {
   }, [userSigner]);
 
   // You can warn the user if you would like them to be on a specific network
-  const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
+  // const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
   const selectedChainId =
     userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
 
@@ -189,50 +197,55 @@ function App(props) {
   const tx = Transactor(userSigner, gasPrice);
 
   // Faucet Tx can be used to send funds from the faucet
-  const faucetTx = Transactor(localProvider, gasPrice);
+  // const faucetTx = Transactor(localProvider, gasPrice);
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  const yourLocalBalance = useBalance(localProvider, address);
+  // const yourLocalBalance = useBalance(injectedProvider, address);
+  const yourLocalBalance = 0;
 
   // Just plug in different 🛰 providers to get your balance on different chains:
-  const yourMainnetBalance = useBalance(mainnetProvider, address);
+  // const yourMainnetBalance = useBalance(mainnetProvider, address);
 
   // Load in your local 📝 contract and read a value from it:
-  const readContracts = useContractLoader(localProvider);
-
+  const readContracts = useContractLoader(injectedProvider);
+  // const readContracts = null;
+  // const readContracts = {};
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
-  const writeContracts = useContractLoader(userSigner, { chainId: localChainId });
+  const writeContracts = useContractLoader(userSigner, { chainId: selectedChainId });
+  /*
+   const collectiblesCount = useContractReader(readContracts, "YourCollectible", "getCurrentTokenID");
+   const numberCollectiblesCount = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
+   */
+  const [yourCollectibles, setYourCollectibles] = useState([]);
+  const [yourCollectibles721, setYourCollectibles721] = useState([]);
+  /*
+   const balance = useContractReader(readContracts, "YourCollectible721", "balanceOf", [address]);
+   const yourBalance = balance && balance.toNumber && balance.toNumber();
+    */
 
-  // EXTERNAL CONTRACT EXAMPLE:
-  //
-  // If you want to bring in the mainnet DAI contract it would look like:
-  const mainnetContracts = useContractLoader(mainnetProvider);
+  const numberCollectiblesCount = 0;
+  const yourBalance = 0;
 
-  // If you want to call a function on a new block
-  useOnBlock(mainnetProvider, () => {
-    // console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
-  });
-
-  // Then read your DAI balance like:
-  const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
-    "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-  ]);
-
-  // 📟 Listen for broadcast events
-  const transferEvents = useEventListener(readContracts, "YourCollectible", "TransferSingle", localProvider, 1);
-
-  const collectiblesCount = useContractReader(readContracts, "YourCollectible", "getCurrentTokenID");
-  const numberCollectiblesCount = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
-  const [yourCollectibles, setYourCollectibles] = useState();
-  const [yourCollectibles721, setYourCollectibles721] = useState();
-  const balance = useContractReader(readContracts, "YourCollectible721", "balanceOf", [address]);
-  const yourBalance = balance && balance.toNumber && balance.toNumber();
 
   useEffect(() => {
     const updateCollectibles = async () => {
       const collectiblesUpdate = [];
 
-      for (let collectibleIndex = 0; collectibleIndex < numberCollectiblesCount; collectibleIndex++) {
+      let totalSupply = 0;
+      if (readContracts) {
+        try {
+          const collectiblesCount = await readContracts.YourCollectible.getCurrentTokenID();
+          totalSupply = collectiblesCount && collectiblesCount.toNumber && collectiblesCount.toNumber();
+        } catch(e) {
+          setYourCollectibles([]);
+        }
+      }
+
+      if (!totalSupply) {
+        setYourCollectibles([]);
+      }
+
+      for (let collectibleIndex = 0; collectibleIndex < totalSupply; collectibleIndex++) {
         try {
           const tokenSupply = await readContracts.YourCollectible.tokenSupply(collectibleIndex);
           const owned = await readContracts.YourCollectible.balanceOf(address, collectibleIndex);
@@ -265,7 +278,22 @@ function App(props) {
     };
     const updateCollectibles721 = async () => {
       const collectibleUpdate = [];
-      for (let tokenIndex = 0; tokenIndex < yourBalance; tokenIndex++) {
+
+      let totalSupply = 0;
+      if (readContracts) {
+        try {
+          const balance = await readContracts.YourCollectible721.balanceOf(address);
+          totalSupply = balance && balance.toNumber && balance.toNumber();
+        } catch(e) {
+          setYourCollectibles721([]);
+        }
+      }
+
+      if (!totalSupply) {
+        setYourCollectibles721([]);
+      }
+
+      for (let tokenIndex = 0; tokenIndex < totalSupply; tokenIndex++) {
         try {
           let tokenId = await readContracts.YourCollectible721.tokenOfOwnerByIndex(address, tokenIndex);
           tokenId = tokenId.toNumber();
@@ -296,7 +324,7 @@ function App(props) {
     };
     updateCollectibles();
     updateCollectibles721();
-  }, [numberCollectiblesCount, yourLocalBalance, yourBalance]);
+  }, [numberCollectiblesCount, yourLocalBalance, yourBalance, readContracts]);
 
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -313,10 +341,8 @@ function App(props) {
       address &&
       selectedChainId &&
       yourLocalBalance &&
-      yourMainnetBalance &&
       readContracts &&
       writeContracts &&
-      mainnetContracts &&
       yourBalance
     ) {
       /* console.log("_____________________________________ 🏗 scaffold-eth _____________________________________");
@@ -332,23 +358,14 @@ function App(props) {
       console.log("🔐 writeContracts", writeContracts);
       */
     }
-  }, [
-    mainnetProvider,
-    address,
-    selectedChainId,
-    yourLocalBalance,
-    yourMainnetBalance,
-    readContracts,
-    writeContracts,
-    mainnetContracts,
-    yourBalance,
-  ]);
+  }, [mainnetProvider, address, selectedChainId, yourLocalBalance, readContracts, writeContracts, yourBalance]);
 
   let networkDisplay = "";
   if (selectedChainId !== targetNetwork.chainId) {
     const networkSelected = NETWORK(selectedChainId);
-    const networkLocal = NETWORK(localChainId);
-    if (selectedChainId === 1337 && localChainId === 31337) {
+    // const networkLocal = NETWORK(localChainId);
+    const networkLocal = 0;
+    if (selectedChainId === 1337) {
       networkDisplay = (
         <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
           <Alert
@@ -441,11 +458,9 @@ function App(props) {
   }, [setRoute]);
 
   let faucetHint = "";
-  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
 
-  const [faucetClicked, setFaucetClicked] = useState(false);
+  /*
   if (
-    !faucetClicked &&
     localProvider &&
     localProvider._network &&
     localProvider._network.chainId == 31337 &&
@@ -457,11 +472,6 @@ function App(props) {
         <Button
           type="primary"
           onClick={() => {
-            faucetTx({
-              to: address,
-              value: ethers.utils.parseEther("0.01"),
-            });
-            setFaucetClicked(true);
           }}
         >
           💰 Grab funds from the faucet ⛽️
@@ -469,20 +479,10 @@ function App(props) {
       </div>
     );
   }
+   */
+
   faucetHint = (
     <div style={{ padding: 16 }}>
-      <Button
-        type="primary"
-        onClick={() => {
-          faucetTx({
-            to: address,
-            value: ethers.utils.parseEther("0.01"),
-          });
-          setFaucetClicked(true);
-        }}
-      >
-        💰 Grab funds from the faucet ⛽️
-      </Button>
       <Button
         onClick={async () => {
           const yourNumber = ethers.utils.hexlify(NETWORKS.goerli.chainId);
@@ -499,17 +499,17 @@ function App(props) {
       </Button>
       <Button
         onClick={async () => {
-          const yourNumber = ethers.utils.hexlify(NETWORKS.kovan.chainId);
+          const yourNumber = ethers.utils.hexlify(NETWORKS.neon.chainId);
           console.log(yourNumber);
           await window.ethereum.request({
             method: "wallet_switchEthereumChain",
-            params: [{ chainId: yourNumber }],
+            params: [{ chainId: "0xE9AC0CE" }],
           });
-          targetNetwork = NETWORKS.kovan;
-          localStorage.setItem("targetNetwork", NETWORKS.kovan.chainId);
+          targetNetwork = NETWORKS.neon;
+          localStorage.setItem("targetNetwork", NETWORKS.neon.chainId);
         }}
       >
-        Kovan
+        Neon DevNet
       </Button>
     </div>
   );
@@ -530,58 +530,7 @@ function App(props) {
       <Header />
       {networkDisplay}
       <BrowserRouter>
-        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
-            <Link
-              onClick={() => {
-                setRoute("/");
-              }}
-              to="/"
-            >
-              Start Barter
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/active_offers">
-            <Link
-              onClick={() => {
-                setRoute("/active_offers");
-              }}
-              to="/active_offers"
-            >
-              Active Barter Offers
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/approve_barter">
-            <Link
-              onClick={() => {
-                setRoute("/approve_barter");
-              }}
-              to="/approve_barter"
-            >
-              Approve Barter
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/your_collectibles">
-            <Link
-              onClick={() => {
-                setRoute("/your_collectibles");
-              }}
-              to="/your_collectibles"
-            >
-              YourCollectibles
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/AaveGotchi">
-            <Link
-              onClick={() => {
-                setRoute("/AaveGotchi");
-              }}
-              to="/AaveGotchi"
-            >
-              AaveGotchi
-            </Link>
-          </Menu.Item>
-        </Menu>
+      <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal"></Menu>
 
         <Switch>
           <Route path="/your_collectibles">
@@ -614,7 +563,7 @@ function App(props) {
                           onChange={newValue => {
                             const update = {};
                             update[id] = newValue;
-                            setTransferToAddresses({ ...transferToAddresses, ...update });
+                            // setTransferToAddresses({ ...transferToAddresses, ...update });
                           }}
                         />
                         <Button
@@ -664,105 +613,12 @@ function App(props) {
               />
             </div>
           </Route>
-
-          <Route path="/transfers">
-            <div style={{ width: 600, margin: "auto", marginTop: 32, paddingBottom: 32 }}>
-              <List
-                bordered
-                dataSource={transferEvents}
-                renderItem={item => {
-                  return (
-                    <List.Item key={item[1] + "_" + item[2] + "_" + item.blockNumber + "_" + item[3].toNumber()}>
-                      <span style={{ fontSize: 16, marginRight: 8 }}>#{item[3].toNumber()}</span>
-                      <Address address={item[1]} ensProvider={mainnetProvider} fontSize={16} /> =&gt;
-                      <Address address={item[2]} ensProvider={mainnetProvider} fontSize={16} />
-                      <span style={{ fontSize: 16, marginRight: 8 }}>Amount: {item[4].toNumber()}</span>
-                    </List.Item>
-                  );
-                }}
-              />
-            </div>
-          </Route>
-
-          <Route path="/ipfsup">
-            <div style={{ paddingTop: 32, width: 740, margin: "auto", textAlign: "left" }}>
-              <ReactJson
-                style={{ padding: 8 }}
-                src={yourJSON}
-                theme="pop"
-                enableClipboard={false}
-                onEdit={(edit, a) => {
-                  setYourJSON(edit.updated_src);
-                }}
-                onAdd={(add, a) => {
-                  setYourJSON(add.updated_src);
-                }}
-                onDelete={(del, a) => {
-                  setYourJSON(del.updated_src);
-                }}
-              />
-            </div>
-
-            <Button
-              style={{ margin: 8 }}
-              loading={sending}
-              size="large"
-              shape="round"
-              type="primary"
-              onClick={async () => {
-                console.log("UPLOADING...", yourJSON);
-                setSending(true);
-                setIpfsHash();
-                const result = await ipfs.add(JSON.stringify(yourJSON)); // addToIPFS(JSON.stringify(yourJSON))
-                if (result && result.path) {
-                  setIpfsHash(result.path);
-                }
-                setSending(false);
-                console.log("RESULT:", result);
-              }}
-            >
-              Upload to IPFS
-            </Button>
-
-            <div style={{ padding: 16, paddingBottom: 150 }}>{ipfsHash}</div>
-          </Route>
-          <Route path="/ipfsdown">
-            <div style={{ paddingTop: 32, width: 740, margin: "auto" }}>
-              <Input
-                value={ipfsDownHash}
-                placeHolder="IPFS hash (like QmadqNw8zkdrrwdtPFK1pLi8PPxmkQ4pDJXY8ozHtz6tZq)"
-                onChange={e => {
-                  setIpfsDownHash(e.target.value);
-                }}
-              />
-            </div>
-            <Button
-              style={{ margin: 8 }}
-              loading={sending}
-              size="large"
-              shape="round"
-              type="primary"
-              onClick={async () => {
-                console.log("DOWNLOADING...", ipfsDownHash);
-                setDownloading(true);
-                setIpfsContent();
-                const result = await getFromIPFS(ipfsDownHash); // addToIPFS(JSON.stringify(yourJSON))
-                if (result && result.toString) {
-                  setIpfsContent(result.toString());
-                }
-                setDownloading(false);
-              }}
-            >
-              Download from IPFS
-            </Button>
-
-            <pre style={{ padding: 16, width: 500, margin: "auto", paddingBottom: 150 }}>{ipfsContent}</pre>
-          </Route>
+          <Route path="/test" />
           <Route path="/debugcontracts">
             <Contract
               name="YourCollectible"
               signer={userSigner}
-              provider={localProvider}
+              provider={injectedProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
@@ -771,7 +627,7 @@ function App(props) {
             <Contract
               name="YourCollectible721"
               signer={userSigner}
-              provider={localProvider}
+              provider={injectedProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
@@ -780,7 +636,7 @@ function App(props) {
             <Contract
               name="Barter"
               signer={userSigner}
-              provider={localProvider}
+              provider={injectedProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
@@ -789,57 +645,69 @@ function App(props) {
             <Contract
               name="BarterWithArrays"
               signer={userSigner}
-              provider={localProvider}
+              provider={injectedProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
+          <Route path="/debugcontracts_rent">
+            <Contract
+              name="RentContract"
+              signer={userSigner}
+              provider={injectedProvider}
               address={address}
               blockExplorer={blockExplorer}
             />
           </Route>
           <Route exact path="/">
-            {readContracts && address && localProvider ? (
-              <StartBarter
-                address={address}
-                tx={tx}
-                writeContracts={writeContracts}
-                localProvider={localProvider}
-                mainnetProvider={mainnetProvider}
-                readContracts={readContracts}
-                blockExplorer={blockExplorer}
-                signer={userSigner}
-                price={price}
-                yourCollectibles={yourCollectibles}
-                yourCollectibles721={yourCollectibles721}
-              />
-            ) : (
-              ""
-            )}
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <StartBarter
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
           </Route>
           <Route path="/active_offers">
-            {readContracts && address && localProvider ? (
-              <ActiveOffers
-                address={address}
-                tx={tx}
-                writeContracts={writeContracts}
-                localProvider={localProvider}
-                mainnetProvider={mainnetProvider}
-                readContracts={readContracts}
-                blockExplorer={blockExplorer}
-                signer={userSigner}
-                price={price}
-                yourCollectibles={yourCollectibles}
-                yourCollectibles721={yourCollectibles721}
-                ownerAccountForTests={ownerAccountForTests}
-              />
-            ) : (
-              ""
-            )}
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <ActiveOffers
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
           </Route>
           <Route path="/approve_barter">
-            {readContracts && address && localProvider ? (
+            {readContracts && address && injectedProvider ? (
               <ApproveBarter
                 address={address}
                 tx={tx}
                 writeContracts={writeContracts}
-                localProvider={localProvider}
+                localProvider={injectedProvider}
                 mainnetProvider={mainnetProvider}
                 readContracts={readContracts}
                 blockExplorer={blockExplorer}
@@ -847,26 +715,116 @@ function App(props) {
                 price={price}
                 yourCollectibles={yourCollectibles}
                 yourCollectibles721={yourCollectibles721}
-                ownerAccountForTests={ownerAccountForTests}
               />
             ) : (
               ""
             )}
           </Route>
+          <Route exact path="/start_rent">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <StartRent
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
+          </Route>
+          <Route path="/active_rents">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <ActiveRents
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
+          </Route>
+          <Route path="/end_rent">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <EndRent
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+              ) : (
+                ""
+              )}
+            </Wallet>
+          </Route>
           <Route path="/p2p">
-            <P2p/>
+            <P2p />
           </Route>
           <Route path="/AaveGotchi">
-            <AaveGotchi/>
+            <AaveGotchi signer={userSigner} />
+          </Route>
+          <Route path="/withdraw">
+            <Wallet style={{margin: "10px"}} >
+              {readContracts && address && injectedProvider ? (
+                <Withdraw
+                  address={address}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  localProvider={injectedProvider}
+                  mainnetProvider={mainnetProvider}
+                  readContracts={readContracts}
+                  blockExplorer={blockExplorer}
+                  signer={userSigner}
+                  price={price}
+                  yourCollectibles={yourCollectibles}
+                  yourCollectibles721={yourCollectibles721}
+                />
+                ): (
+                  ""
+                )}
+            </Wallet>
+          </Route>
+          <Route path="/genopets">
+              <Game/>
+          </Route>
+          <Route exact path="/nft/:address">
+              <Nft />
           </Route>
         </Switch>
       </BrowserRouter>
 
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
-      <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
+      <div style={{ position: "fixed", textAlign: "center", right: 0, top: 0, padding: 10}}>
         <Account
+          style={{margin: "10px"}}
           address={address}
-          localProvider={localProvider}
+          localProvider={injectedProvider}
           userSigner={userSigner}
           mainnetProvider={mainnetProvider}
           price={price}
@@ -878,48 +836,8 @@ function App(props) {
         {faucetHint}
       </div>
 
-      {/* 🗺 Extra UI like gas price, eth price, faucet, and support:
-      <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
-        <Row align="middle" gutter={[4, 4]}>
-          <Col span={8}>
-            <Ramp price={price} address={address} networks={NETWORKS} />
-          </Col>
-
-          <Col span={8} style={{ textAlign: "center", opacity: 0.8 }}>
-            <GasGauge gasPrice={gasPrice} />
-          </Col>
-          <Col span={8} style={{ textAlign: "center", opacity: 1 }}>
-            <Button
-              onClick={() => {
-                window.open("https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA");
-              }}
-              size="large"
-              shape="round"
-            >
-              <span style={{ marginRight: 8 }} role="img" aria-label="support">
-                💬
-              </span>
-              Support
-            </Button>
-          </Col>
-        </Row>
-
-        <Row align="middle" gutter={[4, 4]}>
-          <Col span={24}>
-            {
-                if the local provider has a signer, let's show the faucet:
-              faucetAvailable ? (
-                <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
-              ) : (
-                ""
-              )
-            }
-          </Col>
-        </Row>
-      </div>
-    */}
     </div>
   );
-}
+};
 
 export default App;

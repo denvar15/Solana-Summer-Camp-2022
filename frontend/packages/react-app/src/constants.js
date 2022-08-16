@@ -142,6 +142,13 @@ export const NETWORKS = {
     blockExplorer: "https://optimistic.etherscan.io/",
     rpcUrl: `https://mainnet.optimism.io`,
   },
+  neon: {
+    name: "Neon Devnet",
+    color: "#7700ff",
+    rpcUrl: "https://proxy.devnet.neonlabs.org/solana",
+    chainId: 245022926,
+    blockExplorer: "https://neonscan.org/",
+  },
 };
 
 export const NETWORK = chainId => {

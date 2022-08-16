@@ -7,7 +7,9 @@ Solana is currently one of the fastest growing and most user-friendly blockchain
 So far, there are no large guilds in Solana blockchain yet. Our product gives them tools that are unparalleled in the marketplace. It will help them get up and running faster on the Solana network and change the picture of the world for users and developers. Powerful tools = Powerful guilds.
 
 # Barter
+
 What is Barter in GtG? It is the process of exchanging one nft for another. This tool solves one common problem - to get rid of one nft and get another usually you need either
+
 1. Put it up for sale, sell it, and use the money you get in tokens to buy another nft
 2. Or make a personal agreement with the person who owns the desired product and make an exchange on the principles of trust
 
@@ -40,5 +42,5 @@ The platform user can just as easily deploy the token back to a separate tab, th
 
 # Our contacts
 
-Twitter - 
-Telegram - 
+Twitter -
+Telegram -

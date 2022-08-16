@@ -22,7 +22,7 @@ const client = new ApolloClient({
 ReactDOM.render(
   <ApolloProvider client={client}>
     <ThemeSwitcherProvider themeMap={themes} defaultTheme={prevTheme || "light"}>
-      <App subgraphUri={subgraphUri} />
+        <App subgraphUri={subgraphUri} />
     </ThemeSwitcherProvider>
   </ApolloProvider>,
   document.getElementById("root"),

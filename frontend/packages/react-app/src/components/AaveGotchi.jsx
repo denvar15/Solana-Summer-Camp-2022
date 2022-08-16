@@ -4,13 +4,17 @@ import { GotchiListing } from './GotchiListing/index';
 import Web3 from 'web3';
 import diamondABI from './abi/diamond.json';
 import React, { Component, useEffect, useState }  from 'react';
+import aromAbi from "../contracts/Arom.json"
+import swapAbi from "../contracts/MoraSwapRouter.json"
+import {ethers} from "ethers";
+import solanaAbi from "../contracts/erc20_iface.json";
 
 const diamondAddress = '0x86935F11C86623deC8a25696E1C19a8659CbF95d';
 
 const uri = 'https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic';
 const uriSVG = 'https://api.thegraph.com/subgraphs/name/froid1911/aavegotchi-svg';
 
-export default function AaveGotchi() {
+export default function AaveGotchi(props) {
   const [ gotchis, setGotchis ] = useState([]);
   const [ selectedGotchi, setSelectedGotchi ] = useState(0);
   const [ contract, setContract ] = useState(null);
@@ -68,7 +72,7 @@ export default function AaveGotchi() {
       }
     `
     const response = await request(uriSVG, query);
-    console.log("AAAAAAAAAAAAAAA W", response)
+    //console.log("AAAAAAAAAAAAAAA W", response)
     setGotchisSVGs(response.aavegotchis)
   }
 
@@ -82,7 +86,7 @@ export default function AaveGotchi() {
       }
     `
     const response = await request(uriSVG, query);
-    console.log("qweqweqwe   W", response)
+    //console.log("qweqweqwe   W", response)
     return response;
   }
 
@@ -94,11 +98,21 @@ export default function AaveGotchi() {
     return "white";
   }
 
+  const testMoraFunction = async () => {
+    let addr = "0xbc22a1304213b1a11eed3c5d116908575939bc4b";
+    const arom = new ethers.Contract(addr, aromAbi["abi"], props.signer);
+    console.log("arom", arom);
+    let swapAddr = "0x53172f5CF9fB7D7123A2521a26eC8DB2707045E2";
+    const moraSwapRouter = new ethers.Contract(swapAddr, swapAbi["abi"], props.signer);
+    console.log("moraSwapRouter", moraSwapRouter);
+  }
+
   useEffect(() => {
     fetchGotchis();
     fetchGotchisSVG();
     fetchUser();
     connectToWeb3();
+    testMoraFunction();
   }, [])
 
   useEffect(() => {

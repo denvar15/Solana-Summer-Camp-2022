@@ -21,10 +21,15 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
       plus it will use *.args for constructor args
 */
 
+const proxy_url = "https://proxy.devnet.neonlabs.org/solana";
+const network_id = 245022926;
+const deployerPrivateKey =
+  "b15163f0f961a84d6967bee649132e23a5280332ec9b774a2cdac32be6cfc0e1"; // place your private key here (Note: the corresponding wallet must have a non-zero balance of NEON tokens in order to pay for gas fees. Devnet NEON tokens can be obtained for free at https://neonfaucet.org/)
+
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "localhost";
+const defaultNetwork = "neonlabs";
 
 function mnemonic() {
   try {
@@ -80,10 +85,8 @@ module.exports = {
       },
     },
     goerli: {
-      url: "https://goerli.infura.io/v3/1c9133d3356f4b97954d8ee90b485b65", // <---- YOUR INFURA ID! (or it won't work)
-      accounts: {
-        mnemonic: mnemonic(),
-      },
+      url: "https://goerli.infura.io/v3/5c16757e2e1541dbbbe621d0409e6a4b", // <---- YOUR INFURA ID! (or it won't work)
+      accounts: [deployerPrivateKey],
     },
     xdai: {
       url: "https://rpc.xdaichain.com/",
@@ -100,7 +103,8 @@ module.exports = {
       },
     },
     mumbai: {
-      url: "https://polygon-mumbai.g.alchemy.com/v2/jWiiR2MW3b7RsFL1t0LosTx7mlGAYdKs/",
+      url:
+        "https://polygon-mumbai.g.alchemy.com/v2/jWiiR2MW3b7RsFL1t0LosTx7mlGAYdKs/",
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -167,6 +171,15 @@ module.exports = {
         l2: "localOptimism",
       },
     },
+    neonlabs: {
+      url: proxy_url,
+      accounts: [deployerPrivateKey],
+      network_id,
+      chainId: network_id,
+      allowUnlimitedContractSize: true,
+      timeout: 1000000,
+      isFork: true,
+    },
   },
   solidity: {
     compilers: [
@@ -225,7 +238,7 @@ task("fundedwallet", "Create a wallet (pk) link and fund it with deployer?")
     const randomWallet = ethers.Wallet.createRandom();
     const privateKey = randomWallet._signingKey().privateKey;
     console.log("🔐 WALLET Generated as " + randomWallet.address + "");
-    let url = taskArgs.url ? taskArgs.url : "http://localhost:3000";
+    const url = taskArgs.url ? taskArgs.url : "http://localhost:3000";
 
     let localDeployerMnemonic;
     try {
@@ -235,13 +248,13 @@ task("fundedwallet", "Create a wallet (pk) link and fund it with deployer?")
       /* do nothing - this file isn't always there */
     }
 
-    let amount = taskArgs.amount ? taskArgs.amount : "0.01";
+    const amount = taskArgs.amount ? taskArgs.amount : "0.01";
     const tx = {
       to: randomWallet.address,
       value: ethers.utils.parseEther(amount),
     };
 
-    //SEND USING LOCAL DEPLOYER MNEMONIC IF THERE IS ONE
+    // SEND USING LOCAL DEPLOYER MNEMONIC IF THERE IS ONE
     // IF NOT SEND USING LOCAL HARDHAT NODE:
     if (localDeployerMnemonic) {
       let deployerWallet = new ethers.Wallet.fromMnemonic(
@@ -255,9 +268,8 @@ task("fundedwallet", "Create a wallet (pk) link and fund it with deployer?")
           randomWallet.address +
           " using deployer account"
       );
-      let sendresult = await deployerWallet.sendTransaction(tx);
+      const sendresult = await deployerWallet.sendTransaction(tx);
       console.log("\n" + url + "/pk#" + privateKey + "\n");
-      return;
     } else {
       console.log(
         "💵 Sending " +
@@ -284,12 +296,12 @@ task(
     const hdwallet = hdkey.fromMasterSeed(seed);
     const wallet_hdpath = "m/44'/60'/0'/0/";
     const account_index = 0;
-    let fullPath = wallet_hdpath + account_index;
+    const fullPath = wallet_hdpath + account_index;
     if (DEBUG) console.log("fullPath", fullPath);
     const wallet = hdwallet.derivePath(fullPath).getWallet();
     const privateKey = "0x" + wallet._privKey.toString("hex");
     if (DEBUG) console.log("privateKey", privateKey);
-    var EthUtil = require("ethereumjs-util");
+    const EthUtil = require("ethereumjs-util");
     const address =
       "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
     console.log(
@@ -327,29 +339,29 @@ task(
       const hdwallet = hdkey.fromMasterSeed(seed);
       const wallet_hdpath = "m/44'/60'/0'/0/";
       const account_index = 0;
-      let fullPath = wallet_hdpath + account_index;
+      const fullPath = wallet_hdpath + account_index;
       if (DEBUG) console.log("fullPath", fullPath);
       const wallet = hdwallet.derivePath(fullPath).getWallet();
       const privateKey = "0x" + wallet._privKey.toString("hex");
       if (DEBUG) console.log("privateKey", privateKey);
-      var EthUtil = require("ethereumjs-util");
+      const EthUtil = require("ethereumjs-util");
       address =
         "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
 
       const rlp = require("rlp");
       const keccak = require("keccak");
 
-      let nonce = 0x00; //The nonce must be a hex literal!
-      let sender = address;
+      const nonce = 0x00; // The nonce must be a hex literal!
+      const sender = address;
 
-      let input_arr = [sender, nonce];
-      let rlp_encoded = rlp.encode(input_arr);
+      const input_arr = [sender, nonce];
+      const rlp_encoded = rlp.encode(input_arr);
 
-      let contract_address_long = keccak("keccak256")
+      const contract_address_long = keccak("keccak256")
         .update(rlp_encoded)
         .digest("hex");
 
-      contract_address = contract_address_long.substring(24); //Trim the first 24 characters.
+      contract_address = contract_address_long.substring(24); // Trim the first 24 characters.
     }
 
     console.log(
@@ -378,32 +390,32 @@ task(
   async (_, { ethers }) => {
     const hdkey = require("ethereumjs-wallet/hdkey");
     const bip39 = require("bip39");
-    let mnemonic = fs.readFileSync("./mnemonic.txt").toString().trim();
+    const mnemonic = fs.readFileSync("./mnemonic.txt").toString().trim();
     if (DEBUG) console.log("mnemonic", mnemonic);
     const seed = await bip39.mnemonicToSeed(mnemonic);
     if (DEBUG) console.log("seed", seed);
     const hdwallet = hdkey.fromMasterSeed(seed);
     const wallet_hdpath = "m/44'/60'/0'/0/";
     const account_index = 0;
-    let fullPath = wallet_hdpath + account_index;
+    const fullPath = wallet_hdpath + account_index;
     if (DEBUG) console.log("fullPath", fullPath);
     const wallet = hdwallet.derivePath(fullPath).getWallet();
     const privateKey = "0x" + wallet._privKey.toString("hex");
     if (DEBUG) console.log("privateKey", privateKey);
-    var EthUtil = require("ethereumjs-util");
+    const EthUtil = require("ethereumjs-util");
     const address =
       "0x" + EthUtil.privateToAddress(wallet._privKey).toString("hex");
 
-    var qrcode = require("qrcode-terminal");
+    const qrcode = require("qrcode-terminal");
     qrcode.generate(address);
     console.log("‍📬 Deployer Account is " + address);
-    for (let n in config.networks) {
-      //console.log(config.networks[n],n)
+    for (const n in config.networks) {
+      // console.log(config.networks[n],n)
       try {
-        let provider = new ethers.providers.JsonRpcProvider(
+        const provider = new ethers.providers.JsonRpcProvider(
           config.networks[n].url
         );
-        let balance = await provider.getBalance(address);
+        const balance = await provider.getBalance(address);
         console.log(" -- " + n + " --  -- -- 📡 ");
         console.log("   balance: " + ethers.utils.formatEther(balance));
         console.log(

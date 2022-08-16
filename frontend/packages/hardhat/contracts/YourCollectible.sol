@@ -3,9 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract YourCollectible is ERC1155, Ownable {
+contract YourCollectible is ERC1155 {
     uint256 private _currentTokenID = 0;
     mapping(uint256 => uint256) public tokenSupply;
 
@@ -19,7 +18,6 @@ contract YourCollectible is ERC1155, Ownable {
 		  bytes memory _data
   )
       public
-      onlyOwner
   {
       if(tokenSupply[_id] == 0)
         require(_id == _currentTokenID, "Wrong id provided");

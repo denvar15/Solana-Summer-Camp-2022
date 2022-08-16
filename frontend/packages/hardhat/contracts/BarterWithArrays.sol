@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
@@ -26,6 +26,24 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
     event ERC1155ForBarterUpdated(address token);
     event ERC1155ForBarterRemoved(address token);
 
+    struct ERC20ForBarter {
+        uint256 durationHours;
+        uint256 borrowedAtTimestamp;
+        address lender;
+        address borrower;
+        address[] acceptedToken;
+        uint256[] acceptedTokenId;
+        uint256[] acceptedTokenStandard;
+        address fulfilledToken;
+        uint256 fulfilledTokenId;
+        uint256 fulfilledTokenStandard;
+    }
+
+    mapping(address => mapping(uint256 => ERC20ForBarter)) barterERC20List;
+
+    event ERC20ForBarterUpdated(address token);
+    event ERC20ForBarterRemoved(address token);
+
     struct ERC721ForBarter {
         uint256 durationHours;
         uint256 borrowedAtTimestamp;
@@ -40,6 +58,9 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
     }
 
     mapping(address => mapping(uint256 => ERC721ForBarter)) barterERC721List;
+
+    event ERC721ForBarterUpdated(address token);
+    event ERC721ForBarterRemoved(address token);
 
     struct Barter {
         uint256 status;
@@ -59,8 +80,6 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
 
     mapping(address => uint256) public UsersBarterCount;
 
-    event ERC721ForBarterUpdated(address token);
-    event ERC721ForBarterRemoved(address token);
     event Received();
 
     function startBartering(address token, uint256 tokenId, uint256 durationHours, address[] memory acceptedToken,
@@ -86,6 +105,14 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             barterERC721List[token][tokenId].lender = msg.sender;
             barterERC721List[token][tokenId].borrowedAtTimestamp = block.timestamp;
             emit ERC721ForBarterUpdated(token);
+        } else if (tokenStandard == 20) {
+            require(barterERC20List[token][tokenId].borrower == address(0), 'Lending: Cannot change settings, token already lent');
+            IERC20(token).transferFrom(msg.sender, address(this), 1);
+            barterERC20List[token][tokenId] = ERC20ForBarter(durationHours, 0, address(this), address(0), acceptedToken,
+                acceptedTokenId, acceptedTokenStandard, address(0), 0, 0);
+            barterERC20List[token][tokenId].lender = msg.sender;
+            barterERC20List[token][tokenId].borrowedAtTimestamp = block.timestamp;
+            emit ERC20ForBarterUpdated(token);
         }
 
     }
@@ -117,6 +144,8 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
                     IERC1155(offerToken).safeTransferFrom(msg.sender, address(this), offerTokenId, 1, data);
                 } else if (offerTokenStandard == 721) {
                     IERC721(offerToken).safeTransferFrom(msg.sender, address(this), offerTokenId);
+                } else if (offerTokenStandard == 20) {
+                    IERC20(offerToken).transferFrom(msg.sender, address(this), 1);
                 }
                 barterERC1155List[wantedToken][wantedTokenId].borrower = msg.sender;
                 barterERC1155List[wantedToken][wantedTokenId].fulfilledToken = offerToken;
@@ -137,12 +166,12 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             if (isDurationExpired(barterERC721List[wantedToken][wantedTokenId].borrowedAtTimestamp, barterERC721List[wantedToken][wantedTokenId].durationHours)) {
                 //require(token == offerToken, 'Not accepted token!');
                 //require(acceptedTokenId == offerTokenId, 'Not accepted id!');
-                uint256 totalCount = barterERC1155List[wantedToken][wantedTokenId].acceptedToken.length;
+                uint256 totalCount = barterERC721List[wantedToken][wantedTokenId].acceptedToken.length;
                 uint256 res = 0;
                 for (uint i = 0; i < totalCount; i++) {
-                    address tok = barterERC1155List[wantedToken][wantedTokenId].acceptedToken[i];
-                    uint256 id = barterERC1155List[wantedToken][wantedTokenId].acceptedTokenId[i];
-                    uint256 stand = barterERC1155List[wantedToken][wantedTokenId].acceptedTokenStandard[i];
+                    address tok = barterERC721List[wantedToken][wantedTokenId].acceptedToken[i];
+                    uint256 id = barterERC721List[wantedToken][wantedTokenId].acceptedTokenId[i];
+                    uint256 stand = barterERC721List[wantedToken][wantedTokenId].acceptedTokenStandard[i];
                     if (tok == offerToken && id == offerTokenId && stand == offerTokenStandard) {
                         res = 1;
                     }
@@ -152,6 +181,8 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
                     IERC1155(offerToken).safeTransferFrom(msg.sender, address(this), offerTokenId, 1, data);
                 } else if (offerTokenStandard == 721) {
                     IERC721(offerToken).safeTransferFrom(msg.sender, address(this), offerTokenId);
+                } else if (offerTokenStandard == 20) {
+                    IERC20(offerToken).transferFrom(msg.sender, address(this), 1);
                 }
                 barterERC721List[wantedToken][wantedTokenId].borrower = msg.sender;
                 barterERC721List[wantedToken][wantedTokenId].fulfilledToken = offerToken;
@@ -161,6 +192,35 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
                 emit ERC721ForBarterUpdated(wantedToken);
             } else {
                 //IERC721(token).safeTransferFrom(address(this), msg.sender, wantedTokenId);
+            }
+        } else if (wantedTokenStandard == 20) {
+            require(barterERC20List[wantedToken][wantedTokenId].durationHours != 0, "Barter completed!");
+            bytes memory data = abi.encodeWithSignature("");
+            if (isDurationExpired(barterERC20List[wantedToken][wantedTokenId].borrowedAtTimestamp, barterERC20List[wantedToken][wantedTokenId].durationHours)) {
+                uint256 totalCount = barterERC20List[wantedToken][wantedTokenId].acceptedToken.length;
+                uint256 res = 0;
+                for (uint i = 0; i < totalCount; i++) {
+                    address tok = barterERC20List[wantedToken][wantedTokenId].acceptedToken[i];
+                    uint256 id = barterERC20List[wantedToken][wantedTokenId].acceptedTokenId[i];
+                    uint256 stand = barterERC20List[wantedToken][wantedTokenId].acceptedTokenStandard[i];
+                    if (tok == offerToken && id == offerTokenId && stand == offerTokenStandard) {
+                        res = 1;
+                    }
+                }
+                require(res == 1, "Token not in array of accepted!");
+                if (offerTokenStandard == 1155) {
+                    IERC1155(offerToken).safeTransferFrom(msg.sender, address(this), offerTokenId, 1, data);
+                } else if (offerTokenStandard == 721) {
+                    IERC721(offerToken).safeTransferFrom(msg.sender, address(this), offerTokenId);
+                } else if (offerTokenStandard == 20) {
+                    IERC20(offerToken).transferFrom(msg.sender, address(this), 1);
+                }
+                barterERC20List[wantedToken][wantedTokenId].borrower = msg.sender;
+                barterERC20List[wantedToken][wantedTokenId].fulfilledToken = offerToken;
+                barterERC20List[wantedToken][wantedTokenId].fulfilledTokenId = offerTokenId;
+                barterERC20List[wantedToken][wantedTokenId].fulfilledTokenStandard = offerTokenStandard;
+                updateUsersLend(offerToken, offerTokenId, offerTokenStandard, wantedToken, wantedTokenId, wantedTokenStandard, msg.sender);
+                emit ERC20ForBarterUpdated(wantedToken);
             }
         }
     }
@@ -182,21 +242,15 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             } else if (fulfilledTokenStandard == 721) {
                 //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC721(fulfilledToken).safeTransferFrom(address(this), lender, fulfilledTokenId);
+            } else if (fulfilledTokenStandard == 20) {
+                IERC20(fulfilledToken).transfer(lender, 1);
             }
             IERC1155(token).safeTransferFrom(address(this), borrower, tokenId, 1, data);
             barterERC1155List[token][tokenId].durationHours = 0;
             barterERC1155List[token][tokenId].borrower = address(0);
-            uint256 totalCount = UsersBarters[msg.sender].length;
-            for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[msg.sender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
-                    delete UsersBarters[msg.sender][i];
-                    UsersBarterCount[msg.sender] -= 1;
-                }
-            }
+            clearUsersBarters(token, tokenId, tokenStandard, msg.sender);
             emit ERC1155ForBarterRemoved(token);
-        } else {
+        } else if (tokenStandard == 721) {
             address lender = barterERC721List[token][tokenId].lender;
             address fulfilledToken = barterERC721List[token][tokenId].fulfilledToken;
             uint256 fulfilledTokenId = barterERC721List[token][tokenId].fulfilledTokenId;
@@ -211,22 +265,50 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             } else if (fulfilledTokenStandard == 721) {
                 //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC721(fulfilledToken).safeTransferFrom(address(this), lender, fulfilledTokenId);
+            } else if (fulfilledTokenStandard == 20) {
+                IERC20(fulfilledToken).transfer(lender, 1);
             }
             IERC721(token).safeTransferFrom(address(this), borrower, tokenId);
             barterERC721List[token][tokenId].durationHours = 0;
             barterERC721List[token][tokenId].borrower = address(0);
-            uint256 totalCount = UsersBarters[msg.sender].length;
-            for (uint i = 0; i<totalCount; i++) {
-                Barter memory userLend = UsersBarters[msg.sender][i];
-                if (userLend.token == token && userLend.tokenId == tokenId &&
-                    userLend.tokenStandard == tokenStandard) {
-                    delete UsersBarters[msg.sender][i];
-                    UsersBarterCount[msg.sender] -= 1;
-                }
-            }
+            clearUsersBarters(token, tokenId, tokenStandard, msg.sender);
             emit ERC721ForBarterRemoved(token);
+        } else if (tokenStandard == 20) {
+            address lender = barterERC20List[token][tokenId].lender;
+            address fulfilledToken = barterERC20List[token][tokenId].fulfilledToken;
+            uint256 fulfilledTokenId = barterERC20List[token][tokenId].fulfilledTokenId;
+            uint256 fulfilledTokenStandard = barterERC20List[token][tokenId].fulfilledTokenStandard;
+            address borrower = barterERC20List[token][tokenId].borrower;
+            require(lender == msg.sender, 'Not creator of barter!');
+            data = abi.encodeWithSignature("");
+            if (fulfilledTokenStandard == 1155) {
+                require(IERC1155(fulfilledToken).balanceOf(address(this), fulfilledTokenId) > 0, 'Not enough tokens!');
+                IERC1155(fulfilledToken).safeTransferFrom(address(this), lender, fulfilledTokenId, 1, data);
+            } else if (fulfilledTokenStandard == 721) {
+                IERC721(fulfilledToken).safeTransferFrom(address(this), lender, fulfilledTokenId);
+            } else if (fulfilledTokenStandard == 20) {
+                IERC20(fulfilledToken).transfer(lender, 1);
+            }
+            IERC20(token).transfer(borrower, 1);
+            barterERC20List[token][tokenId].durationHours = 0;
+            barterERC20List[token][tokenId].borrower = address(0);
+            clearUsersBarters(token, tokenId, tokenStandard, msg.sender);
+            emit ERC20ForBarterRemoved(token);
         }
     }
+
+    function clearUsersBarters(address token, uint256 tokenId, uint256 tokenStandard, address sender) public {
+        uint256 totalCount = UsersBarters[msg.sender].length;
+        for (uint i = 0; i<totalCount; i++) {
+            Barter memory userLend = UsersBarters[msg.sender][i];
+            if (userLend.token == token && userLend.tokenId == tokenId &&
+                userLend.tokenStandard == tokenStandard) {
+                delete UsersBarters[msg.sender][i];
+                UsersBarterCount[msg.sender] -= 1;
+            }
+        }
+    }
+
 
     function revokeBarter(address token, uint256 tokenId, uint256 tokenStandard) public {
         bytes memory data = abi.encodeWithSignature("");
@@ -245,21 +327,15 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             } else if (fulfilledTokenStandard == 721) {
                 //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC721(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId);
+            } else if (fulfilledTokenStandard == 20) {
+                IERC20(fulfilledToken).transfer(borrower, 1);
             }
             IERC1155(token).safeTransferFrom(address(this), lender, tokenId, 1, data);
             barterERC1155List[token][tokenId].durationHours = 0;
             barterERC1155List[token][tokenId].borrower = address(0);
-            uint256 totalCount = UsersBarters[msg.sender].length;
-            for (uint i = 0; i<totalCount; i++) {
-                Barter memory userBarter = UsersBarters[msg.sender][i];
-                if (userBarter.token == token && userBarter.tokenId == tokenId &&
-                    userBarter.tokenStandard == tokenStandard) {
-                    delete UsersBarters[msg.sender][i];
-                    UsersBarterCount[msg.sender] -= 1;
-                }
-            }
+            clearUsersBarters(token, tokenId, tokenStandard, msg.sender);
             emit ERC1155ForBarterRemoved(token);
-        } else {
+        } else if (tokenStandard == 721) {
             address lender = barterERC721List[token][tokenId].lender;
             address fulfilledToken = barterERC721List[token][tokenId].fulfilledToken;
             uint256 fulfilledTokenId = barterERC721List[token][tokenId].fulfilledTokenId;
@@ -274,20 +350,35 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             } else if (fulfilledTokenStandard == 721) {
                 //require(IERC721Enumerable(acceptedToken).tokenOfOwnerByIndex(address(this), acceptedTokenId) > 0, 'Not enough tokens!');
                 IERC721(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId);
+            } else if (fulfilledTokenStandard == 20) {
+                IERC20(fulfilledToken).transfer(borrower, 1);
             }
             IERC721(token).safeTransferFrom(address(this), lender, tokenId);
             barterERC721List[token][tokenId].durationHours = 0;
             barterERC721List[token][tokenId].borrower = address(0);
-            uint256 totalCount = UsersBarters[msg.sender].length;
-            for (uint i = 0; i<totalCount; i++) {
-                Barter memory userBarter = UsersBarters[msg.sender][i];
-                if (userBarter.token == token && userBarter.tokenId == tokenId &&
-                    userBarter.tokenStandard == tokenStandard) {
-                    delete UsersBarters[msg.sender][i];
-                    UsersBarterCount[msg.sender] -= 1;
-                }
-            }
+            clearUsersBarters(token, tokenId, tokenStandard, msg.sender);
             emit ERC721ForBarterRemoved(token);
+        } else if (tokenStandard == 20) {
+            address lender = barterERC20List[token][tokenId].lender;
+            address fulfilledToken = barterERC20List[token][tokenId].fulfilledToken;
+            uint256 fulfilledTokenId = barterERC20List[token][tokenId].fulfilledTokenId;
+            uint256 fulfilledTokenStandard = barterERC20List[token][tokenId].fulfilledTokenStandard;
+            address borrower = barterERC20List[token][tokenId].borrower;
+            require(lender == msg.sender, 'Not creator of barter!');
+            data = abi.encodeWithSignature("");
+            if (fulfilledTokenStandard == 1155) {
+                require(IERC1155(fulfilledToken).balanceOf(address(this), fulfilledTokenId) > 0, 'Not enough tokens!');
+                IERC1155(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId, 1, data);
+            } else if (fulfilledTokenStandard == 721) {
+                IERC721(fulfilledToken).safeTransferFrom(address(this), borrower, fulfilledTokenId);
+            } else if (fulfilledTokenStandard == 20) {
+                IERC20(fulfilledToken).transfer(borrower, 1);
+            }
+            IERC20(token).transfer(lender, 1);
+            barterERC20List[token][tokenId].durationHours = 0;
+            barterERC20List[token][tokenId].borrower = address(0);
+            clearUsersBarters(token, tokenId, tokenStandard, msg.sender);
+            emit ERC20ForBarterRemoved(token);
         }
     }
 
@@ -298,6 +389,8 @@ contract BarterWithArrays is ERC1155Receiver, Ownable {
             lender = barterERC1155List[wantedToken][wantedTokenId].lender;
         } else if (wantedTokenStandard == 721) {
             lender = barterERC721List[wantedToken][wantedTokenId].lender;
+        } else if (wantedTokenStandard == 20) {
+            lender = barterERC20List[wantedToken][wantedTokenId].lender;
         }
         uint256 totalCount = UsersBarters[lender].length;
         for (uint i = 0; i<totalCount; i++) {

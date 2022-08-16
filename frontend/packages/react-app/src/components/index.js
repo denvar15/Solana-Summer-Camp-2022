@@ -11,7 +11,6 @@ export { default as GasGauge } from "./GasGauge";
 export { default as Header } from "./Header";
 export { default as Provider } from "./Provider";
 export { default as Ramp } from "./Ramp";
-export { default as Swap } from "./Swap";
 export { default as ThemeSwitch } from "./ThemeSwitch";
 export { default as Timeline } from "./Timeline";
 export { default as TokenBalance } from "./TokenBalance";
@@ -22,6 +21,13 @@ export { default as Borrow } from "./old/Borrow";
 export { default as ApproveBarter } from "./ApproveBarter";
 export { default as StartBarter } from "./StartBarter";
 export { default as ActiveOffers } from "./ActiveOffers";
-export { default as Sidebar } from "./Sidebar"
-export { default as P2p } from "./P2p"
-export { default as AaveGotchi } from "./AaveGotchi.jsx"
+export { default as Sidebar } from "./Sidebar";
+export { default as P2p } from "./P2p";
+export { default as AaveGotchi } from "./AaveGotchi.jsx";
+export { default as Withdraw } from "./Withdraw.jsx";
+export { default as StartRent } from "./StartRent.jsx";
+export { default as ActiveRents } from "./ActiveRents.jsx";
+export { default as EndRent } from "./EndRent.jsx";
+export { default as Home } from "./Home.jsx";
+export { default as Game } from "./Game.jsx";
+export { default as Nft } from "./Nft.jsx";

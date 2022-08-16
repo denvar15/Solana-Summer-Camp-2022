@@ -2,18 +2,20 @@
 
 ![02](./screen02.jpg)
 
-Our project is dedicated to interacting with nft from the Solana and Neon networks. 
+Our project is dedicated to interacting with nft from the Solana and Neon networks.
 It allows players and guilds to easily and trustlessly exchange their NFTs from both networks and rent them out singly and in bulk.
 
-Link to our whitepaper - 
+Link to our whitepaper -
 
 # About Us
+
 For Solana Summer Camp 2022, we have fully implemented the Solana nft wrapper in the Neon Dev Net erc20 nft. Any user can contribute their nft, swap with someone, rent it out, and then return it to the Solana network in a timely manner. All of this was implemented during the hackathon. The rent contract was also fully written and integration with MoraSwap, the ecosystem DEX for Neon, was achieved.
 
 # Video demonstration
-Barter - https://youtu.be/beTGv4AjN0w
 
-Rent - https://youtu.be/olCPvzr9byc
+Barter - <https://youtu.be/beTGv4AjN0w>
+
+Rent - <https://youtu.be/olCPvzr9byc>
 
 # Launching the project
 
@@ -68,7 +70,7 @@ To create a test rental agreement you need two wallets, at least one nft and a N
 
 1. Choose one or more nft you want to offer. Specify the length of time you are willing to rent your asset, and indicate the value in MORA that will be the security deposit for your nft. This insures you against non-return. Confirmation of transactions is similar to the barter section
 2. Now, for a test rent, go from the second wallet to the Active Rents tab in the Rent section. There should appear the rental offer you just created from the first wallet. Make sure your Mora balance is greater than the specified deposit. To get Mora go to moraswap.com/exchange/swap and exchange your Neon for Mora. This is critical because Mora will be in staking status on the Moraswap contract for the duration of the first wallet's asset lease. You will need to confirm the contract's permission to dispose of your Mora and interact with the contract itself
-3. Staying on the second account, you can check your nft from the rental offer. If it is an ERC721/ERC1155 nft, you will see it on the Start Rent tab, and if it is a Solana nft wrapped in erc20, you will see it on the withdraw tab. 
+3. Staying on the second account, you can check your nft from the rental offer. If it is an ERC721/ERC1155 nft, you will see it on the Start Rent tab, and if it is a Solana nft wrapped in erc20, you will see it on the withdraw tab.
 4. To close your lease, click the End Rent tab in the Rent tab. Your current lease should be displayed there. Remember, if you close your lease before it expires, you get your deposit back, and the similar landlord of the nft itself gets the interest accumulated on your Mora. If you close the lease late, however, your entire deposit goes to the original owner as compensation.
 5. To close, you will need to confirm the contract's right to dispose of the nft that you return to the owner and confirm the interaction with the contract. That's all, the lease is closed, you are back to square one.
 
@@ -78,6 +80,6 @@ Note: at the moment there is no interest on mora stacking in moraswap yet. In th
 
 # Our contacts
 
-Twitter - 
+Twitter -
 
 Telegram - t.me/gtg_solana
