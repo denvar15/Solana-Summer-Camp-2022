@@ -1,4 +1,7 @@
 # GtG - Guild to Guild
+
+![02](./screen02.jpg)
+
 Our project is dedicated to interacting with nft from the Solana and Neon networks. 
 It allows players and guilds to easily and trustlessly exchange their NFTs from both networks and rent them out singly and in bulk.
 
@@ -35,18 +38,28 @@ If all went well, you will need to log into your Solana and Neon EVM wallets on 
 
 # User Flow Barter
 
+![01](./screen01.jpg)
+
 To make a test exchange you will need two Metamask wallets with Neon balance.
 
 1. We can choose one nft that we want to offer. Moving on to the next step
 2. We can choose several nfts, one of which we would potentially like to get. If we choose a nft from Solana, we need to accept the transaction in the Metamask popup before proceeding to the next step. This is the creation of an ERC20 wrapper for this nft
+
+![03](./screen03.jpg)
+
 3. In the third step, we want to enter the duration during which our offer will be active on the site. All this time our token will be frozen in the contract. Confirm the creation of a wrapper for Solana nft if you chose it as offered and the translation for it in the Phantom wallet accordingly. Next, confirm the right to dispose of the offered nft for the contract, confirm the interaction with the contract.
 4. After that, for a test exchange, we want to log in to the platform as some other user. To do this, switch to another wallet in metamask, replenish it with the necessary amount of Neon and zamint there test nft. One of these nfts must be among the desired ones in the offer created in the previous steps, otherwise the contract will not let such a deal close
+
+![04](./screen04.jpg)
+
 5. Go to the Active Offers tab under Barter. There you should see your offer created from the first wallet, select the nft that you selected from the first wallet in mirror form - the one that was offered will become desired and vice versa. After that, clicking on the button should lead to the wallet metamask, give permission to dispose of your nft and confirm the interaction with the contract
 6. Now you should go back to your first wallet and enter the Approve Barter tab, where the barter copy you just filled in from another account is expected to appear. You need to approve it in order for the nft to leave the contract and go to the new owners. Select the appropriate nft at the bottom of the page and click on confirm. You will then need to confirm the interaction with the contract in metamask. That's it, you can go to the start exchange page and look there for your new ERC721/ERC1155 nft. But, if you made an exchange to Solana nft, since it is not yet unpacked from the ERC20 wrapper, you can find it in the Withdraw tab!
 
 Note: to take the nft out of the withdraw tab, where all your wrapped in erc20 solana nft go, just click on it and confirm one transaction in metamask and one in phantom
 
 # User Flow Rent
+
+![06](./screen06.jpg)
 
 To create a test rental agreement you need two wallets, at least one nft and a Neon balance on both wallets, just as in the barter
 
@@ -56,10 +69,12 @@ To create a test rental agreement you need two wallets, at least one nft and a N
 4. To close your lease, click the End Rent tab in the Rent tab. Your current lease should be displayed there. Remember, if you close your lease before it expires, you get your deposit back, and the similar landlord of the nft itself gets the interest accumulated on your Mora. If you close the lease late, however, your entire deposit goes to the original owner as compensation.
 5. To close, you will need to confirm the contract's right to dispose of the nft that you return to the owner and confirm the interaction with the contract. That's all, the lease is closed, you are back to square one.
 
+![05](./screen05.jpg)
+
 Note: at the moment there is no interest on mora stacking in moraswap yet. In this case, it is a convention of working in Dev Net
 
 # Our contacts
 
 Twitter - 
 
-Telegram - 
+Telegram - t.me/gtg_solana
