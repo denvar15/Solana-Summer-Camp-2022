@@ -16,6 +16,9 @@ Barter - https://youtu.be/beTGv4AjN0w
 Rent - https://youtu.be/olCPvzr9byc
 
 # Launching the project
+
+Backend launch readme - backend/README.md
+
 We recommend using node js version 14.19.1 and the package manager yarn. Our project works on Solana Dev Net and Neon Dev Net
 
 Before you deploy contracts, make sure you have changed the secret phrase in hardhat.config to your own in the packages/hardhat directory and have enough Neon in your account, and remember to change the addresses for mint ERC1155 and ERC721 in the file in the deploy folder
