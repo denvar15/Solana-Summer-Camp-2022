@@ -8,7 +8,8 @@ Link to our whitepaper -
 For Solana Summer Camp 2022, we have fully implemented the Solana nft wrapper in the Neon Dev Net erc20 nft. Any user can contribute their nft, swap with someone, rent it out, and then return it to the Solana network in a timely manner. All of this was implemented during the hackathon. The rent contract was also fully written and integration with MoraSwap, the ecosystem DEX for Neon, was achieved.
 
 # Video demonstration
-Link - 
+Barter - https://youtu.be/olCPvzr9byc
+Rent - https://youtu.be/beTGv4AjN0w
 
 # Launching the project
 We recommend using node js version 14.19.1 and the package manager yarn. Our project works on Solana Dev Net and Neon Dev Net
