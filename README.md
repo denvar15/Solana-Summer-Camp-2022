@@ -15,7 +15,7 @@ For Solana Summer Camp 2022, we have fully implemented the Solana nft wrapper in
 
 Rent - <https://youtu.be/a8cGaf_WCgU>
 
-Barter - <https://youtu.be/beTGv4AjN0w>
+Barter - <https://youtu.be/HBFPr6nbYCs>
 
 # Launching the project
 
