@@ -5,7 +5,7 @@
 Our project is dedicated to interacting with nft from the Solana and Neon networks.
 It allows players and guilds to easily and trustlessly exchange their NFTs from both networks and rent them out singly and in bulk.
 
-Link to our whitepaper -
+Link to our [whitepaper](Whitepaper.md)
 
 # About Us
 
