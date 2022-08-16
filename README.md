@@ -1,38 +1,59 @@
-<p align="center">
-	<img src='https://github.com/k0b1x/pbs/blob/main/landing/public/logo.png?raw=true' height=150 />
-</p>
-<h1 align="center">CryptoSteam</h1>
-<b>CryptoSteam</b> - это новая веха в развитии GameFI.<br><b>CryptoSteam</b> представляет собой площадку, на которой есть всё, что нужно для игр в блокчейне.<br>Новичок получит на площадке лёгкий вход в игры за счёт механизмов аренды игровых NFT, быстро найдёт тут друзей и единомышленников. Компоненты социализации, такие как ачивки, статусы, мессенждеры и wiki, помогут быстро адаптироваться в любой игре.<br>
-Опытный игрок получит возможность обменять имеющиеся у него NFT, предложив комьюнити на обмен собственные NFT.<br>
-Гильдия сможет набрать новых участников, обеспечив им прокачку с первой минуты игры, предоставив им в аренду топовые NFT.<br>
-Разработчики игр расширяют охват за счёт концентрации их целевой аудитории на площадке.<br>
-Больше информации у нас на сайте: <a href="https://cryptosteam.kobix.ru" target="_blank">cryptosteam.kobix.ru</a>
+# GtG - Guild to Guild
+Our project is dedicated to interacting with nft from the Solana and Neon networks. 
+It allows players and guilds to easily and trustlessly exchange their NFTs from both networks and rent them out singly and in bulk.
 
-## Демо
+Link to our whitepaper - 
 
-<a href="https://youtu.be/dfNBT7KS-kw" target="_blank">Скринкаст</a>
+# Video demonstration
+Link - 
 
-## Установка
-~~~
-cd /frontend
-yarn start
-yarn chain
-yarn deploy
-yarn mint
-~~~
-<br>
-Бета-версия работает в сети localhost:8545, вам необходимо завести два кошелька в Metamask для имитации обмена между пользователями.<br>
-В файлах hardhat/scripts/mint.js и deploy.js, а так же в App.jsx необходимо заменить адреса кошельков на свои. 
-<br>
+# Launching the project
+We recommend using node js version 14.19.1 and the package manager yarn. Our project works on Solana Dev Net and Neon Dev Net
 
-## MVP
-В текущей версии CryptoSteam реализована интеграция с AaveGotchi, одной из популярнейших игр в GameFi. Уже сейчас можно посмотреть список доступных NFT для пользователя. Поддерживается работа с Mumbai - testnet Polygon. Также реализован внутрисетевой обмен и межсетевой обмен в сетях kovan и goerli. В дальнейшем развитии проекта предполагается интеграция с другими сетями для расширения аудитории продукта.
+Before you deploy contracts, make sure you have changed the secret phrase in hardhat.config to your own in the packages/hardhat directory and have enough Neon in your account, and remember to change the addresses for mint ERC1155 and ERC721 in the file in the deploy folder
 
-## Подробнее про бартер
-Абсолютно все участники свободны в обмене своих NFT, так как механизм площадки автоматически решает проблемы и сложности с межсетевым бартером. Игроку нужно только выбрать предмет, который он готов обменять, и предложить его на обмен. Наша система позволяет пользователям обмениваться так же легко, как будто они обмениваются предметами в Steam.
-1. Бартер позволяет пользователям обмениваться NFT, не зная друг друга, не требуя доверия одного пользователя другому и платформе.
-2. Бартер позволяет пользователю не думать о том какой стандарт поддерживает его NFT. Смарт-контракт обеспечивает работу с практически любым NFT на рынке.
-3. Бартер позволяет пользователям обмениваться NFT между сетями.
+```bash
+git clone https://github.com/denvar15/Solana-Summer-Camp-2022.git
+cd Solana-Summer-Camp-2022
+yarn install
+yarn run start
+```
 
+> in a second terminal window:
 
+```bash
+cd Solana-Summer-Camp-2022
+yarn run deploy
+```
 
+If all went well, you will need to log into your Solana and Neon EVM wallets on the localhost tab. The project is tested for Metamask and Phantom wallet respectively. Connect to the site and see your nfts in both networks
+
+# User Flow Barter
+
+To make a test exchange you will need two Metamask wallets with Neon balance.
+
+1. We can choose one nft that we want to offer. Moving on to the next step
+2. We can choose several nfts, one of which we would potentially like to get. If we choose a nft from Solana, we need to accept the transaction in the Metamask popup before proceeding to the next step. This is the creation of an ERC20 wrapper for this nft
+3. In the third step, we want to enter the duration during which our offer will be active on the site. All this time our token will be frozen in the contract. Confirm the creation of a wrapper for Solana nft if you chose it as offered and the translation for it in the Phantom wallet accordingly. Next, confirm the right to dispose of the offered nft for the contract, confirm the interaction with the contract.
+4. After that, for a test exchange, we want to log in to the platform as some other user. To do this, switch to another wallet in metamask, replenish it with the necessary amount of Neon and zamint there test nft. One of these nfts must be among the desired ones in the offer created in the previous steps, otherwise the contract will not let such a deal close
+5. Go to the Active Offers tab under Barter. There you should see your offer created from the first wallet, select the nft that you selected from the first wallet in mirror form - the one that was offered will become desired and vice versa. After that, clicking on the button should lead to the wallet metamask, give permission to dispose of your nft and confirm the interaction with the contract
+6. Now you should go back to your first wallet and enter the Approve Barter tab, where the barter copy you just filled in from another account is expected to appear. You need to approve it in order for the nft to leave the contract and go to the new owners. Select the appropriate nft at the bottom of the page and click on confirm. You will then need to confirm the interaction with the contract in metamask. That's it, you can go to the start exchange page and look there for your new ERC721/ERC1155 nft. But, if you made an exchange to Solana nft, since it is not yet unpacked from the ERC20 wrapper, you can find it in the Withdraw tab!
+
+Note: to take the nft out of the withdraw tab, where all your wrapped in erc20 solana nft go, just click on it and confirm one transaction in metamask and one in phantom
+
+# User Flow Rent
+
+To create a test rental agreement you need two wallets, at least one nft and a Neon balance on both wallets, just as in the barter
+
+1. Choose one or more nft you want to offer. Specify the length of time you are willing to rent your asset, and indicate the value in MORA that will be the security deposit for your nft. This insures you against non-return. Confirmation of transactions is similar to the barter section
+2. Now, for a test rent, go from the second wallet to the Active Rents tab in the Rent section. There should appear the rental offer you just created from the first wallet. Make sure your Mora balance is greater than the specified deposit. To get Mora go to moraswap.com/exchange/swap and exchange your Neon for Mora. This is critical because Mora will be in staking status on the Moraswap contract for the duration of the first wallet's asset lease. You will need to confirm the contract's permission to dispose of your Mora and interact with the contract itself
+3. Staying on the second account, you can check your nft from the rental offer. If it is an ERC721/ERC1155 nft, you will see it on the Start Rent tab, and if it is a Solana nft wrapped in erc20, you will see it on the withdraw tab. 
+4. To close your lease, click the End Rent tab in the Rent tab. Your current lease should be displayed there. Remember, if you close your lease before it expires, you get your deposit back, and the similar landlord of the nft itself gets the interest accumulated on your Mora. If you close the lease late, however, your entire deposit goes to the original owner as compensation.
+5. To close, you will need to confirm the contract's right to dispose of the nft that you return to the owner and confirm the interaction with the contract. That's all, the lease is closed, you are back to square one.
+
+Note: at the moment there is no interest on mora stacking in moraswap yet. In this case, it is a convention of working in Dev Net
+
+# Our contacts
+
+Twitter - 
+Telegram - 
