@@ -80,6 +80,6 @@ Note: at the moment there is no interest on mora stacking in moraswap yet. In th
 
 # Our contacts
 
-Twitter -
+Twitter - https://twitter.com/GuidtoGuild/
 
 Telegram - t.me/gtg_solana
