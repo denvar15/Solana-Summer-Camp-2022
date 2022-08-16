@@ -9,10 +9,10 @@ import { PORT } from './constants/port';
 createConnection()
     .then(async () => {
 
-        await viewSignersInfo();
-        // app.listen(PORT, () => {
-        //     console.info(`Server started and running at ${PORT}`);
-        // });
+        // await viewSignersInfo();
+        app.listen(PORT, () => {
+            console.info(`Server started and running at ${PORT}`);
+        });
     })
     .catch((error: Error) => {
         console.log(error);
