@@ -5,7 +5,7 @@ It allows players and guilds to easily and trustlessly exchange their NFTs from 
 Link to our whitepaper - 
 
 # About Us
-For Solana Summer Camp 2022, we have fully implemented the Solana nft wrapper in the Neon Dev Net erc20 nft. Any user can contribute their nft, swap with someone, rent it out, and then return it to the Solana network in a timely manner. All of this was implemented during the hackathon. The lease contract was also fully written and integration with MoraSwap, the ecosystem DEX for Neon, was achieved.
+For Solana Summer Camp 2022, we have fully implemented the Solana nft wrapper in the Neon Dev Net erc20 nft. Any user can contribute their nft, swap with someone, rent it out, and then return it to the Solana network in a timely manner. All of this was implemented during the hackathon. The rent contract was also fully written and integration with MoraSwap, the ecosystem DEX for Neon, was achieved.
 
 # Video demonstration
 Link - 
